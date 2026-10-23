@@ -1,0 +1,27 @@
+{
+  "name": "poc-guitare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "POC : détection de hauteur d'une guitare dans le navigateur (mode 2 et accordeur)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:https": "vite --host --mode https",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "pitchy": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

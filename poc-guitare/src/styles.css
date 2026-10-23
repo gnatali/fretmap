@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light dark;
+  --fond: #f7f7f5;
+  --texte: #1d1d1f;
+  --discret: #6b6b70;
+  --cadre: #d8d8dc;
+  --carte: #ffffff;
+  --accent: #2563eb;
+  --vert: #16a34a;
+  --orange: #ea580c;
+  --rouge: #dc2626;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #141416;
+    --texte: #ececef;
+    --discret: #9a9aa2;
+    --cadre: #34343a;
+    --carte: #1d1d21;
+    --accent: #60a5fa;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--fond);
+  color: var(--texte);
+}
+main { max-width: 760px; margin: 0 auto; padding: 16px; }
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.05rem; margin: 0 0 12px; }
+section {
+  background: var(--carte);
+  border: 1px solid var(--cadre);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.ligne { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button {
+  font: inherit;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--cadre);
+  background: var(--fond);
+  color: var(--texte);
+  cursor: pointer;
+}
+button:not(:disabled):hover { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+#btn-demarrer { background: var(--accent); color: #fff; border-color: var(--accent); }
+.erreur { color: var(--rouge); font-weight: 600; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 0; }
+dt { color: var(--discret); }
+dd { margin: 0; font-variant-numeric: tabular-nums; }
+.grille-reglages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; color: var(--discret); }
+input, select { font: inherit; padding: 6px; border-radius: 6px; border: 1px solid var(--cadre); background: var(--fond); color: var(--texte); }
+.detection { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.note { font-size: 4rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.note.ancienne { opacity: 0.35; }
+.statut { color: var(--discret); }
+.niveau { position: relative; height: 12px; background: var(--fond); border: 1px solid var(--cadre); border-radius: 6px; margin-top: 16px; overflow: hidden; }
+.niveau-barre { height: 100%; width: 0; background: var(--vert); }
+.niveau-barre.silence { background: var(--discret); }
+.niveau-seuil { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--rouge); }
+.niveau-texte { margin: 4px 0 0; font-size: 0.85rem; color: var(--discret); font-variant-numeric: tabular-nums; }
+.historique { margin: 0; padding-left: 24px; font-variant-numeric: tabular-nums; }
+.historique li { padding: 2px 0; }
+.historique .heure { color: var(--discret); margin-right: 8px; }
