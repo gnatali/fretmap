@@ -6,6 +6,9 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 // auto-signé, pour tester le micro depuis un téléphone du réseau local.
 // Vite ne propose plus l'option CLI `--https` : le plugin la remplace.
 export default defineConfig(({ mode }) => ({
+  // Chemins relatifs : le build fonctionne aussi bien sur GitHub Pages
+  // (https://<compte>.github.io/fretmap/) qu'à la racine d'un autre hébergement.
+  base: './',
   plugins: mode === 'https' ? [basicSsl()] : [],
   test: {
     include: ['tests/**/*.test.ts'],

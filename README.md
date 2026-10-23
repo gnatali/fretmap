@@ -10,6 +10,14 @@ Le projet commence par un POC qui vérifie qu'un navigateur peut détecter de fa
 | [`docs/specs-poc-manche-guitare.md`](docs/specs-poc-manche-guitare.md) | Spécifications du POC |
 | [`docs/revue-specs.md`](docs/revue-specs.md) | Revue de cohérence des spécifications |
 
+## Démo en ligne
+
+Le POC est publié automatiquement sur GitHub Pages à chaque push sur la branche par défaut :
+**https://gnatali.github.io/fretmap/**
+
+La page est servie en HTTPS : le micro fonctionne aussi depuis un téléphone, sans certificat auto-signé.
+Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : *Settings → Pages → Build and deployment → Source : GitHub Actions*.
+
 ## Avancement du POC
 
 - [x] J1 : Vite et TypeScript, accès micro, niveau sonore, calibrage du silence

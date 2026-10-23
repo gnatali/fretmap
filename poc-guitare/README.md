@@ -23,6 +23,8 @@ npm install
 
 Le micro exige un contexte sécurisé : `localhost` ou HTTPS.
 
+Version en ligne, mise à jour à chaque push sur la branche par défaut : https://gnatali.github.io/fretmap/ (pratique pour tester sur téléphone).
+
 ## Utilisation
 
 1. Cliquer sur **Démarrer** et autoriser le micro. La page affiche la fréquence d'échantillonnage, la fenêtre d'analyse et l'état des traitements du navigateur (qui doivent être désactivés).
