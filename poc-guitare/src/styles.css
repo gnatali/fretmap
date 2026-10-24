@@ -94,3 +94,15 @@ label.case { flex-direction: row; align-items: center; gap: 8px; align-self: end
 .aiguille-graduations { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--discret); margin-top: 2px; }
 .accordeur-ecart { margin: 8px 0 0; font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .accordeur-ecart.juste { color: var(--vert); }
+h3 { font-size: 0.95rem; margin: 16px 0 8px; }
+.options { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.options label.case { align-self: auto; padding-bottom: 0; }
+.message { min-height: 1.4em; margin: 8px 0 0; }
+.tableau-defilant { overflow-x: auto; margin-bottom: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+th, td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--cadre); white-space: nowrap; }
+th { color: var(--discret); font-weight: 500; }
+tr.fausse td { color: var(--rouge); }
+button.discret { padding: 0 6px; border: none; background: none; color: var(--discret); font-size: 1rem; }
+button.danger { color: var(--rouge); }
+.visuellement-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

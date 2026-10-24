@@ -107,6 +107,83 @@
         <h2 id="titre-historique">Dernières notes stables</h2>
         <ol id="historique" class="historique"></ol>
       </section>
+
+      <section aria-labelledby="titre-journal">
+        <h2 id="titre-journal">Journal de test</h2>
+        <div class="grille-reglages">
+          <label>Scénario
+            <select id="journal-scenario"></select>
+          </label>
+          <label>Guitare
+            <input id="journal-guitare" list="journal-guitares" placeholder="acoustique" autocomplete="off" />
+          </label>
+          <label>Matériel
+            <input id="journal-materiel" list="journal-materiels" placeholder="micro intégré portable" autocomplete="off" />
+          </label>
+          <label>Note attendue
+            <input id="journal-note" placeholder="E2" autocomplete="off" />
+          </label>
+        </div>
+        <datalist id="journal-guitares">
+          <option value="acoustique"></option>
+          <option value="électrique"></option>
+        </datalist>
+        <datalist id="journal-materiels">
+          <option value="micro intégré portable"></option>
+          <option value="casque avec micro"></option>
+          <option value="interface audio USB"></option>
+          <option value="téléphone Android"></option>
+        </datalist>
+        <div class="options">
+          <label class="case">
+            <input id="journal-suivre" type="checkbox" />
+            Note attendue = corde choisie dans l'accordeur
+          </label>
+          <label class="case">
+            <input id="journal-auto" type="checkbox" />
+            Enregistrer chaque note automatiquement
+          </label>
+        </div>
+        <p class="statut">Dernière mesure : <span id="journal-mesure">—</span></p>
+        <div class="ligne">
+          <button id="journal-enregistrer" type="button">Enregistrer l'essai</button>
+          <button id="journal-silence" type="button" disabled>Test de silence</button>
+        </div>
+        <p id="journal-message" class="message" aria-live="polite"></p>
+
+        <div id="journal-bloc-resume" hidden>
+          <h3>Résumé par scénario</h3>
+          <div class="tableau-defilant">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scén.</th><th>Essais</th><th>Bonnes notes</th><th>Écart moyen</th>
+                  <th>Latence méd.</th><th id="journal-entete-latence"></th><th>Octaves</th><th>Faux positifs</th>
+                </tr>
+              </thead>
+              <tbody id="journal-resume"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3>Essais (<span id="journal-nombre">0</span>)</h3>
+        <div class="tableau-defilant">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th><th>Scén.</th><th>Attendue</th><th>Détectée</th><th>Hz</th><th>Cents</th>
+                <th>Latence</th><th>Heure</th><th><span class="visuellement-cache">Supprimer</span></th>
+              </tr>
+            </thead>
+            <tbody id="journal-essais"></tbody>
+          </table>
+        </div>
+        <div class="ligne">
+          <button id="journal-csv" type="button">Exporter CSV</button>
+          <button id="journal-json" type="button">Exporter JSON</button>
+          <button id="journal-vider" type="button" class="danger">Vider le journal</button>
+        </div>
+      </section>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

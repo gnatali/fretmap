@@ -6,6 +6,7 @@ import { bornerA4 } from './music/notes';
 import { VueAccordeur } from './ui/accordeur';
 import { VueDetection } from './ui/detection';
 import { element, formaterNombre } from './ui/dom';
+import { VueJournal } from './ui/journal';
 
 const btnDemarrer = element<HTMLButtonElement>('btn-demarrer');
 const btnArreter = element<HTMLButtonElement>('btn-arreter');
@@ -24,6 +25,7 @@ const reglageLissage = element<HTMLSelectElement>('reglage-lissage');
 const chaine = new ChaineDetection(TAILLE_FENETRE);
 const vue = new VueDetection();
 const accordeur = new VueAccordeur(chaine.reglages.a4);
+const journal = new VueJournal({ noteVisee: () => accordeur.noteVisee, a4: () => chaine.reglages.a4 });
 const tampon = new Float32Array(TAILLE_FENETRE);
 
 let session: SessionMicro | null = null;
@@ -54,6 +56,7 @@ function analyser(): void {
 
   vue.afficher(etat, chaine.reglages.seuilSilenceDbfs);
   accordeur.afficher(etat);
+  journal.traiter(etat);
   boucle = requestAnimationFrame(analyser);
 }
 
@@ -97,6 +100,7 @@ async function demarrer(): Promise<void> {
   chaine.reinitialiser();
   lireReglages();
   accordeur.definirContexteAudio(session.contexte);
+  journal.definirMicroActif(true);
   boucle = requestAnimationFrame(analyser);
 }
 
@@ -111,6 +115,7 @@ async function arreter(): Promise<void> {
   await s?.arreter();
   vue.arreter();
   accordeur.arreter();
+  journal.definirMicroActif(false);
   etatMicro.textContent = 'Micro arrêté.';
   btnDemarrer.disabled = false;
 }

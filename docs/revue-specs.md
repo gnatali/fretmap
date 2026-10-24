@@ -13,7 +13,7 @@ Les points sont classés en trois groupes : incohérences à trancher, ambiguït
 | I4 | §2, §7 | iOS Safari est exclu du périmètre, mais le protocole prévoit un test « iOS si possible ». | Garder le test iOS comme information non bloquante, sans correctif dans le POC. |
 | I5 | §2, §5.5 | Le périmètre parle de « l'accordage standard », §5.5 définit quatre accordages. | Les quatre accordages sont implémentés dans `music/accordages.ts` (coût nul) ; seul le standard est requis pour les scénarios. |
 | I6 | §3 | `vite --host --https` ne fonctionne plus : Vite (depuis la v5) n'a plus d'option CLI `--https`, et `server.https` ne génère plus de certificat. | Script `npm run dev:https` avec `@vitejs/plugin-basic-ssl` (certificat auto-signé). |
-| I7 | §5.7, §6 H4, §7 scénario 4 | Le journal décrit un essai par note jouée. Le scénario 4 (30 s de silence) mesure un nombre de faux positifs : aucun champ ne permet de l'enregistrer. | Ajouter un champ `faux_positifs` (nombre) ou un bouton « Test de silence 30 s » qui crée un essai avec `note_attendue = silence` et le nombre de notes détectées. À trancher avant J4. |
+| I7 | §5.7, §6 H4, §7 scénario 4 | Le journal décrit un essai par note jouée. Le scénario 4 (30 s de silence) mesure un nombre de faux positifs : aucun champ ne permet de l'enregistrer. | **Décidé (option B), fait en J4** : bouton « Test de silence 30 s » qui crée un essai avec `note_attendue = silence`, le nombre de notes détectées (`faux_positifs`) et leur liste (`notes_parasites`). |
 
 ## 2. Ambiguïtés : choix faits dans le code
 

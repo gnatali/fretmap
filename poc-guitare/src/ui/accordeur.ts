@@ -88,9 +88,10 @@ export class VueAccordeur {
     this.changerCible();
   }
 
-  /** Cible courante (note attendue), utilisée pour préremplir le journal. */
-  get cible(): CibleAccordeur | null {
-    return this.derniereCible;
+  /** Note de la corde choisie en mode cordes (note attendue pour le journal), ou null en mode automatique ou chromatique. */
+  get noteVisee(): string | null {
+    if (this.mode !== 'cordes' || this.numeroCorde === null) return null;
+    return cordes(this.accordage, this.a4).find((c) => c.numero === this.numeroCorde)?.note ?? null;
   }
 
   /** Contexte audio de la session micro, pour le bip (null quand le micro est arrêté). */
