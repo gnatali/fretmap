@@ -22,7 +22,7 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 
 - [x] J1 : Vite et TypeScript, accès micro, niveau sonore, calibrage du silence
 - [x] J2 : pitchy, conversion fréquence → note, affichage, latence
-- [ ] Validation de la détection sur une vraie guitare (préalable à J3)
-- [ ] J3 : accordeur
+- [x] Validation de la détection sur une vraie guitare (six cordes à vide reconnues, téléphone Android)
+- [x] J3 : accordeur
 - [ ] J4 : journal de test, scénarios 1 à 4
 - [ ] J5 : scénario 5, `SYNTHESE.md`, décision

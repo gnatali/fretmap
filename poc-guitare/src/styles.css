@@ -9,6 +9,9 @@
   --vert: #16a34a;
   --orange: #ea580c;
   --rouge: #dc2626;
+  --zone-juste: rgb(22 163 74 / 0.35);
+  --zone-proche: rgb(234 88 12 / 0.3);
+  --zone-loin: rgb(220 38 38 / 0.22);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -74,3 +77,20 @@ input, select { font: inherit; padding: 6px; border-radius: 6px; border: 1px sol
 .historique { margin: 0; padding-left: 24px; font-variant-numeric: tabular-nums; }
 .historique li { padding: 2px 0; }
 .historique .heure { color: var(--discret); margin-right: 8px; }
+label.case { flex-direction: row; align-items: center; gap: 8px; align-self: end; padding-bottom: 8px; }
+.cordes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.cordes button { display: flex; flex-direction: column; align-items: center; min-width: 72px; padding: 6px 10px; }
+.cordes button small { color: var(--discret); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.cordes button[aria-pressed='true'] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cordes button.detectee { background: var(--zone-juste); }
+.accordeur-cible { display: flex; align-items: baseline; gap: 12px; }
+.accordeur-note { font-size: 2.5rem; font-weight: 700; line-height: 1.1; }
+.aiguille { position: relative; height: 36px; border-radius: 6px; border: 1px solid var(--cadre); margin-top: 8px; transition: box-shadow 0.2s; }
+.aiguille.juste { box-shadow: 0 0 0 3px var(--vert); }
+.aiguille-centre { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--discret); }
+.aiguille-repere { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--rouge); transition: left 0.08s linear; }
+.aiguille-repere[data-zone='proche'] { background: var(--orange); }
+.aiguille-repere[data-zone='juste'] { background: var(--vert); }
+.aiguille-graduations { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--discret); margin-top: 2px; }
+.accordeur-ecart { margin: 8px 0 0; font-size: 1.1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.accordeur-ecart.juste { color: var(--vert); }

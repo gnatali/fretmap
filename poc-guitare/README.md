@@ -31,7 +31,12 @@ Version en ligne, mise à jour à chaque push sur la branche par défaut : https
 2. Sans jouer, cliquer sur **Mesurer le bruit ambiant** : le seuil de silence est fixé au bruit mesuré pendant 2 s + 10 dB.
 3. Jouer une note : elle s'affiche quand elle est restée sur le même demi-ton pendant 100 ms. La ligne « Mesure brute » montre chaque mesure de pitchy et la raison d'un éventuel rejet.
 4. L'historique garde les 10 dernières notes stables, avec la latence entre l'attaque et l'affichage.
-5. **Arrêter** libère le micro.
+5. **Accordeur** : choisir l'accordage (standard, demi-ton plus bas, drop D, DADGAD) et le mode.
+   - *Cordes* : « Auto » vise la corde la plus proche, ou toucher une corde pour la viser. Chaque bouton affiche la fréquence cible, recalculée quand A4 change.
+   - *Chromatique* : vise la note la plus proche, quelle que soit la corde.
+   - L'aiguille va de −50 à +50 cents : vert à ±5, orange à ±15, rouge au-delà. Au-delà de ±50 cents, le repère reste au bord et le texte indique « beaucoup trop bas/haut ».
+   - L'écart n'apparaît qu'une fois la note stable. L'aiguille s'entoure de vert après 300 ms dans la zone verte ; le bip (désactivé par défaut) sonne à ce moment-là.
+6. **Arrêter** libère le micro.
 
 ## Paramètres à calibrer
 
@@ -47,6 +52,8 @@ Toutes les constantes sont documentées (unité et valeur initiale) dans le code
 | Durée de stabilité | 100 ms | `src/audio/pitch.ts` | non |
 | Détection d'attaque | hausse de 6 dB sur 100 ms | `src/audio/niveau.ts` | non |
 | Référence A4 | 440 Hz (430 à 450) | `src/music/notes.ts` | oui |
+| Zones de l'accordeur | ±5 cents (vert), ±15 cents (orange) | `src/music/accordages.ts` | non |
+| Durée « juste » | 300 ms | `src/music/accordages.ts` | non |
 
 ## Structure
 
@@ -59,10 +66,12 @@ src/
 │   └── niveau.ts       # RMS, seuil de silence, détection d'attaque (sans DOM)
 ├── music/
 │   ├── notes.ts        # Fréquence ↔ MIDI ↔ nom de note (fonctions pures)
-│   └── accordages.ts   # Accordages et corde la plus proche (fonctions pures)
+│   └── accordages.ts   # Accordages, corde la plus proche, cible et justesse de l'accordeur (fonctions pures)
 └── ui/
-    └── detection.ts    # Affichage libre de la note détectée
+    ├── accordeur.ts    # Accordeur : choix de corde, aiguille, indicateur « juste », bip
+    ├── detection.ts    # Affichage libre de la note détectée
+    └── dom.ts          # Utilitaires d'affichage partagés
 tests/                  # notes, accordages, lissage, chaîne de détection sur signal synthétique
 ```
 
-`ui/accordeur.ts` (J3) et `ui/journal.ts` (J4) restent à écrire.
+`ui/journal.ts` (J4) reste à écrire.

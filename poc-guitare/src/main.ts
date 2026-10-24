@@ -3,13 +3,9 @@ import { demarrerMicro, ErreurMicro, type SessionMicro } from './audio/micro';
 import { DUREE_CALIBRAGE_MS, seuilDepuisBruit } from './audio/niveau';
 import { ChaineDetection, TAILLE_FENETRE, type ModeLissage } from './audio/pitch';
 import { bornerA4 } from './music/notes';
+import { VueAccordeur } from './ui/accordeur';
 import { VueDetection } from './ui/detection';
-
-function element<T extends HTMLElement>(id: string): T {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`Élément introuvable : #${id}`);
-  return el as T;
-}
+import { element, formaterNombre } from './ui/dom';
 
 const btnDemarrer = element<HTMLButtonElement>('btn-demarrer');
 const btnArreter = element<HTMLButtonElement>('btn-arreter');
@@ -27,6 +23,7 @@ const reglageLissage = element<HTMLSelectElement>('reglage-lissage');
 
 const chaine = new ChaineDetection(TAILLE_FENETRE);
 const vue = new VueDetection();
+const accordeur = new VueAccordeur(chaine.reglages.a4);
 const tampon = new Float32Array(TAILLE_FENETRE);
 
 let session: SessionMicro | null = null;
@@ -41,6 +38,7 @@ function lireReglages(): void {
   const clarte = reglageClarte.valueAsNumber;
   if (Number.isFinite(clarte)) chaine.reglages.clarteMin = Math.min(1, Math.max(0, clarte));
   chaine.reglages.modeLissage = reglageLissage.value as ModeLissage;
+  accordeur.definirA4(chaine.reglages.a4);
 }
 
 function analyser(): void {
@@ -55,6 +53,7 @@ function analyser(): void {
   }
 
   vue.afficher(etat, chaine.reglages.seuilSilenceDbfs);
+  accordeur.afficher(etat);
   boucle = requestAnimationFrame(analyser);
 }
 
@@ -64,7 +63,7 @@ function terminerCalibrage(): void {
   calibrage = null;
   reglageSeuil.value = String(seuil);
   lireReglages();
-  etatCalibrage.textContent = `Seuil fixé à ${String(seuil).replace('.', ',')} dBFS (bruit ambiant + 10 dB).`;
+  etatCalibrage.textContent = `Seuil fixé à ${formaterNombre(seuil, 1)} dBFS (bruit ambiant + 10 dB).`;
   btnCalibrer.disabled = !session;
 }
 
@@ -84,7 +83,7 @@ async function demarrer(): Promise<void> {
 
   const sampleRate = session.contexte.sampleRate;
   infoSampleRate.textContent = `${sampleRate} Hz`;
-  infoTampon.textContent = `${TAILLE_FENETRE} échantillons (${((TAILLE_FENETRE / sampleRate) * 1000).toFixed(1).replace('.', ',')} ms)`;
+  infoTampon.textContent = `${TAILLE_FENETRE} échantillons (${formaterNombre((TAILLE_FENETRE / sampleRate) * 1000, 1)} ms)`;
   const { echoCancellation, noiseSuppression, autoGainControl } = session.reglagesPiste;
   const afficherReglage = (v: boolean | string | undefined) =>
     v === undefined ? 'inconnu' : typeof v === 'string' ? v : v ? 'actif' : 'désactivé';
@@ -97,6 +96,7 @@ async function demarrer(): Promise<void> {
   btnCalibrer.disabled = false;
   chaine.reinitialiser();
   lireReglages();
+  accordeur.definirContexteAudio(session.contexte);
   boucle = requestAnimationFrame(analyser);
 }
 
@@ -110,6 +110,7 @@ async function arreter(): Promise<void> {
   btnCalibrer.disabled = true;
   await s?.arreter();
   vue.arreter();
+  accordeur.arreter();
   etatMicro.textContent = 'Micro arrêté.';
   btnDemarrer.disabled = false;
 }

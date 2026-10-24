@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { ACCORDAGES, cordeLaPlusProche, cordes, trouverAccordage } from '../src/music/accordages';
+import {
+  ACCORDAGES,
+  SuiviJustesse,
+  cibleAccordeur,
+  cordeLaPlusProche,
+  cordes,
+  trouverAccordage,
+  zoneEcart,
+} from '../src/music/accordages';
 
 const attendus: Record<string, [string, number][]> = {
   standard: [['E2', 82.41], ['A2', 110.0], ['D3', 146.83], ['G3', 196.0], ['B3', 246.94], ['E4', 329.63]],
@@ -57,5 +65,78 @@ describe('cordeLaPlusProche', () => {
 
   it('renvoie null pour une fréquence invalide', () => {
     expect(cordeLaPlusProche(0, standard)).toBeNull();
+  });
+});
+
+describe('zoneEcart', () => {
+  it('vert à ±5 cents, orange à ±15 cents, rouge au-delà', () => {
+    expect(zoneEcart(0)).toBe('juste');
+    expect(zoneEcart(-5)).toBe('juste');
+    expect(zoneEcart(5.1)).toBe('proche');
+    expect(zoneEcart(-15)).toBe('proche');
+    expect(zoneEcart(15.1)).toBe('loin');
+    expect(zoneEcart(-120)).toBe('loin');
+  });
+});
+
+describe('cibleAccordeur', () => {
+  const standard = trouverAccordage('standard')!;
+  const dropD = trouverAccordage('drop-d')!;
+
+  it('mode cordes automatique : corde la plus proche', () => {
+    const c = cibleAccordeur(111, { mode: 'cordes', accordage: standard, numeroCorde: null, a4: 440 });
+    expect(c?.libelle).toBe('A2');
+    expect(c?.corde?.numero).toBe(5);
+    expect(c?.cents).toBeCloseTo(15.67, 1);
+  });
+
+  it('mode cordes avec corde choisie : écart par rapport à cette corde, même au-delà de ±50 cents', () => {
+    const c = cibleAccordeur(77.78, { mode: 'cordes', accordage: standard, numeroCorde: 6, a4: 440 });
+    expect(c?.libelle).toBe('E2');
+    expect(c?.cents).toBeCloseTo(-100, 0);
+  });
+
+  it('suit l’accordage choisi', () => {
+    const c = cibleAccordeur(74, { mode: 'cordes', accordage: dropD, numeroCorde: null, a4: 440 });
+    expect(c?.libelle).toBe('D2');
+  });
+
+  it('mode chromatique : note la plus proche, quelle que soit la corde', () => {
+    const c = cibleAccordeur(466, { mode: 'chromatique', accordage: standard, numeroCorde: 6, a4: 440 });
+    expect(c?.libelle).toBe('A#4');
+    expect(c?.corde).toBeNull();
+    expect(c?.frequence).toBeCloseTo(466.16, 2);
+  });
+
+  it('recalcule la cible avec la référence A4', () => {
+    const c = cibleAccordeur(108, { mode: 'cordes', accordage: standard, numeroCorde: 5, a4: 432 });
+    expect(c?.frequence).toBeCloseTo(108, 2);
+    expect(c?.cents).toBeCloseTo(0, 1);
+  });
+
+  it('renvoie null pour une fréquence invalide', () => {
+    expect(cibleAccordeur(0, { mode: 'cordes', accordage: standard, numeroCorde: null, a4: 440 })).toBeNull();
+    expect(cibleAccordeur(-1, { mode: 'chromatique', accordage: standard, numeroCorde: null, a4: 440 })).toBeNull();
+  });
+});
+
+describe('SuiviJustesse', () => {
+  it('indique « juste » après 300 ms consécutives dans la zone verte', () => {
+    const s = new SuiviJustesse(300);
+    expect(s.traiter(2, 'E2', 0)).toBe(false);
+    expect(s.traiter(-3, 'E2', 200)).toBe(false);
+    expect(s.traiter(1, 'E2', 300)).toBe(true);
+  });
+
+  it('repart de zéro si la note sort de la zone verte, disparaît ou change de cible', () => {
+    const s = new SuiviJustesse(300);
+    s.traiter(0, 'E2', 0);
+    expect(s.traiter(8, 'E2', 200)).toBe(false);
+    expect(s.traiter(0, 'E2', 300)).toBe(false);
+    expect(s.traiter(0, 'E2', 600)).toBe(true);
+    expect(s.traiter(null, null, 650)).toBe(false);
+    s.traiter(0, 'E2', 700);
+    expect(s.traiter(0, 'A2', 1000)).toBe(false);
+    expect(s.traiter(0, 'A2', 1300)).toBe(true);
   });
 });

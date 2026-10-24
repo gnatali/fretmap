@@ -1,5 +1,14 @@
-// Définitions des accordages et choix de la corde la plus proche. Fonctions pures, sans DOM.
-import { A4_DEFAUT_HZ, ecartCents, midiVersFrequence, nomVersMidi } from './notes';
+// Définitions des accordages, choix de la corde et logique de l'accordeur. Fonctions pures, sans DOM.
+import { A4_DEFAUT_HZ, ecartCents, frequenceVersNote, midiVersFrequence, nomVersMidi } from './notes';
+
+/** Écart toléré pour considérer la note juste (zone verte), en cents. Valeur initiale ±5 cents. */
+export const TOLERANCE_JUSTE_CENTS = 5;
+/** Limite de la zone orange, en cents. Valeur initiale ±15 cents. */
+export const TOLERANCE_PROCHE_CENTS = 15;
+/** Étendue de l'aiguille de part et d'autre de la cible, en cents. */
+export const ETENDUE_AIGUILLE_CENTS = 50;
+/** Durée passée dans la zone verte avant d'indiquer « juste », en ms. Valeur initiale 300 ms. */
+export const DUREE_JUSTE_MS = 300;
 
 export interface Accordage {
   id: string;
@@ -52,4 +61,81 @@ export function cordeLaPlusProche(
     if (!meilleure || Math.abs(cents) < Math.abs(meilleure.cents)) meilleure = { corde, cents };
   }
   return meilleure;
+}
+
+export type Zone = 'juste' | 'proche' | 'loin';
+
+/** Zone de l'aiguille : verte (juste), orange (proche) ou rouge (loin). */
+export function zoneEcart(cents: number): Zone {
+  const ecart = Math.abs(cents);
+  if (ecart <= TOLERANCE_JUSTE_CENTS) return 'juste';
+  if (ecart <= TOLERANCE_PROCHE_CENTS) return 'proche';
+  return 'loin';
+}
+
+export type ModeAccordeur = 'cordes' | 'chromatique';
+
+export interface OptionsAccordeur {
+  mode: ModeAccordeur;
+  accordage: Accordage;
+  /** Corde choisie (6 à 1), ou null pour la sélection automatique de la corde la plus proche. */
+  numeroCorde: number | null;
+  a4: number;
+}
+
+export interface CibleAccordeur {
+  /** Note visée, ex. « E2 ». */
+  libelle: string;
+  /** Fréquence visée, en Hz. */
+  frequence: number;
+  /** Écart de la fréquence mesurée à la cible, en cents (peut dépasser ±50 en mode cordes). */
+  cents: number;
+  /** Corde visée en mode cordes, null en mode chromatique. */
+  corde: Corde | null;
+}
+
+/** Cible de l'accordeur pour une fréquence mesurée (stable), selon le mode et la corde choisie. */
+export function cibleAccordeur(frequence: number, options: OptionsAccordeur): CibleAccordeur | null {
+  const { mode, accordage, numeroCorde, a4 } = options;
+  if (mode === 'chromatique') {
+    const note = frequenceVersNote(frequence, a4);
+    if (!note) return null;
+    return { libelle: note.libelle, frequence: midiVersFrequence(note.midi, a4), cents: note.centsExacts, corde: null };
+  }
+  if (!(frequence > 0) || !Number.isFinite(frequence)) return null;
+  const choisie = numeroCorde === null ? undefined : cordes(accordage, a4).find((c) => c.numero === numeroCorde);
+  if (choisie) {
+    return { libelle: choisie.note, frequence: choisie.frequence, cents: ecartCents(frequence, choisie.frequence), corde: choisie };
+  }
+  const proche = cordeLaPlusProche(frequence, accordage, a4);
+  if (!proche) return null;
+  return { libelle: proche.corde.note, frequence: proche.corde.frequence, cents: proche.cents, corde: proche.corde };
+}
+
+/**
+ * Indique si la note est restée dans la zone verte pendant `dureeMs` consécutives, sur la même cible.
+ * Le temps est fourni par l'appelant pour rester testable.
+ */
+export class SuiviJustesse {
+  private depuis: number | null = null;
+  private cle: string | null = null;
+
+  constructor(readonly dureeMs: number = DUREE_JUSTE_MS) {}
+
+  /** @param cents écart à la cible, ou null sans note stable. @param cle identifiant de la cible (ex. « E2 »). */
+  traiter(cents: number | null, cle: string | null, tMs: number): boolean {
+    const dansZone = cents !== null && cle !== null && zoneEcart(cents) === 'juste';
+    if (!dansZone) {
+      this.depuis = null;
+    } else if (this.depuis === null || cle !== this.cle) {
+      this.depuis = tMs;
+    }
+    this.cle = cle;
+    return this.depuis !== null && tMs - this.depuis >= this.dureeMs;
+  }
+
+  reinitialiser(): void {
+    this.depuis = null;
+    this.cle = null;
+  }
 }

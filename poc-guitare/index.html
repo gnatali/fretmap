@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>POC guitare : détection de hauteur</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
@@ -48,6 +49,38 @@
           <button id="btn-calibrer" type="button" disabled>Mesurer le bruit ambiant</button>
           <span id="etat-calibrage"></span>
         </div>
+      </section>
+
+      <section aria-labelledby="titre-accordeur">
+        <h2 id="titre-accordeur">Accordeur</h2>
+        <div class="grille-reglages">
+          <label>Accordage
+            <select id="accordeur-accordage"></select>
+          </label>
+          <label>Mode
+            <select id="accordeur-mode">
+              <option value="cordes" selected>Cordes</option>
+              <option value="chromatique">Chromatique</option>
+            </select>
+          </label>
+          <label class="case">
+            <input id="accordeur-bip" type="checkbox" />
+            Bip quand la note est juste
+          </label>
+        </div>
+        <div id="accordeur-cordes" class="cordes" role="group" aria-label="Corde à accorder"></div>
+        <div class="accordeur-cible">
+          <span id="accordeur-note" class="accordeur-note">—</span>
+          <span id="accordeur-cible" class="statut"></span>
+        </div>
+        <div id="accordeur-aiguille" class="aiguille" aria-hidden="true">
+          <div class="aiguille-centre"></div>
+          <div id="accordeur-repere" class="aiguille-repere" hidden></div>
+        </div>
+        <div class="aiguille-graduations" aria-hidden="true">
+          <span>−50</span><span>0</span><span>+50</span>
+        </div>
+        <p id="accordeur-ecart" class="accordeur-ecart" aria-live="polite">—</p>
       </section>
 
       <section aria-labelledby="titre-detection">
