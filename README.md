@@ -10,6 +10,8 @@ Le projet commence par un POC qui vérifie qu'un navigateur peut détecter de fa
 | [`docs/specs-poc-manche-guitare.md`](docs/specs-poc-manche-guitare.md) | Spécifications du POC |
 | [`docs/revue-specs.md`](docs/revue-specs.md) | Revue de cohérence des spécifications |
 | [`poc-guitare/SYNTHESE.md`](poc-guitare/SYNTHESE.md) | Synthèse du POC : résultats par hypothèse et décision |
+| [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2) |
+| [`docs/revue-specs-app.md`](docs/revue-specs-app.md) | Revue des spécifications de l'application au regard du POC, points à confirmer |
 
 ## Démo en ligne
 
@@ -32,3 +34,9 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] `SYNTHESE.md` : décision **Go**
 - [x] Accordeur validé sur la guitare
 - [ ] Scénario 6 : cases 6 à 12, jusqu'à E5 (plage du produit, point I1)
+
+## Application
+
+- [x] Spécifications revues au regard du POC (version 2)
+- [ ] Phase 0 : points à confirmer, scénario 6 du POC
+- [ ] Phases 1 à 7 (spec §12)

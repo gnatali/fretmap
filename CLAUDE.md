@@ -1,17 +1,17 @@
 # fretmap
 
-Site d'apprentissage des notes du manche de guitare (`docs/specs-poc-manche-guitare.md` §1) : mode 1 sans guitare (manche virtuel), mode 2 avec guitare (la page reconnaît la note jouée), accordeur.
+Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manche virtuel), mode 2 avec guitare (la page reconnaît la note jouée), accordeur. Spécification de l'application : `docs/specs-app-apprentissage-manche.md` (version 2, mise en cohérence avec le POC dans `docs/revue-specs-app.md`).
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Reste à faire** : jouer le scénario 6 (cases 6 à 12, cordes 2 et 1, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
-- **Décidé** : plage jusqu'à E5 (I1) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
-- **Pas de spécification du produit final** : la demander à l'utilisateur avant de commencer.
+- **Prochaine étape : phase 0 de l'application** (spec §12), pas de code avant qu'elle soit finie :
+  1. faire trancher par l'utilisateur les points « à confirmer » (tableau en fin de `docs/revue-specs-app.md`), puis reporter ses réponses dans la spec et la revue ;
+  2. jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
+- **Ensuite** : phases 1 et 2 de la spec (§12, consignes §13), dans `app/` si l'emplacement est confirmé.
+- **Décidé** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
 
-## À reprendre du POC dans le produit
-- `poc-guitare/src/music/` et `src/audio/` : sans DOM, testés, réutilisables tels quels.
-- Mode 2 : se fier à la première note stable après une attaque (`apresAttaque`) ; ignorer une fois la note de la consigne précédente (`Campagne.traiterNote`).
-- Garder la tolérance d'octave ; calibrer le seuil de silence sans jouer (bruit ambiant + 10 dB).
+## À reprendre du POC dans l'application
+Valeurs validées, règles du mode 2 et modules à copier : spec §3, §5.2 et §8. `poc-guitare/` reste l'outil de mesure : ne pas le modifier pour l'application.
 
 ## Règles
 - Tout en français : code, commentaires, docs, commits, échanges.
