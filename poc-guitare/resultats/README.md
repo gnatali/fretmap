@@ -6,6 +6,8 @@ Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrabl
 
 Guitare acoustique, micro intégré d'un ordinateur portable. 127 essais enregistrés automatiquement : scénarios 1, 2 et 3. Le scénario 4 (silence) n'a pas été joué.
 
+Session enregistrée avant trois changements de la page : la note attendue est désormais figée au début de chaque note, la tolérance d'octave est activée par défaut, et le journal distingue les notes jouées (`attaque = true`) des changements sans attaque. Ci-dessous, une note « jouée » est un essai avec latence.
+
 ### Chiffres bruts du journal
 
 | Scénario | Essais | Bonnes notes | Octaves erronées | Écart moyen absolu | Latence médiane | Latences < 300 ms |
@@ -60,3 +62,5 @@ L'écart diffère d'une corde à l'autre mais reste stable pour une même corde 
 ### Point faible identifié
 
 Sur les cordes graves (E2, F2), avec le micro intégré, la détection saute souvent à l'octave supérieure pendant que la corde résonne : 15 fois sur 127 essais. C'est le risque « harmoniques, octave erronée » de la spécification (§13). En mode 2, la première détection après l'attaque est juste ; mais l'accordeur et l'affichage libre montrent la mauvaise octave au bout de quelques instants.
+
+Réponse : tolérance d'octave, activée par défaut depuis. À vérifier lors de la prochaine session : les changements sans attaque sur E2 et F2 doivent quasiment disparaître.

@@ -29,6 +29,11 @@ export interface Essai {
   /** Écart entre la fréquence mesurée et la fréquence théorique de la note attendue, en cents. */
   ecart_cents: number | null;
   latence_ms: number | null;
+  /**
+   * Vrai si la note suit une attaque (note jouée : ce que verra l'utilisateur en mode 2), faux si elle est apparue
+   * pendant que la corde résonnait, sans nouvelle attaque ; null pour le test de silence.
+   */
+  attaque: boolean | null;
   /** Même nom de note que la note attendue, mais pas la même octave. */
   octave_erronee: boolean | null;
   /** Scénario 4 : nombre de notes détectées pendant le silence. */
@@ -51,6 +56,7 @@ export const CHAMPS: readonly (keyof Essai)[] = [
   'freq_theorique_hz',
   'ecart_cents',
   'latence_ms',
+  'attaque',
   'octave_erronee',
   'faux_positifs',
   'notes_parasites',
@@ -65,6 +71,8 @@ export interface Mesure {
   /** Médiane des fréquences lissées pendant toute la durée stable de la note, en Hz. */
   frequence: number;
   latenceMs: number | null;
+  /** La note suit une attaque (et non un changement pendant que la corde résonne). */
+  apresAttaque: boolean;
   /** Note attendue au moment où la note a commencé (et non quand elle se termine). */
   noteAttendue: string;
 }
@@ -96,6 +104,7 @@ export class SuiviMesure {
         midi: etat.stable.midi,
         frequences: [etat.stable.frequence],
         latenceMs: etat.latenceMs,
+        apresAttaque: etat.apresAttaque,
         noteAttendue,
       };
       return terminee;
@@ -172,6 +181,7 @@ export function creerEssai(contexte: ContexteEssai, mesure: Mesure): Essai {
     freq_theorique_hz: freqTheorique === null ? null : arrondir(freqTheorique, 2),
     ecart_cents: freqTheorique === null ? null : arrondir(ecartCents(mesure.frequence, freqTheorique), 1),
     latence_ms: mesure.latenceMs === null ? null : Math.round(mesure.latenceMs),
+    attaque: mesure.apresAttaque,
     octave_erronee:
       midiAttendu === null ? null : mesure.midi !== midiAttendu && (mesure.midi - midiAttendu) % 12 === 0,
     faux_positifs: null,
@@ -193,6 +203,7 @@ export function creerEssaiSilence(contexte: Omit<ContexteEssai, 'a4'>, notes: re
     freq_theorique_hz: null,
     ecart_cents: null,
     latence_ms: null,
+    attaque: null,
     octave_erronee: null,
     faux_positifs: notes.length,
     notes_parasites: notes.join(' '),
@@ -231,13 +242,21 @@ function estEssai(valeur: unknown): valeur is Essai {
   return typeof e.id === 'number' && typeof e.scenario === 'string' && typeof e.date === 'string';
 }
 
+/**
+ * Complète un essai enregistré avant l'ajout du champ `attaque` : une note avec latence suit forcément une attaque.
+ */
+function completerEssai(essai: Essai): Essai {
+  if (typeof essai.attaque === 'boolean' || essai.attaque === null) return essai;
+  return { ...essai, attaque: essai.faux_positifs !== null ? null : essai.latence_ms !== null };
+}
+
 /** Lit le journal ; renvoie une liste vide si le stockage est indisponible ou illisible. */
 export function chargerEssais(stockage: Stockage | null): Essai[] {
   try {
     const brut = stockage?.getItem(CLE_JOURNAL);
     if (!brut) return [];
     const donnees: unknown = JSON.parse(brut);
-    return Array.isArray(donnees) ? donnees.filter(estEssai) : [];
+    return Array.isArray(donnees) ? donnees.filter(estEssai).map(completerEssai) : [];
   } catch {
     return [];
   }
@@ -257,37 +276,46 @@ export function sauverEssais(stockage: Stockage | null, essais: readonly Essai[]
 export interface ResumeScenario {
   scenario: string;
   essais: number;
-  /** Essais dont la note attendue est connue (hors silence). */
-  notesEvaluees: number;
+  /** Notes jouées (après une attaque) dont la note attendue est connue : base de H2 et H5. */
+  attaquesEvaluees: number;
   bonnesNotes: number;
-  /** Moyenne des écarts absolus sur les bonnes notes, en cents (H1). */
+  /** Moyenne des écarts absolus sur les bonnes notes jouées, en cents (H1). */
   ecartMoyenAbsCents: number | null;
   latenceMedianeMs: number | null;
   /** Part des latences mesurées sous LATENCE_MAX_MS (H3), de 0 à 1. */
   partLatenceOk: number | null;
+  /** Erreurs d'octave sur les notes jouées. */
   octavesErronees: number;
+  /** Changements de note pendant que la corde résonne, sans nouvelle attaque (instabilité de l'affichage). */
+  changementsSansAttaque: number;
   fauxPositifs: number | null;
 }
 
-/** Résumé par scénario, pour juger les hypothèses H1 à H5. */
+/**
+ * Résumé par scénario, pour juger les hypothèses H1 à H5.
+ * Les taux portent sur les notes jouées (première détection après une attaque) ; les changements sans attaque
+ * sont comptés à part.
+ */
 export function resumer(essais: readonly Essai[]): ResumeScenario[] {
   const scenarios = [...new Set(essais.map((e) => e.scenario))].sort();
   return scenarios.map((scenario) => {
     const liste = essais.filter((e) => e.scenario === scenario);
-    const evaluees = liste.filter((e) => e.note_attendue !== '' && e.note_attendue !== 'silence');
+    const jouees = liste.filter((e) => e.attaque === true);
+    const evaluees = jouees.filter((e) => e.note_attendue !== '' && e.note_attendue !== 'silence');
     const bonnes = evaluees.filter((e) => e.note_detectee === e.note_attendue);
     const ecarts = bonnes.map((e) => e.ecart_cents).filter((v): v is number => v !== null);
-    const latences = liste.map((e) => e.latence_ms).filter((v): v is number => v !== null);
+    const latences = jouees.map((e) => e.latence_ms).filter((v): v is number => v !== null);
     const silences = liste.filter((e) => e.faux_positifs !== null);
     return {
       scenario,
       essais: liste.length,
-      notesEvaluees: evaluees.length,
+      attaquesEvaluees: evaluees.length,
       bonnesNotes: bonnes.length,
       ecartMoyenAbsCents: ecarts.length ? arrondir(ecarts.reduce((s, v) => s + Math.abs(v), 0) / ecarts.length, 1) : null,
       latenceMedianeMs: latences.length ? Math.round(mediane(latences)) : null,
       partLatenceOk: latences.length ? latences.filter((v) => v < LATENCE_MAX_MS).length / latences.length : null,
-      octavesErronees: liste.filter((e) => e.octave_erronee === true).length,
+      octavesErronees: jouees.filter((e) => e.octave_erronee === true).length,
+      changementsSansAttaque: liste.filter((e) => e.attaque === false).length,
       fauxPositifs: silences.length ? silences.reduce((s, e) => s + (e.faux_positifs ?? 0), 0) : null,
     };
   });

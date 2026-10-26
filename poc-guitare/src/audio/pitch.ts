@@ -1,6 +1,6 @@
 // Détection de fréquence (pitchy, algorithme McLeod), filtrage, lissage et stabilité. Sans DOM.
 import { PitchDetector } from 'pitchy';
-import { A4_DEFAUT_HZ, frequenceVersNote, type NoteDetectee } from '../music/notes';
+import { A4_DEFAUT_HZ, ecartCents, frequenceVersNote, type NoteDetectee } from '../music/notes';
 import { DetecteurAttaque, SEUIL_SILENCE_DBFS_DEFAUT, rms, rmsVersDbfs } from './niveau';
 
 /** Fenêtre d'analyse, en échantillons. Valeur initiale 4096 (≈ 93 ms à 44,1 kHz, ≈ 85 ms à 48 kHz). */
@@ -14,6 +14,11 @@ export const FREQ_MAX_HZ = 1400;
 export const TAILLE_LISSAGE = 5;
 /** Durée pendant laquelle la note doit rester sur le même demi-ton pour être « détectée », en ms. Valeur initiale 100 ms. */
 export const DUREE_STABILITE_MS = 100;
+/**
+ * Tolérance d'octave : écart maximal autour de l'octave supérieure ou inférieure de la note jouée pour qu'une mesure
+ * soit ramenée à cette note, en cents. Valeur initiale 50 cents (un quart de ton de part et d'autre).
+ */
+export const TOLERANCE_OCTAVE_CENTS = 50;
 
 export type ModeLissage = 'mediane' | 'moyenne';
 
@@ -104,6 +109,11 @@ export interface ReglagesDetection {
   seuilSilenceDbfs: number;
   clarteMin: number;
   modeLissage: ModeLissage;
+  /**
+   * Tolérance d'octave (§13) : tant qu'aucune nouvelle attaque n'a lieu, une mesure à l'octave supérieure ou inférieure
+   * de la note stable est ramenée à cette note. Évite les sauts d'octave pendant que la corde résonne.
+   */
+  toleranceOctave: boolean;
 }
 
 export interface EtatDetection {
@@ -118,10 +128,28 @@ export interface EtatDetection {
   lissee: NoteDetectee | null;
   /** Note stable à cet instant, ou null. */
   stable: NoteDetectee | null;
+  /** Mesure ramenée à l'octave de la note stable par la tolérance d'octave. */
+  octaveRepliee: boolean;
   /** Vrai au premier instant où une note devient stable. */
   nouvelleNoteStable: boolean;
+  /**
+   * Avec nouvelleNoteStable : vrai si la note suit une attaque (note jouée), faux si elle change
+   * pendant que la corde résonne, sans nouvelle attaque.
+   */
+  apresAttaque: boolean;
   /** Délai entre la dernière attaque et cette nouvelle note stable, en ms (null sinon). */
   latenceMs: number | null;
+}
+
+/**
+ * Ramène une fréquence à la note de référence si elle est à une octave au-dessus ou au-dessous (± tolérance).
+ * @returns la fréquence corrigée, ou la fréquence d'origine si elle n'est pas à l'octave.
+ */
+export function replierOctave(frequence: number, reference: number, toleranceCents = TOLERANCE_OCTAVE_CENTS): number {
+  for (const facteur of [2, 0.5]) {
+    if (Math.abs(ecartCents(frequence, reference * facteur)) <= toleranceCents) return frequence / facteur;
+  }
+  return frequence;
 }
 
 /** Applique les filtres de clarté et de plage à une mesure brute. */
@@ -142,6 +170,8 @@ export class ChaineDetection {
   private readonly stabilite = new SuiviStabilite();
   private readonly attaques = new DetecteurAttaque();
   private attaqueEnAttente: number | null = null;
+  /** Fréquence de la note stable depuis la dernière attaque, pour la tolérance d'octave (null sans note). */
+  private frequenceReference: number | null = null;
 
   constructor(
     readonly tailleFenetre: number = TAILLE_FENETRE,
@@ -152,6 +182,7 @@ export class ChaineDetection {
       seuilSilenceDbfs: SEUIL_SILENCE_DBFS_DEFAUT,
       clarteMin: CLARTE_MIN_DEFAUT,
       modeLissage: 'mediane',
+      toleranceOctave: true,
       ...reglages,
     };
     this.detecteur = PitchDetector.forFloat32Array(tailleFenetre);
@@ -175,13 +206,16 @@ export class ChaineDetection {
       rejet: null,
       lissee: null,
       stable: null,
+      octaveRepliee: false,
       nouvelleNoteStable: false,
+      apresAttaque: false,
       latenceMs: null,
     };
 
     if (attaque) {
       // Nouvelle attaque : on ne mélange pas les mesures de la note précédente.
       this.attaqueEnAttente = tMs;
+      this.frequenceReference = null;
       this.lissage.vider();
       this.stabilite.reinitialiser();
     }
@@ -191,6 +225,7 @@ export class ChaineDetection {
       this.lissage.vider();
       this.stabilite.reinitialiser();
       this.attaqueEnAttente = null;
+      this.frequenceReference = null;
       return etat;
     }
 
@@ -199,7 +234,12 @@ export class ChaineDetection {
     etat.rejet = rejetMesure(etat.brute, clarteMin);
     if (etat.rejet) return etat;
 
-    this.lissage.ajouter(frequence);
+    let mesure = frequence;
+    if (this.reglages.toleranceOctave && this.frequenceReference !== null) {
+      mesure = replierOctave(frequence, this.frequenceReference);
+      etat.octaveRepliee = mesure !== frequence;
+    }
+    this.lissage.ajouter(mesure);
     etat.lissee = frequenceVersNote(this.lissage.valeur()!, a4);
     if (!etat.lissee) return etat;
 
@@ -207,6 +247,8 @@ export class ChaineDetection {
     if (stable) etat.stable = etat.lissee;
     if (nouvelle) {
       etat.nouvelleNoteStable = true;
+      etat.apresAttaque = this.attaqueEnAttente !== null;
+      this.frequenceReference = etat.lissee.frequence;
       if (this.attaqueEnAttente !== null) {
         etat.latenceMs = tMs - this.attaqueEnAttente;
         this.attaqueEnAttente = null;
@@ -220,5 +262,6 @@ export class ChaineDetection {
     this.stabilite.reinitialiser();
     this.attaques.reinitialiser();
     this.attaqueEnAttente = null;
+    this.frequenceReference = null;
   }
 }

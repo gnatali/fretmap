@@ -2,7 +2,7 @@
 // Ils ne remplacent pas les scénarios réels : ils vérifient que pitchy et les filtres
 // se comportent correctement sur un signal propre de type corde pincée.
 import { describe, expect, it } from 'vitest';
-import { ChaineDetection, SuiviStabilite, TAILLE_FENETRE, rejetMesure } from '../src/audio/pitch';
+import { ChaineDetection, SuiviStabilite, TAILLE_FENETRE, rejetMesure, replierOctave } from '../src/audio/pitch';
 import { midiVersFrequence } from '../src/music/notes';
 
 /** Signal de corde pincée simplifié : fondamentale faible, harmoniques en 1/k, décroissance exponentielle. */
@@ -115,5 +115,61 @@ describe('latence', () => {
       latence = etat.latenceMs;
     }
     expect(latence).toBe(100);
+  });
+});
+
+describe('tolérance d’octave', () => {
+  it('replierOctave ramène une mesure à ±50 cents de l’octave de la référence', () => {
+    expect(replierOctave(164.8, 82.4)).toBeCloseTo(82.4, 5);
+    expect(replierOctave(41.2, 82.4)).toBeCloseTo(82.4, 5);
+    expect(replierOctave(164.8 * 2 ** (40 / 1200), 82.4)).toBeCloseTo(82.4 * 2 ** (40 / 1200), 5);
+    expect(replierOctave(164.8 * 2 ** (60 / 1200), 82.4)).toBe(164.8 * 2 ** (60 / 1200));
+    expect(replierOctave(123.5, 82.4)).toBe(123.5);
+  });
+
+  const sampleRate = 44100;
+  const e2 = cordeSynthetique(82.41, sampleRate, TAILLE_FENETRE);
+  const e3 = cordeSynthetique(164.81, sampleRate, TAILLE_FENETRE);
+
+  /** E2 stable, puis le signal passe à E3 sans nouvelle attaque (fondamentale qui disparaît pendant la résonance). */
+  function sautOctave(toleranceOctave: boolean) {
+    const chaine = new ChaineDetection(TAILLE_FENETRE, { toleranceOctave });
+    chaine.traiter(new Float32Array(TAILLE_FENETRE), sampleRate, 0);
+    const etats = [];
+    for (let t = 20; t <= 200; t += 20) etats.push(chaine.traiter(e2, sampleRate, t));
+    for (let t = 220; t <= 600; t += 20) etats.push(chaine.traiter(e3, sampleRate, t));
+    return etats;
+  }
+
+  it('sans tolérance, le saut d’octave devient une nouvelle note stable sans attaque', () => {
+    const etats = sautOctave(false);
+    const nouvelles = etats.filter((e) => e.nouvelleNoteStable);
+    expect(etats.slice(10).some((e) => e.attaque)).toBe(false);
+    expect(nouvelles.map((e) => [e.stable?.libelle, e.apresAttaque])).toEqual([
+      ['E2', true],
+      ['E3', false],
+    ]);
+  });
+
+  it('avec tolérance, la note jouée reste affichée pendant toute la résonance', () => {
+    const etats = sautOctave(true);
+    expect(etats.filter((e) => e.nouvelleNoteStable).map((e) => e.stable?.libelle)).toEqual(['E2']);
+    expect(etats.at(-1)?.stable?.libelle).toBe('E2');
+    expect(Math.abs(etats.at(-1)!.stable!.centsExacts)).toBeLessThan(5);
+    expect(etats.at(-1)?.octaveRepliee).toBe(true);
+  });
+
+  it('après une nouvelle attaque, l’octave jouée est bien reconnue', () => {
+    const chaine = new ChaineDetection(TAILLE_FENETRE);
+    chaine.traiter(new Float32Array(TAILLE_FENETRE), sampleRate, 0);
+    for (let t = 20; t <= 200; t += 20) chaine.traiter(e2, sampleRate, t);
+    chaine.traiter(new Float32Array(TAILLE_FENETRE), sampleRate, 220);
+    let derniere = null;
+    for (let t = 240; t <= 500; t += 20) {
+      const etat = chaine.traiter(e3, sampleRate, t);
+      if (etat.nouvelleNoteStable) derniere = etat;
+    }
+    expect(derniere?.stable?.libelle).toBe('E3');
+    expect(derniere?.apresAttaque).toBe(true);
   });
 });

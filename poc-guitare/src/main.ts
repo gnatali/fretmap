@@ -21,6 +21,7 @@ const reglageA4 = element<HTMLInputElement>('reglage-a4');
 const reglageSeuil = element<HTMLInputElement>('reglage-seuil');
 const reglageClarte = element<HTMLInputElement>('reglage-clarte');
 const reglageLissage = element<HTMLSelectElement>('reglage-lissage');
+const reglageOctave = element<HTMLInputElement>('reglage-octave');
 
 const chaine = new ChaineDetection(TAILLE_FENETRE);
 const vue = new VueDetection();
@@ -40,6 +41,7 @@ function lireReglages(): void {
   const clarte = reglageClarte.valueAsNumber;
   if (Number.isFinite(clarte)) chaine.reglages.clarteMin = Math.min(1, Math.max(0, clarte));
   chaine.reglages.modeLissage = reglageLissage.value as ModeLissage;
+  chaine.reglages.toleranceOctave = reglageOctave.checked;
   accordeur.definirA4(chaine.reglages.a4);
 }
 
@@ -127,6 +129,6 @@ btnCalibrer.addEventListener('click', () => {
   btnCalibrer.disabled = true;
   etatCalibrage.textContent = 'Mesure du bruit ambiant pendant 2 s : ne jouez pas…';
 });
-for (const reglage of [reglageA4, reglageSeuil, reglageClarte, reglageLissage]) {
+for (const reglage of [reglageA4, reglageSeuil, reglageClarte, reglageLissage, reglageOctave]) {
   reglage.addEventListener('change', lireReglages);
 }

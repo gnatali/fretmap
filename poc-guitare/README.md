@@ -30,7 +30,8 @@ Version en ligne, mise à jour à chaque push sur la branche par défaut : https
 1. Cliquer sur **Démarrer** et autoriser le micro. La page affiche la fréquence d'échantillonnage, la fenêtre d'analyse et l'état des traitements du navigateur (qui doivent être désactivés).
 2. Sans jouer, cliquer sur **Mesurer le bruit ambiant** : le seuil de silence est fixé au bruit mesuré pendant 2 s + 10 dB.
 3. Jouer une note : elle s'affiche quand elle est restée sur le même demi-ton pendant 100 ms. La ligne « Mesure brute » montre chaque mesure de pitchy et la raison d'un éventuel rejet.
-4. L'historique garde les 10 dernières notes stables, avec la latence entre l'attaque et l'affichage.
+   Avec la **tolérance d'octave** (activée par défaut dans les réglages), une mesure à l'octave de la note jouée est ramenée à cette note tant qu'aucune nouvelle attaque n'a lieu : sur les cordes graves, la fondamentale s'éteint avant l'harmonique 2 et la détection sautait sinon à l'octave supérieure pendant la résonance.
+4. L'historique garde les 10 dernières notes stables, avec la latence entre l'attaque et l'affichage. Une note apparue sans nouvelle attaque (changement pendant la résonance) est marquée « sans attaque ».
 5. **Accordeur** : choisir l'accordage (standard, demi-ton plus bas, drop D, DADGAD) et le mode.
    - *Cordes* : « Auto » vise la corde la plus proche, ou toucher une corde pour la viser. Chaque bouton affiche la fréquence cible, recalculée quand A4 change.
    - *Chromatique* : vise la note la plus proche, quelle que soit la corde.
@@ -39,9 +40,10 @@ Version en ligne, mise à jour à chaque push sur la branche par défaut : https
 6. **Journal de test** : renseigner le scénario, la guitare, le matériel et la note attendue.
    - « Note attendue = corde choisie dans l'accordeur » recopie la corde sélectionnée dans l'accordeur.
    - **Enregistrer l'essai** enregistre la note en cours (ou la dernière jouée). Avec « Enregistrer chaque note automatiquement », chaque note est enregistrée quand elle s'arrête : pratique pour les 10 attaques par corde du scénario 1.
-   - La fréquence retenue est la médiane des mesures pendant toute la note ; l'écart en cents est calculé par rapport à la note attendue.
+   - La fréquence retenue est la médiane des mesures pendant toute la note ; l'écart en cents est calculé par rapport à la note attendue, figée au début de la note.
+   - Chaque essai indique s'il suit une attaque (`attaque = true` : la note jouée) ou s'il s'agit d'un changement de note pendant la résonance (`attaque = false`, grisé dans la liste).
    - **Test de silence 30 s** (scénario 4) compte les notes détectées pendant 30 s sans jouer et les enregistre dans `faux_positifs` et `notes_parasites`.
-   - Le résumé par scénario donne le taux de bonnes notes, l'écart moyen absolu (sur les bonnes notes), la latence médiane, la part sous 300 ms, les octaves erronées et les faux positifs.
+   - Le résumé par scénario donne, sur les notes jouées (après une attaque), le taux de bonnes notes, l'écart moyen absolu, la latence médiane, la part sous 300 ms et les octaves erronées ; il compte à part les changements sans attaque et les faux positifs.
    - Les essais sont gardés dans le navigateur (`localStorage`) ; **Exporter CSV / JSON** les télécharge, **Vider le journal** les efface après confirmation.
 7. **Arrêter** libère le micro.
 
@@ -57,6 +59,7 @@ Toutes les constantes sont documentées (unité et valeur initiale) dans le code
 | Plage acceptée | 70 à 1400 Hz | `src/audio/pitch.ts` | non |
 | Lissage | médiane sur 5 mesures | `src/audio/pitch.ts` | mode oui, taille non |
 | Durée de stabilité | 100 ms | `src/audio/pitch.ts` | non |
+| Tolérance d'octave | activée, ±50 cents autour de l'octave | `src/audio/pitch.ts` | activation oui |
 | Détection d'attaque | hausse de 6 dB sur 100 ms | `src/audio/niveau.ts` | non |
 | Référence A4 | 440 Hz (430 à 450) | `src/music/notes.ts` | oui |
 | Zones de l'accordeur | ±5 cents (vert), ±15 cents (orange) | `src/music/accordages.ts` | non |
@@ -86,6 +89,8 @@ tests/                  # notes, accordages, lissage, journal, chaîne de détec
 
 ## Format du journal
 
-Colonnes de l'export CSV (séparateur virgule, décimales avec un point) : celles de la spécification §5.7, plus `faux_positifs` et `notes_parasites` pour le scénario 4.
+Colonnes de l'export CSV (séparateur virgule, décimales avec un point) : celles de la spécification §5.7, plus `attaque` (la note suit une attaque) et, pour le scénario 4, `faux_positifs` et `notes_parasites`.
 
-`id, scenario, guitare, materiel, note_attendue, note_detectee, freq_mesuree_hz, freq_theorique_hz, ecart_cents, latence_ms, octave_erronee, faux_positifs, notes_parasites, date`
+`id, scenario, guitare, materiel, note_attendue, note_detectee, freq_mesuree_hz, freq_theorique_hz, ecart_cents, latence_ms, attaque, octave_erronee, faux_positifs, notes_parasites, date`
+
+Un journal enregistré avant l'ajout de la colonne `attaque` est complété au chargement : une note avec latence suit une attaque.

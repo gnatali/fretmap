@@ -42,7 +42,7 @@ export class VueDetection {
 
     this.clarte.textContent = etat.brute ? formaterNombre(etat.brute.clarte, 2) : '—';
     this.brute.textContent = etat.brute
-      ? `${formaterHz(etat.brute.frequence)}${etat.rejet ? ` (rejetée : ${RAISONS[etat.rejet]})` : ''}`
+      ? `${formaterHz(etat.brute.frequence)}${etat.rejet ? ` (rejetée : ${RAISONS[etat.rejet]})` : etat.octaveRepliee ? ' (ramenée à l’octave de la note jouée)' : ''}`
       : '—';
 
     // Sous le seuil ou sans note stable, on ne met pas à jour la note affichée : elle est grisée.
@@ -61,11 +61,11 @@ export class VueDetection {
           ? RAISONS[etat.rejet]!
           : 'en attente de stabilité';
 
-    if (etat.nouvelleNoteStable && etat.stable) this.ajouterHistorique(etat.stable, etat.latenceMs);
+    if (etat.nouvelleNoteStable && etat.stable) this.ajouterHistorique(etat.stable, etat.latenceMs, etat.apresAttaque);
     if (etat.latenceMs !== null) this.latence.textContent = `${Math.round(etat.latenceMs)} ms`;
   }
 
-  private ajouterHistorique(note: NoteDetectee, latenceMs: number | null): void {
+  private ajouterHistorique(note: NoteDetectee, latenceMs: number | null, apresAttaque: boolean): void {
     const li = document.createElement('li');
     const heure = document.createElement('span');
     heure.className = 'heure';
@@ -77,7 +77,7 @@ export class VueDetection {
     });
     const texte = document.createTextNode(
       `${note.libelle} · ${formaterHz(note.frequence)} · ${formaterCents(note.cents)}` +
-        (latenceMs !== null ? ` · latence ${Math.round(latenceMs)} ms` : ''),
+        (latenceMs !== null ? ` · latence ${Math.round(latenceMs)} ms` : apresAttaque ? '' : ' · sans attaque'),
     );
     li.append(heure, texte);
     this.historique.prepend(li);

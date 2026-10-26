@@ -18,7 +18,10 @@ import {
 import { frequenceVersNote } from '../src/music/notes';
 
 /** État de détection minimal : silence par défaut, note stable si `frequence` est fournie. */
-function etat(tMs: number, options: { frequence?: number; nouvelle?: boolean; latence?: number; attaque?: boolean; silence?: boolean } = {}): EtatDetection {
+function etat(
+  tMs: number,
+  options: { frequence?: number; nouvelle?: boolean; latence?: number; attaque?: boolean; silence?: boolean } = {},
+): EtatDetection {
   const note = options.frequence ? frequenceVersNote(options.frequence) : null;
   return {
     tMs,
@@ -29,7 +32,10 @@ function etat(tMs: number, options: { frequence?: number; nouvelle?: boolean; la
     rejet: null,
     lissee: note,
     stable: note,
+    octaveRepliee: false,
     nouvelleNoteStable: options.nouvelle ?? false,
+    // Comme dans la chaîne de détection : une nouvelle note avec latence suit une attaque.
+    apresAttaque: (options.nouvelle ?? false) && options.latence !== undefined,
     latenceMs: options.latence ?? null,
   };
 }
@@ -45,7 +51,7 @@ describe('SuiviMesure', () => {
     s.traiter(etat(140, { frequence: 82.5 }));
     expect(s.enCours()?.frequence).toBe(82.6);
     const mesure = s.traiter(etat(400));
-    expect(mesure).toMatchObject({ numero: 1, note: 'E2', frequence: 82.6, latenceMs: 180 });
+    expect(mesure).toMatchObject({ numero: 1, note: 'E2', frequence: 82.6, latenceMs: 180, apresAttaque: true });
     expect(s.enCours()).toBeNull();
   });
 
@@ -56,7 +62,7 @@ describe('SuiviMesure', () => {
     s.traiter(etat(300, { frequence: 146.8, nouvelle: true }));
     const terminee = s.traiter(etat(320, { frequence: 196, nouvelle: true }));
     expect(terminee?.note).toBe('D3');
-    expect(s.enCours()?.note).toBe('G3');
+    expect(s.enCours()).toMatchObject({ note: 'G3', apresAttaque: false });
   });
 
   it('fige la note attendue au début de la note, même si elle change avant la fin', () => {
@@ -83,7 +89,7 @@ describe('TestSilence', () => {
 });
 
 describe('creerEssai', () => {
-  const mesure: Mesure = { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4, noteAttendue: 'E2' };
+  const mesure: Mesure = { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4, apresAttaque: true, noteAttendue: 'E2' };
 
   it('calcule fréquence théorique, écart et latence par rapport à la note attendue', () => {
     const e = creerEssai(contexte, mesure);
@@ -94,6 +100,7 @@ describe('creerEssai', () => {
       freq_theorique_hz: 82.41,
       ecart_cents: 4.1,
       latence_ms: 180,
+      attaque: true,
       octave_erronee: false,
       faux_positifs: null,
       date: '2026-10-24T08:00:00.000Z',
@@ -124,23 +131,23 @@ describe('creerEssai', () => {
 describe('creerEssaiSilence', () => {
   it('enregistre le nombre et la liste des fausses détections', () => {
     const e = creerEssaiSilence({ ...contexte, scenario: '4-silence' }, ['B1', 'A3']);
-    expect(e).toMatchObject({ note_attendue: 'silence', faux_positifs: 2, notes_parasites: 'B1 A3', latence_ms: null });
+    expect(e).toMatchObject({ note_attendue: 'silence', faux_positifs: 2, notes_parasites: 'B1 A3', latence_ms: null, attaque: null });
   });
 });
 
 describe('export', () => {
   const essais: Essai[] = [
-    creerEssai({ ...contexte, materiel: 'casque, micro "USB"' }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, noteAttendue: 'E2' }),
+    creerEssai({ ...contexte, materiel: 'casque, micro "USB"' }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, apresAttaque: true, noteAttendue: 'E2' }),
     creerEssaiSilence({ ...contexte, id: 2, scenario: '4-silence' }, []),
   ];
 
   it('produit un CSV avec en-tête, échappement et valeurs vides', () => {
     const lignes = versCsv(essais).trimEnd().split('\r\n');
     expect(lignes[0]).toBe(
-      'id,scenario,guitare,materiel,note_attendue,note_detectee,freq_mesuree_hz,freq_theorique_hz,ecart_cents,latence_ms,octave_erronee,faux_positifs,notes_parasites,date',
+      'id,scenario,guitare,materiel,note_attendue,note_detectee,freq_mesuree_hz,freq_theorique_hz,ecart_cents,latence_ms,attaque,octave_erronee,faux_positifs,notes_parasites,date',
     );
-    expect(lignes[1]).toBe('1,1-accordage-calme,acoustique,"casque, micro ""USB""",E2,E2,82.6,82.41,4.1,180,false,,,2026-10-24T08:00:00.000Z');
-    expect(lignes[2]).toBe('2,4-silence,acoustique,micro intégré,silence,,,,,,,0,,2026-10-24T08:00:00.000Z');
+    expect(lignes[1]).toBe('1,1-accordage-calme,acoustique,"casque, micro ""USB""",E2,E2,82.6,82.41,4.1,180,true,false,,,2026-10-24T08:00:00.000Z');
+    expect(lignes[2]).toBe('2,4-silence,acoustique,micro intégré,silence,,,,,,,,0,,2026-10-24T08:00:00.000Z');
   });
 
   it('produit un JSON relisible', () => {
@@ -176,20 +183,42 @@ describe('stockage', () => {
   });
 });
 
+describe('stockage d’un journal ancien', () => {
+  it('déduit le champ attaque de la latence pour les essais enregistrés avant son ajout', () => {
+    const ancien = [
+      { id: 1, scenario: '1-accordage-calme', note_attendue: 'E2', note_detectee: 'E2', latence_ms: 200, faux_positifs: null, date: 'x' },
+      { id: 2, scenario: '1-accordage-calme', note_attendue: 'E2', note_detectee: 'E3', latence_ms: null, faux_positifs: null, date: 'x' },
+      { id: 3, scenario: '4-silence', note_attendue: 'silence', note_detectee: '', latence_ms: null, faux_positifs: 0, date: 'x' },
+    ];
+    const s = { getItem: () => JSON.stringify(ancien), setItem: () => undefined };
+    expect(chargerEssais(s).map((e) => e.attaque)).toEqual([true, false, null]);
+  });
+});
+
 describe('resumer', () => {
-  it('calcule bonnes notes, écart moyen absolu, latence et faux positifs par scénario', () => {
-    const c = contexte;
+  it('calcule les taux sur les notes jouées et compte à part les changements sans attaque', () => {
+    const m = { midi: 40, noteAttendue: 'E2', apresAttaque: true };
     const essais = [
-      creerEssai({ ...c, id: 1 }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, noteAttendue: 'E2' }),
-      creerEssai({ ...c, id: 2 }, { numero: 2, note: 'E2', midi: 40, frequence: 82.2, latenceMs: 350, noteAttendue: 'E2' }),
-      creerEssai({ ...c, id: 3 }, { numero: 3, note: 'E3', midi: 52, frequence: 164.8, latenceMs: 200, noteAttendue: 'E2' }),
-      creerEssaiSilence({ ...contexte, id: 4, scenario: '4-silence' }, ['A3']),
-      creerEssaiSilence({ ...contexte, id: 5, scenario: '4-silence' }, []),
+      creerEssai({ ...contexte, id: 1 }, { ...m, numero: 1, note: 'E2', frequence: 82.6, latenceMs: 180 }),
+      creerEssai({ ...contexte, id: 2 }, { ...m, numero: 2, note: 'E2', frequence: 82.2, latenceMs: 350 }),
+      creerEssai({ ...contexte, id: 3 }, { ...m, numero: 3, note: 'E3', midi: 52, frequence: 164.8, latenceMs: 200 }),
+      creerEssai({ ...contexte, id: 4 }, { ...m, numero: 4, note: 'E3', midi: 52, frequence: 164.8, latenceMs: null, apresAttaque: false }),
+      creerEssaiSilence({ ...contexte, id: 5, scenario: '4-silence' }, ['A3']),
+      creerEssaiSilence({ ...contexte, id: 6, scenario: '4-silence' }, []),
     ];
     const [s1, s4] = resumer(essais);
-    expect(s1).toMatchObject({ scenario: '1-accordage-calme', essais: 3, notesEvaluees: 3, bonnesNotes: 2, latenceMedianeMs: 200, octavesErronees: 1, fauxPositifs: null });
+    expect(s1).toMatchObject({
+      scenario: '1-accordage-calme',
+      essais: 4,
+      attaquesEvaluees: 3,
+      bonnesNotes: 2,
+      latenceMedianeMs: 200,
+      octavesErronees: 1,
+      changementsSansAttaque: 1,
+      fauxPositifs: null,
+    });
     expect(s1!.ecartMoyenAbsCents).toBe(4.3);
     expect(s1!.partLatenceOk).toBeCloseTo(2 / 3, 5);
-    expect(s4).toMatchObject({ scenario: '4-silence', essais: 2, notesEvaluees: 0, fauxPositifs: 1, latenceMedianeMs: null });
+    expect(s4).toMatchObject({ scenario: '4-silence', essais: 2, attaquesEvaluees: 0, changementsSansAttaque: 0, fauxPositifs: 1 });
   });
 });

@@ -45,6 +45,10 @@
             </select>
           </label>
         </div>
+        <label class="case">
+          <input id="reglage-octave" type="checkbox" checked />
+          Tolérance d'octave : ignorer un saut d'octave sans nouvelle attaque
+        </label>
         <div class="ligne">
           <button id="btn-calibrer" type="button" disabled>Mesurer le bruit ambiant</button>
           <span id="etat-calibrage"></span>
@@ -153,12 +157,17 @@
 
         <div id="journal-bloc-resume" hidden>
           <h3>Résumé par scénario</h3>
+          <p class="note-bas">
+            Taux, écart, latence et octaves portent sur les notes jouées (première détection après une attaque).
+            « Sans attaque » compte les changements de note pendant que la corde résonne, grisés dans la liste des essais.
+          </p>
           <div class="tableau-defilant">
             <table>
               <thead>
                 <tr>
-                  <th>Scén.</th><th>Essais</th><th>Bonnes notes</th><th>Écart moyen</th>
-                  <th>Latence méd.</th><th id="journal-entete-latence"></th><th>Octaves</th><th>Faux positifs</th>
+                  <th>Scén.</th><th>Essais</th><th>Bonnes notes jouées</th><th>Écart moyen</th>
+                  <th>Latence méd.</th><th id="journal-entete-latence"></th><th>Octaves</th>
+                  <th>Sans attaque</th><th>Faux positifs</th>
                 </tr>
               </thead>
               <tbody id="journal-resume"></tbody>

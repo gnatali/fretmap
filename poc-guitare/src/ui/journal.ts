@@ -69,7 +69,7 @@ function cellule(texte: string): HTMLTableCellElement {
 function decrireMesure(mesure: Mesure): string {
   return (
     `${mesure.note} · ${formaterHz(mesure.frequence)}` +
-    (mesure.latenceMs !== null ? ` · latence ${Math.round(mesure.latenceMs)} ms` : '')
+    (mesure.latenceMs !== null ? ` · latence ${Math.round(mesure.latenceMs)} ms` : mesure.apresAttaque ? '' : ' · sans attaque')
   );
 }
 
@@ -139,9 +139,7 @@ export class VueJournal {
       this.enregistrer(terminee, true);
     }
 
-    const enCours = this.suivi.enCours();
-    const texte = enCours ? `${decrireMesure(enCours)} (en cours)` : this.derniere ? decrireMesure(this.derniere) : '—';
-    if (texte !== this.texteMesure) this.mesure.textContent = this.texteMesure = texte;
+    this.afficherMesure();
   }
 
   /** Micro démarré ou arrêté : le test de silence n'est possible que micro actif. */
@@ -158,6 +156,13 @@ export class VueJournal {
       this.derniere = terminee;
       if (this.automatique.checked) this.enregistrer(terminee, true);
     }
+    this.afficherMesure();
+  }
+
+  private afficherMesure(): void {
+    const enCours = this.suivi.enCours();
+    const texte = enCours ? `${decrireMesure(enCours)} (en cours)` : this.derniere ? decrireMesure(this.derniere) : '—';
+    if (texte !== this.texteMesure) this.mesure.textContent = this.texteMesure = texte;
   }
 
   private enregistrerManuellement(): void {
@@ -192,13 +197,14 @@ export class VueJournal {
       mesure,
     );
     this.ajouter(essai);
+    const type = essai.attaque ? 'Essai' : 'Changement sans attaque';
     const verdict =
       essai.note_attendue === ''
         ? ''
         : essai.note_detectee === essai.note_attendue
           ? ` · ${formaterCents(essai.ecart_cents ?? 0)}`
           : ` · attendu ${essai.note_attendue}${essai.octave_erronee ? ' (octave erronée)' : ''}`;
-    this.informer(`Essai n° ${essai.id} enregistré : ${essai.note_detectee}${verdict}.`);
+    this.informer(`${type} n° ${essai.id} enregistré : ${essai.note_detectee}${verdict}.`);
   }
 
   private lancerTestSilence(): void {
@@ -279,9 +285,11 @@ export class VueJournal {
     this.lignes.replaceChildren(
       ...[...this.essais].reverse().map((e) => {
         const tr = document.createElement('tr');
-        const bonne = e.note_attendue !== '' && e.note_attendue !== 'silence' && e.note_detectee === e.note_attendue;
-        const fausse = e.note_attendue !== '' && e.note_attendue !== 'silence' && !bonne;
-        tr.classList.toggle('fausse', fausse || (e.faux_positifs ?? 0) > 0);
+        const fausse = e.note_attendue !== '' && e.note_attendue !== 'silence' && e.note_detectee !== e.note_attendue;
+        // Les changements sans attaque sont grisés : ils ne comptent pas dans le taux de bonnes notes.
+        tr.classList.toggle('sans-attaque', e.attaque === false);
+        tr.classList.toggle('fausse', (fausse && e.attaque !== false) || (e.faux_positifs ?? 0) > 0);
+        if (e.attaque === false) tr.title = 'Changement de note sans attaque, pendant que la corde résonne';
         const supprimer = document.createElement('button');
         supprimer.type = 'button';
         supprimer.dataset.id = String(e.id);
@@ -297,7 +305,7 @@ export class VueJournal {
           cellule(e.faux_positifs !== null ? `${e.faux_positifs} FP` : e.note_detectee),
           cellule(e.freq_mesuree_hz !== null ? formaterNombre(e.freq_mesuree_hz, 1) : ''),
           cellule(e.ecart_cents !== null ? formaterNombre(e.ecart_cents, 1) : ''),
-          cellule(e.latence_ms !== null ? String(e.latence_ms) : ''),
+          cellule(e.latence_ms !== null ? String(e.latence_ms) : e.attaque === false ? 'sans att.' : ''),
           cellule(new Date(e.date).toLocaleTimeString('fr-FR')),
           actions,
         );
@@ -314,11 +322,12 @@ export class VueJournal {
         tr.append(
           cellule(r.scenario.split('-')[0]!),
           cellule(String(r.essais)),
-          cellule(r.notesEvaluees ? `${r.bonnesNotes}/${r.notesEvaluees} (${pourcent(r.bonnesNotes / r.notesEvaluees)})` : '—'),
+          cellule(r.attaquesEvaluees ? `${r.bonnesNotes}/${r.attaquesEvaluees} (${pourcent(r.bonnesNotes / r.attaquesEvaluees)})` : '—'),
           cellule(r.ecartMoyenAbsCents !== null ? `${formaterNombre(r.ecartMoyenAbsCents, 1)} c` : '—'),
           cellule(r.latenceMedianeMs !== null ? `${r.latenceMedianeMs} ms` : '—'),
           cellule(r.partLatenceOk !== null ? pourcent(r.partLatenceOk) : '—'),
           cellule(String(r.octavesErronees)),
+          cellule(String(r.changementsSansAttaque)),
           cellule(r.fauxPositifs !== null ? String(r.fauxPositifs) : '—'),
         );
         return tr;

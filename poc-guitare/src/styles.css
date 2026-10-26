@@ -106,3 +106,5 @@ tr.fausse td { color: var(--rouge); }
 button.discret { padding: 0 6px; border: none; background: none; color: var(--discret); font-size: 1rem; }
 button.danger { color: var(--rouge); }
 .visuellement-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+tr.sans-attaque td { color: var(--discret); font-style: italic; }
+.note-bas { margin: 0 0 8px; font-size: 0.8rem; color: var(--discret); }
