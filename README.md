@@ -43,4 +43,5 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Points de la spec tranchés (interface en Svelte)
 - [ ] Scénario 6 du POC (avant la phase 4)
 - [x] Phase 1 : mise en place de `app/` (Svelte, lint, CI), modules audio et musique repris du POC, accueil déployé
-- [ ] Phases 2 à 7 (spec §12)
+- [x] Phase 2 : modèle de données, stockage `localStorage` (migration, export et import JSON), `music/manche.ts`
+- [ ] Phases 3 à 7 (spec §12)

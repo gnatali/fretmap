@@ -282,6 +282,7 @@ fretmap/
     │   │   ├── accordages.ts        # Copié du POC
     │   │   └── manche.ts            # Note d'une position (corde + case), positions d'une note
     │   ├── progression/
+    │   │   ├── modele.ts            # Types du §6 et valeurs par défaut des réglages
     │   │   ├── stockage.ts          # Lecture et écriture localStorage, migration
     │   │   ├── statistiques.ts      # Mise à jour et pondération des tirages
     │   │   └── niveaux.ts           # Règles de passage de niveau

@@ -4,7 +4,7 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Application** : phase 1 faite (`app/` : accueil, modules `audio/` et `music/` copiés du POC). **Prochaine étape : phase 2** (modèle de données, stockage, `music/manche.ts` ; spec §6, §8, §10, §12).
+- **Application** : phases 1 et 2 faites (accueil ; `audio/`, `music/` ; `progression/` : modèle, stockage, statistiques). **Prochaine étape : phase 3** (mode 1 : manche, quiz, score, statistiques ; spec §5.1, §7, §12).
 - **Avant la phase 4 (mode 2)** : jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
 - **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
 - **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.

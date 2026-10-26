@@ -16,14 +16,15 @@ En ligne : https://gnatali.github.io/fretmap/ (publiée par `.github/workflows/p
 
 ## Structure
 
-| Dossier            | Contenu                                                   |
-| ------------------ | --------------------------------------------------------- |
-| `src/App.svelte`   | Choix de l'écran affiché                                  |
-| `src/ui/ecrans/`   | Écrans (accueil pour l'instant)                           |
-| `src/ui/textes.ts` | Tous les textes de l'interface                            |
-| `src/audio/`       | Micro, niveau sonore, chaîne de détection : copiés du POC |
-| `src/music/`       | Notes et accordages : copiés du POC                       |
-| `tests/unit/`      | Tests des modules copiés (repris du POC) et de l'accueil  |
+| Dossier            | Contenu                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `src/App.svelte`   | Choix de l'écran affiché                                                                      |
+| `src/ui/ecrans/`   | Écrans (accueil pour l'instant)                                                               |
+| `src/ui/textes.ts` | Tous les textes de l'interface                                                                |
+| `src/audio/`       | Micro, niveau sonore, chaîne de détection : copiés du POC                                     |
+| `src/music/`       | Notes et accordages : copiés du POC ; `manche.ts` : note d'une position, positions d'une note |
+| `src/progression/` | Modèle de données, stockage (migration, export, import JSON), statistiques                    |
+| `tests/unit/`      | Tests des modules copiés (repris du POC) et de l'accueil                                      |
 
 Les modules copiés du POC (`audio/`, `music/notes.ts`, `music/accordages.ts`) portent les valeurs validées par les mesures (spec §3) : ne les modifier que sur nouvelle mesure.
 
