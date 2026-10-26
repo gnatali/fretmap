@@ -15,6 +15,8 @@ import {
   sauverEssais,
   versCsv,
   versJson,
+  creerEssaiNonDetecte,
+  type ContexteNote,
   type Essai,
   type Mesure,
 } from '../journal/essais';
@@ -36,6 +38,11 @@ export interface DependancesJournal {
   /** Corde choisie dans l'accordeur, ou null. */
   noteVisee: () => string | null;
   a4: () => number;
+  /**
+   * Campagne guidée en cours : elle fournit le scénario et la note attendue (null entre deux étapes de jeu, où rien
+   * n'est enregistré). Renvoie null hors campagne : le formulaire du journal s'applique alors.
+   */
+  campagne: () => { contexte: ContexteNote | null } | null;
 }
 
 function stockageLocal(): Storage | null {
@@ -98,6 +105,11 @@ export class VueJournal {
   private derniereEnregistree = 0;
   private testSilence: TestSilence | null = null;
   private texteMesure = '';
+  /**
+   * Numéro de la dernière note commencée pendant une campagne : elle est enregistrée même si elle se termine après
+   * la fin de la campagne (la dernière note d'une campagne sonne encore quand celle-ci s'achève).
+   */
+  private derniereNoteCampagne = 0;
 
   constructor(private readonly deps: DependancesJournal) {
     for (const s of SCENARIOS) this.scenario.add(new Option(s.nom, s.id));
@@ -129,13 +141,20 @@ export class VueJournal {
   traiter(etat: EtatDetection): void {
     if (this.suivreAccordeur.checked) this.synchroniserNoteAttendue();
 
-    const terminee = this.suivi.traiter(etat, this.noteAttendue.value);
+    const campagne = this.deps.campagne();
+    const contexte = campagne
+      ? (campagne.contexte ?? { scenario: '', noteAttendue: '' })
+      : { scenario: this.scenario.value, noteAttendue: this.noteAttendue.value };
+    const terminee = this.suivi.traiter(etat, contexte);
     if (terminee) this.derniere = terminee;
+    const enCours = this.suivi.enCours();
+    if (campagne && enCours) this.derniereNoteCampagne = enCours.numero;
 
     if (this.testSilence) {
       if (this.testSilence.traiter(etat)) this.terminerTestSilence();
       else this.btnSilence.textContent = `Annuler le test (${Math.ceil(this.testSilence.resteMs(etat.tMs) / 1000)} s)`;
-    } else if (terminee && this.automatique.checked) {
+    } else if (terminee && (campagne || this.automatique.checked || terminee.numero === this.derniereNoteCampagne)) {
+      // Pendant une campagne, chaque note est enregistrée automatiquement.
       this.enregistrer(terminee, true);
     }
 
@@ -144,7 +163,7 @@ export class VueJournal {
 
   /** Micro démarré ou arrêté : le test de silence n'est possible que micro actif. */
   definirMicroActif(actif: boolean): void {
-    this.btnSilence.disabled = !actif;
+    this.btnSilence.disabled = !actif || this.deps.campagne() !== null;
     if (actif) return;
     if (this.testSilence) {
       this.testSilence = null;
@@ -154,9 +173,41 @@ export class VueJournal {
     const terminee = this.suivi.terminer();
     if (terminee) {
       this.derniere = terminee;
-      if (this.automatique.checked) this.enregistrer(terminee, true);
+      if (this.deps.campagne() || this.automatique.checked || terminee.numero === this.derniereNoteCampagne) {
+        this.enregistrer(terminee, true);
+      }
     }
     this.afficherMesure();
+  }
+
+  /** Campagne lancée ou terminée : le test de silence manuel est indisponible pendant une campagne. */
+  definirCampagneActive(active: boolean, microActif: boolean): void {
+    if (active && this.testSilence) this.annulerTestSilence();
+    this.btnSilence.disabled = active || !microActif;
+  }
+
+  /** Attaque restée sans note stable pendant une campagne. */
+  enregistrerNonDetecte(note: ContexteNote): void {
+    const essai = creerEssaiNonDetecte(
+      { id: prochainId(this.essais), guitare: this.guitare.value, materiel: this.materiel.value, date: new Date() },
+      note,
+    );
+    this.ajouter(essai);
+    this.informer(`Essai n° ${essai.id} enregistré : ${essai.note_attendue} non détectée.`);
+  }
+
+  /** Essai du scénario 4 à partir des notes détectées pendant le silence. */
+  enregistrerSilence(notes: readonly string[]): void {
+    const essai = creerEssaiSilence(
+      { id: prochainId(this.essais), guitare: this.guitare.value, materiel: this.materiel.value, date: new Date() },
+      notes,
+    );
+    this.ajouter(essai);
+    this.informer(
+      notes.length === 0
+        ? `Essai n° ${essai.id} : aucune fausse détection en ${DUREE_TEST_SILENCE_MS / 1000} s.`
+        : `Essai n° ${essai.id} : ${notes.length} fausse(s) détection(s) (${notes.join(' ')}).`,
+    );
   }
 
   private afficherMesure(): void {
@@ -180,7 +231,9 @@ export class VueJournal {
 
   private enregistrer(mesure: Mesure, automatique: boolean): void {
     if (mesure.numero <= this.derniereEnregistree) return;
-    if (this.scenario.value === SCENARIO_SILENCE) {
+    // Scénario vide : note jouée entre deux étapes d'une campagne (pause, annonce), pas enregistrée.
+    if (mesure.scenario === '') return;
+    if (mesure.scenario === SCENARIO_SILENCE) {
       if (!automatique) this.informer('Pour le scénario 4, utilisez « Test de silence 30 s ».');
       return;
     }
@@ -188,7 +241,6 @@ export class VueJournal {
     const essai = creerEssai(
       {
         id: prochainId(this.essais),
-        scenario: this.scenario.value,
         guitare: this.guitare.value,
         materiel: this.materiel.value,
         a4: this.deps.a4(),
@@ -225,22 +277,7 @@ export class VueJournal {
     const notes = this.testSilence?.notesParasites ?? [];
     this.testSilence = null;
     this.btnSilence.textContent = `Test de silence ${DUREE_TEST_SILENCE_MS / 1000} s`;
-    const essai = creerEssaiSilence(
-      {
-        id: prochainId(this.essais),
-        scenario: SCENARIO_SILENCE,
-        guitare: this.guitare.value,
-        materiel: this.materiel.value,
-        date: new Date(),
-      },
-      notes,
-    );
-    this.ajouter(essai);
-    this.informer(
-      notes.length === 0
-        ? `Essai n° ${essai.id} : aucune fausse détection en ${DUREE_TEST_SILENCE_MS / 1000} s.`
-        : `Essai n° ${essai.id} : ${notes.length} fausse(s) détection(s) (${notes.join(' ')}).`,
-    );
+    this.enregistrerSilence(notes);
   }
 
   private ajouter(essai: Essai): void {
@@ -263,7 +300,7 @@ export class VueJournal {
     this.informer('Journal vidé.');
   }
 
-  private exporter(format: 'csv' | 'json'): void {
+  exporter(format: 'csv' | 'json'): void {
     if (this.essais.length === 0) {
       this.informer('Le journal est vide.');
       return;
@@ -302,7 +339,7 @@ export class VueJournal {
           cellule(String(e.id)),
           cellule(e.scenario.split('-')[0]!),
           cellule(e.note_attendue || '—'),
-          cellule(e.faux_positifs !== null ? `${e.faux_positifs} FP` : e.note_detectee),
+          cellule(e.faux_positifs !== null ? `${e.faux_positifs} FP` : e.note_detectee || 'non détectée'),
           cellule(e.freq_mesuree_hz !== null ? formaterNombre(e.freq_mesuree_hz, 1) : ''),
           cellule(e.ecart_cents !== null ? formaterNombre(e.ecart_cents, 1) : ''),
           cellule(e.latence_ms !== null ? String(e.latence_ms) : e.attaque === false ? 'sans att.' : ''),
@@ -327,6 +364,7 @@ export class VueJournal {
           cellule(r.latenceMedianeMs !== null ? `${r.latenceMedianeMs} ms` : '—'),
           cellule(r.partLatenceOk !== null ? pourcent(r.partLatenceOk) : '—'),
           cellule(String(r.octavesErronees)),
+          cellule(String(r.nonDetectees)),
           cellule(String(r.changementsSansAttaque)),
           cellule(r.fauxPositifs !== null ? String(r.fauxPositifs) : '—'),
         );

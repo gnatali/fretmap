@@ -26,7 +26,69 @@
         </dl>
       </section>
 
-      <section aria-labelledby="titre-reglages">
+      <section id="section-campagne" aria-labelledby="titre-campagne">
+        <h2 id="titre-campagne">Campagne de test guidée</h2>
+        <div id="campagne-config">
+          <p class="note-bas">
+            Déroule tous les scénarios : consignes à l'écran, enregistrement automatique dans le journal,
+            « Continuer » uniquement quand une pause est nécessaire.
+          </p>
+          <div class="grille-reglages">
+            <label>Guitare
+              <input id="journal-guitare" list="journal-guitares" placeholder="acoustique" autocomplete="off" />
+            </label>
+            <label>Matériel
+              <input id="journal-materiel" list="journal-materiels" placeholder="micro intégré portable" autocomplete="off" />
+            </label>
+          </div>
+          <fieldset class="scenarios">
+            <legend>Scénarios</legend>
+            <label class="case"><input type="checkbox" name="campagne-scenario" value="1" checked /> 1 · Cordes à vide, calme</label>
+            <label class="case"><input type="checkbox" name="campagne-scenario" value="3" checked /> 3 · Cases 1 à 5</label>
+            <label class="case"><input type="checkbox" name="campagne-scenario" value="5" checked /> 5 · Notes au hasard</label>
+            <label class="case"><input type="checkbox" name="campagne-scenario" value="4" checked /> 4 · Silence 30 s</label>
+            <label class="case"><input type="checkbox" name="campagne-scenario" value="2" checked /> 2 · Cordes à vide, bruit</label>
+          </fieldset>
+          <div class="grille-reglages">
+            <label>Attaques par corde à vide (1 et 2)
+              <input id="campagne-rep-cordes" type="number" min="1" max="20" step="1" value="10" />
+            </label>
+            <label>Attaques par case (3)
+              <input id="campagne-rep-cases" type="number" min="1" max="10" step="1" value="3" />
+            </label>
+            <label>Notes au hasard (5)
+              <input id="campagne-notes-hasard" type="number" min="5" max="50" step="1" value="20" />
+            </label>
+          </div>
+          <p id="campagne-estimation" class="statut"></p>
+          <div class="ligne">
+            <button id="campagne-lancer" type="button" class="principal">Lancer la campagne</button>
+            <button id="campagne-reprendre" type="button" hidden>Reprendre la campagne</button>
+          </div>
+          <p id="campagne-erreur" class="erreur" role="alert" hidden></p>
+        </div>
+
+        <div id="campagne-carte" class="carte-campagne" hidden>
+          <p id="campagne-titre" class="campagne-titre"></p>
+          <p id="campagne-indication" class="campagne-indication"></p>
+          <p id="campagne-note" class="campagne-note"></p>
+          <p id="campagne-consigne" class="campagne-consigne"></p>
+          <p id="campagne-compteur" class="campagne-compteur"></p>
+          <p id="campagne-resultat" class="campagne-resultat" aria-live="polite"></p>
+          <div class="progression" aria-hidden="true"><div id="campagne-barre" class="progression-barre"></div></div>
+          <p id="campagne-avancement" class="statut"></p>
+          <div class="ligne">
+            <button id="campagne-continuer" type="button" class="principal">Continuer</button>
+            <button id="campagne-passer" type="button">Passer l'étape</button>
+            <button id="campagne-arreter" type="button" class="danger">Arrêter</button>
+            <button id="campagne-csv" type="button" class="principal">Exporter CSV</button>
+            <button id="campagne-json" type="button">Exporter JSON</button>
+            <button id="campagne-fermer" type="button">Fermer</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="masquee-en-campagne" aria-labelledby="titre-reglages">
         <h2 id="titre-reglages">Réglages</h2>
         <div class="grille-reglages">
           <label>Référence A4 (Hz)
@@ -55,7 +117,7 @@
         </div>
       </section>
 
-      <section aria-labelledby="titre-accordeur">
+      <section class="masquee-en-campagne" aria-labelledby="titre-accordeur">
         <h2 id="titre-accordeur">Accordeur</h2>
         <div class="grille-reglages">
           <label>Accordage
@@ -107,7 +169,7 @@
         <p id="niveau-texte" class="niveau-texte">— dBFS</p>
       </section>
 
-      <section aria-labelledby="titre-historique">
+      <section class="masquee-en-campagne" aria-labelledby="titre-historique">
         <h2 id="titre-historique">Dernières notes stables</h2>
         <ol id="historique" class="historique"></ol>
       </section>
@@ -117,12 +179,6 @@
         <div class="grille-reglages">
           <label>Scénario
             <select id="journal-scenario"></select>
-          </label>
-          <label>Guitare
-            <input id="journal-guitare" list="journal-guitares" placeholder="acoustique" autocomplete="off" />
-          </label>
-          <label>Matériel
-            <input id="journal-materiel" list="journal-materiels" placeholder="micro intégré portable" autocomplete="off" />
           </label>
           <label>Note attendue
             <input id="journal-note" placeholder="E2" autocomplete="off" />
@@ -159,7 +215,9 @@
           <h3>Résumé par scénario</h3>
           <p class="note-bas">
             Taux, écart, latence et octaves portent sur les notes jouées (première détection après une attaque).
-            « Sans attaque » compte les changements de note pendant que la corde résonne, grisés dans la liste des essais.
+            Une attaque sans note stable compte comme une erreur (« Non détectées »), sauf en scénario 2 où le bruit
+            peut déclencher une fausse attaque. « Sans attaque » compte les changements de note pendant que la corde
+            résonne, grisés dans la liste des essais.
           </p>
           <div class="tableau-defilant">
             <table>
@@ -167,7 +225,7 @@
                 <tr>
                   <th>Scén.</th><th>Essais</th><th>Bonnes notes jouées</th><th>Écart moyen</th>
                   <th>Latence méd.</th><th id="journal-entete-latence"></th><th>Octaves</th>
-                  <th>Sans attaque</th><th>Faux positifs</th>
+                  <th>Non détectées</th><th>Sans attaque</th><th>Faux positifs</th>
                 </tr>
               </thead>
               <tbody id="journal-resume"></tbody>

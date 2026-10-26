@@ -25,7 +25,33 @@ Le micro exige un contexte sécurisé : `localhost` ou HTTPS.
 
 Version en ligne, mise à jour à chaque push sur la branche par défaut : https://gnatali.github.io/fretmap/ (pratique pour tester sur téléphone).
 
-## Utilisation
+## Campagne de test guidée
+
+La section **Campagne de test guidée**, en haut de la page, déroule les scénarios du protocole (§7) avec un seul bouton :
+
+1. Renseigner **Guitare** et **Matériel**, choisir les scénarios et le nombre d'attaques (durée estimée affichée), puis **Lancer la campagne**. Le micro démarre s'il est arrêté.
+2. **Préparation** : accorder la guitare sur un accordeur de référence, puis **Continuer**. Le bruit ambiant est mesuré pendant 2 s (ne pas jouer).
+3. Les étapes s'enchaînent seules. Chaque note à jouer s'affiche en grand avec l'endroit où la jouer (« Corde 4, case 3 · F3 »), un compteur (2 / 3) et le résultat de la dernière attaque (✓ E2 +2 cents · 190 ms, ✗ E3 au lieu de E2, ✗ non détectée). L'étape suivante démarre dès que le compte est atteint.
+4. **Continuer** n'apparaît que lorsqu'une pause est nécessaire : avant le silence (scénario 4, 30 s avec compte à rebours) et avant le scénario bruyant (scénario 2, placé en dernier pour n'allumer la source de bruit qu'une fois).
+5. À la fin, **Exporter CSV / JSON**.
+
+| Ordre | Scénario | Contenu par défaut |
+|---|---|---|
+| 1 | 1 · cordes à vide, calme | 6 cordes × 10 attaques |
+| 2 | 3 · cases 1 à 5 | 6 cordes × 5 cases × 3 attaques (F2 à A4) |
+| 3 | 5 · jeu naturel | 20 notes au hasard entre E2 et A4, une attaque chacune, à jouer où l'on veut |
+| 4 | 4 · silence | 30 s |
+| 5 | 2 · cordes à vide, bruit | 6 cordes × 10 attaques |
+
+Règles de comptage :
+- une répétition = une note jouée (nouvelle note stable après une attaque) ; les changements sans attaque sont enregistrés mais ne comptent pas ;
+- une attaque sans note stable après 1,5 s est enregistrée « non détectée » et compte comme une erreur, sauf en scénario 2 où le bruit peut déclencher une fausse attaque (enregistrée, non comptée) ;
+- **Passer l'étape** saute la note en cours ; **Arrêter** met fin à la campagne (les essais restent dans le journal) ;
+- si la page est rechargée, **Reprendre la campagne** repart du début de l'étape en cours ; si le micro est arrêté, l'étape reprend à son début après **Démarrer**.
+
+Pendant la campagne, les sections Réglages, Accordeur et Historique sont masquées pour garder l'écran lisible sur téléphone.
+
+## Utilisation libre
 
 1. Cliquer sur **Démarrer** et autoriser le micro. La page affiche la fréquence d'échantillonnage, la fenêtre d'analyse et l'état des traitements du navigateur (qui doivent être désactivés).
 2. Sans jouer, cliquer sur **Mesurer le bruit ambiant** : le seuil de silence est fixé au bruit mesuré pendant 2 s + 10 dB.
@@ -78,13 +104,15 @@ src/
 │   ├── notes.ts        # Fréquence ↔ MIDI ↔ nom de note (fonctions pures)
 │   └── accordages.ts   # Accordages, corde la plus proche, cible et justesse de l'accordeur (fonctions pures)
 ├── journal/
+│   ├── campagne.ts     # Programme et machine à états de la campagne guidée (sans DOM)
 │   └── essais.ts       # Mesures, essais, test de silence, CSV/JSON, stockage, résumé (sans DOM)
 └── ui/
     ├── accordeur.ts    # Accordeur : choix de corde, aiguille, indicateur « juste », bip
+    ├── campagne.ts     # Campagne guidée : réglages, carte de consigne, reprise
     ├── detection.ts    # Affichage libre de la note détectée
     ├── dom.ts          # Utilitaires d'affichage partagés
     └── journal.ts      # Saisie des essais, test de silence, export CSV/JSON
-tests/                  # notes, accordages, lissage, journal, chaîne de détection sur signal synthétique
+tests/                  # notes, accordages, lissage, journal, campagne, chaîne de détection sur signal synthétique
 ```
 
 ## Format du journal

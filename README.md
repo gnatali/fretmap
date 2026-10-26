@@ -25,5 +25,6 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Validation de la détection sur une vraie guitare (six cordes à vide reconnues, téléphone Android)
 - [x] J3 : accordeur
 - [x] J4 : journal de test
+- [x] Campagne de test guidée (tous les scénarios avec un seul bouton)
 - [ ] Scénarios 1 à 4
 - [ ] J5 : scénario 5, `SYNTHESE.md`, décision

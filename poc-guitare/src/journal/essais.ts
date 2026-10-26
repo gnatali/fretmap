@@ -11,6 +11,11 @@ export const SCENARIOS = [
 ] as const;
 
 export const SCENARIO_SILENCE = '4-silence';
+/**
+ * Scénarios bruyants : une attaque sans note stable peut venir du bruit (éclat de voix) et non de la guitare ;
+ * elle y est comptée à part, pas comme une erreur.
+ */
+export const SCENARIOS_BRUIT: readonly string[] = ['2-accordage-bruyant'];
 
 /** Durée du test de silence (scénario 4, H4), en ms. Valeur 30 s. */
 export const DUREE_TEST_SILENCE_MS = 30_000;
@@ -63,8 +68,15 @@ export const CHAMPS: readonly (keyof Essai)[] = [
   'date',
 ];
 
+/** Ce qui est attendu au moment où une note commence : scénario en cours et note demandée. */
+export interface ContexteNote {
+  scenario: string;
+  /** Note attendue (« E2 », « Bb4 »…), vide si inconnue. */
+  noteAttendue: string;
+}
+
 /** Une note jouée, de sa première détection stable jusqu'au silence ou à l'attaque suivante. */
-export interface Mesure {
+export interface Mesure extends ContexteNote {
   numero: number;
   note: string;
   midi: number;
@@ -73,8 +85,6 @@ export interface Mesure {
   latenceMs: number | null;
   /** La note suit une attaque (et non un changement pendant que la corde résonne). */
   apresAttaque: boolean;
-  /** Note attendue au moment où la note a commencé (et non quand elle se termine). */
-  noteAttendue: string;
 }
 
 function arrondir(valeur: number, decimales: number): number {
@@ -91,11 +101,11 @@ export class SuiviMesure {
   private compteur = 0;
 
   /**
-   * @param noteAttendue note attendue à cet instant ; elle est figée au début de chaque note, pour qu'un changement
-   * de corde dans l'accordeur pendant que la note sonne ne soit pas attribué à cette note.
+   * @param contexte scénario et note attendue à cet instant ; ils sont figés au début de chaque note, pour qu'un
+   * changement de corde ou d'étape pendant que la note sonne ne soit pas attribué à cette note.
    * @returns la mesure qui vient de se terminer, ou null.
    */
-  traiter(etat: EtatDetection, noteAttendue = ''): Mesure | null {
+  traiter(etat: EtatDetection, contexte: ContexteNote = { scenario: '', noteAttendue: '' }): Mesure | null {
     if (etat.nouvelleNoteStable && etat.stable) {
       const terminee = this.terminer();
       this.courante = {
@@ -105,7 +115,8 @@ export class SuiviMesure {
         frequences: [etat.stable.frequence],
         latenceMs: etat.latenceMs,
         apresAttaque: etat.apresAttaque,
-        noteAttendue,
+        scenario: contexte.scenario,
+        noteAttendue: contexte.noteAttendue,
       };
       return terminee;
     }
@@ -157,13 +168,19 @@ export class TestSilence {
   }
 }
 
+/** Contexte d'enregistrement d'un essai ; le scénario et la note attendue viennent de la note elle-même. */
 export interface ContexteEssai {
   id: number;
-  scenario: string;
   guitare: string;
   materiel: string;
   a4: number;
   date: Date;
+}
+
+/** Note attendue au format du journal : « Bb4 » devient « A#4 » ; un texte non reconnu est gardé tel quel. */
+function normaliserNote(note: string): string {
+  const midi = nomVersMidi(note);
+  return midi === null ? note.trim() : midiVersNote(midi).libelle;
 }
 
 /** Essai pour une note jouée. L'écart est calculé par rapport à la note attendue au début de la note. */
@@ -172,10 +189,10 @@ export function creerEssai(contexte: ContexteEssai, mesure: Mesure): Essai {
   const freqTheorique = midiAttendu === null ? null : midiVersFrequence(midiAttendu, contexte.a4);
   return {
     id: contexte.id,
-    scenario: contexte.scenario,
+    scenario: mesure.scenario,
     guitare: contexte.guitare.trim(),
     materiel: contexte.materiel.trim(),
-    note_attendue: midiAttendu === null ? mesure.noteAttendue.trim() : midiVersNote(midiAttendu).libelle,
+    note_attendue: normaliserNote(mesure.noteAttendue),
     note_detectee: mesure.note,
     freq_mesuree_hz: arrondir(mesure.frequence, 2),
     freq_theorique_hz: freqTheorique === null ? null : arrondir(freqTheorique, 2),
@@ -190,11 +207,35 @@ export function creerEssai(contexte: ContexteEssai, mesure: Mesure): Essai {
   };
 }
 
+/**
+ * Essai pour une attaque restée sans note stable (corde non reconnue) : la note détectée est vide.
+ * Il compte comme une erreur, sauf dans les scénarios bruyants (voir resumer).
+ */
+export function creerEssaiNonDetecte(contexte: Omit<ContexteEssai, 'a4'>, note: ContexteNote): Essai {
+  return {
+    id: contexte.id,
+    scenario: note.scenario,
+    guitare: contexte.guitare.trim(),
+    materiel: contexte.materiel.trim(),
+    note_attendue: normaliserNote(note.noteAttendue),
+    note_detectee: '',
+    freq_mesuree_hz: null,
+    freq_theorique_hz: null,
+    ecart_cents: null,
+    latence_ms: null,
+    attaque: true,
+    octave_erronee: null,
+    faux_positifs: null,
+    notes_parasites: '',
+    date: contexte.date.toISOString(),
+  };
+}
+
 /** Essai du scénario 4 : nombre de notes détectées pendant le silence. */
 export function creerEssaiSilence(contexte: Omit<ContexteEssai, 'a4'>, notes: readonly string[]): Essai {
   return {
     id: contexte.id,
-    scenario: contexte.scenario,
+    scenario: SCENARIO_SILENCE,
     guitare: contexte.guitare.trim(),
     materiel: contexte.materiel.trim(),
     note_attendue: 'silence',
@@ -288,20 +329,26 @@ export interface ResumeScenario {
   octavesErronees: number;
   /** Changements de note pendant que la corde résonne, sans nouvelle attaque (instabilité de l'affichage). */
   changementsSansAttaque: number;
+  /** Attaques restées sans note stable (comptées comme erreurs, sauf en scénario bruyant). */
+  nonDetectees: number;
   fauxPositifs: number | null;
 }
 
 /**
  * Résumé par scénario, pour juger les hypothèses H1 à H5.
- * Les taux portent sur les notes jouées (première détection après une attaque) ; les changements sans attaque
- * sont comptés à part.
+ * Les taux portent sur les notes jouées (première détection après une attaque, ou attaque non détectée) ;
+ * les changements sans attaque sont comptés à part.
  */
 export function resumer(essais: readonly Essai[]): ResumeScenario[] {
   const scenarios = [...new Set(essais.map((e) => e.scenario))].sort();
   return scenarios.map((scenario) => {
     const liste = essais.filter((e) => e.scenario === scenario);
     const jouees = liste.filter((e) => e.attaque === true);
-    const evaluees = jouees.filter((e) => e.note_attendue !== '' && e.note_attendue !== 'silence');
+    const nonDetectees = jouees.filter((e) => e.note_detectee === '');
+    const bruit = SCENARIOS_BRUIT.includes(scenario);
+    const evaluees = jouees.filter(
+      (e) => e.note_attendue !== '' && e.note_attendue !== 'silence' && !(bruit && e.note_detectee === ''),
+    );
     const bonnes = evaluees.filter((e) => e.note_detectee === e.note_attendue);
     const ecarts = bonnes.map((e) => e.ecart_cents).filter((v): v is number => v !== null);
     const latences = jouees.map((e) => e.latence_ms).filter((v): v is number => v !== null);
@@ -316,6 +363,7 @@ export function resumer(essais: readonly Essai[]): ResumeScenario[] {
       partLatenceOk: latences.length ? latences.filter((v) => v < LATENCE_MAX_MS).length / latences.length : null,
       octavesErronees: jouees.filter((e) => e.octave_erronee === true).length,
       changementsSansAttaque: liste.filter((e) => e.attaque === false).length,
+      nonDetectees: nonDetectees.length,
       fauxPositifs: silences.length ? silences.reduce((s, e) => s + (e.faux_positifs ?? 0), 0) : null,
     };
   });

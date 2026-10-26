@@ -52,7 +52,7 @@ button {
 }
 button:not(:disabled):hover { border-color: var(--accent); }
 button:disabled { opacity: 0.5; cursor: default; }
-#btn-demarrer { background: var(--accent); color: #fff; border-color: var(--accent); }
+#btn-demarrer, button.principal { background: var(--accent); color: #fff; border-color: var(--accent); }
 .erreur { color: var(--rouge); font-weight: 600; }
 dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 12px 0 0; }
 dt { color: var(--discret); }
@@ -108,3 +108,22 @@ button.danger { color: var(--rouge); }
 .visuellement-cache { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 tr.sans-attaque td { color: var(--discret); font-style: italic; }
 .note-bas { margin: 0 0 8px; font-size: 0.8rem; color: var(--discret); }
+
+/* Campagne de test guidée */
+body.campagne-active .masquee-en-campagne { display: none; }
+fieldset.scenarios { border: 1px solid var(--cadre); border-radius: 6px; margin: 0 0 12px; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+fieldset.scenarios legend { color: var(--discret); font-size: 0.9rem; padding: 0 4px; }
+fieldset.scenarios label.case { align-self: auto; padding-bottom: 0; }
+.carte-campagne { border: 3px solid transparent; border-radius: 8px; padding: 4px 8px; transition: border-color 0.15s; scroll-margin-top: 8px; }
+.carte-campagne.flash-juste { border-color: var(--vert); }
+.carte-campagne.flash-faux { border-color: var(--rouge); }
+.carte-campagne p { margin: 0 0 8px; }
+.campagne-titre { color: var(--discret); font-size: 0.9rem; }
+.campagne-indication { font-size: 1.2rem; font-weight: 600; }
+.campagne-note { font-size: 4.5rem; font-weight: 700; line-height: 1; }
+.campagne-consigne { font-size: 1.05rem; }
+.carte-campagne:not([data-type='note']) .campagne-consigne { font-size: 1.3rem; font-weight: 600; }
+.campagne-compteur { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; min-height: 1.2em; }
+.campagne-resultat { min-height: 1.4em; font-weight: 600; font-variant-numeric: tabular-nums; }
+.progression { height: 8px; background: var(--fond); border: 1px solid var(--cadre); border-radius: 4px; overflow: hidden; margin: 8px 0 4px; }
+.progression-barre { height: 100%; width: 0; background: var(--accent); transition: width 0.3s; }

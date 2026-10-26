@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { EtatDetection } from '../src/audio/pitch';
 import {
   CLE_JOURNAL,
   SuiviMesure,
   TestSilence,
   chargerEssais,
   creerEssai,
+  creerEssaiNonDetecte,
   creerEssaiSilence,
   prochainId,
   resumer,
@@ -15,32 +15,10 @@ import {
   type Essai,
   type Mesure,
 } from '../src/journal/essais';
-import { frequenceVersNote } from '../src/music/notes';
+import { etat } from './outils';
 
-/** État de détection minimal : silence par défaut, note stable si `frequence` est fournie. */
-function etat(
-  tMs: number,
-  options: { frequence?: number; nouvelle?: boolean; latence?: number; attaque?: boolean; silence?: boolean } = {},
-): EtatDetection {
-  const note = options.frequence ? frequenceVersNote(options.frequence) : null;
-  return {
-    tMs,
-    niveauDbfs: note ? -20 : -80,
-    silence: options.silence ?? !note,
-    attaque: options.attaque ?? false,
-    brute: null,
-    rejet: null,
-    lissee: note,
-    stable: note,
-    octaveRepliee: false,
-    nouvelleNoteStable: options.nouvelle ?? false,
-    // Comme dans la chaîne de détection : une nouvelle note avec latence suit une attaque.
-    apresAttaque: (options.nouvelle ?? false) && options.latence !== undefined,
-    latenceMs: options.latence ?? null,
-  };
-}
 
-const contexte = { id: 1, scenario: '1-accordage-calme', guitare: 'acoustique', materiel: 'micro intégré', a4: 440, date: new Date('2026-10-24T08:00:00Z') };
+const contexte = { id: 1, guitare: 'acoustique', materiel: 'micro intégré', a4: 440, date: new Date('2026-10-24T08:00:00Z') };
 
 describe('SuiviMesure', () => {
   it('découpe une note de sa détection stable au silence, avec la médiane des fréquences', () => {
@@ -65,13 +43,15 @@ describe('SuiviMesure', () => {
     expect(s.enCours()).toMatchObject({ note: 'G3', apresAttaque: false });
   });
 
-  it('fige la note attendue au début de la note, même si elle change avant la fin', () => {
+  it('fige le scénario et la note attendue au début de la note, même s’ils changent avant la fin', () => {
     const s = new SuiviMesure();
-    s.traiter(etat(0, { frequence: 110, nouvelle: true, latence: 150 }), 'A2');
-    s.traiter(etat(100, { frequence: 110 }), 'D3');
-    expect(s.traiter(etat(200, { attaque: true, silence: false }), 'D3')?.noteAttendue).toBe('A2');
-    s.traiter(etat(350, { frequence: 146.8, nouvelle: true, latence: 150 }), 'D3');
-    expect(s.terminer()?.noteAttendue).toBe('D3');
+    const a2 = { scenario: '1-accordage-calme', noteAttendue: 'A2' };
+    const d3 = { scenario: '3-frettes-1-5', noteAttendue: 'D3' };
+    s.traiter(etat(0, { frequence: 110, nouvelle: true, latence: 150 }), a2);
+    s.traiter(etat(100, { frequence: 110 }), d3);
+    expect(s.traiter(etat(200, { attaque: true, silence: false }), d3)).toMatchObject(a2);
+    s.traiter(etat(350, { frequence: 146.8, nouvelle: true, latence: 150 }), d3);
+    expect(s.terminer()).toMatchObject(d3);
   });
 });
 
@@ -89,7 +69,7 @@ describe('TestSilence', () => {
 });
 
 describe('creerEssai', () => {
-  const mesure: Mesure = { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4, apresAttaque: true, noteAttendue: 'E2' };
+  const mesure: Mesure = { scenario: '1-accordage-calme', numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4, apresAttaque: true, noteAttendue: 'E2' };
 
   it('calcule fréquence théorique, écart et latence par rapport à la note attendue', () => {
     const e = creerEssai(contexte, mesure);
@@ -130,15 +110,15 @@ describe('creerEssai', () => {
 
 describe('creerEssaiSilence', () => {
   it('enregistre le nombre et la liste des fausses détections', () => {
-    const e = creerEssaiSilence({ ...contexte, scenario: '4-silence' }, ['B1', 'A3']);
+    const e = creerEssaiSilence({ ...contexte }, ['B1', 'A3']);
     expect(e).toMatchObject({ note_attendue: 'silence', faux_positifs: 2, notes_parasites: 'B1 A3', latence_ms: null, attaque: null });
   });
 });
 
 describe('export', () => {
   const essais: Essai[] = [
-    creerEssai({ ...contexte, materiel: 'casque, micro "USB"' }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, apresAttaque: true, noteAttendue: 'E2' }),
-    creerEssaiSilence({ ...contexte, id: 2, scenario: '4-silence' }, []),
+    creerEssai({ ...contexte, materiel: 'casque, micro "USB"' }, { scenario: '1-accordage-calme', numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, apresAttaque: true, noteAttendue: 'E2' }),
+    creerEssaiSilence({ ...contexte, id: 2 }, []),
   ];
 
   it('produit un CSV avec en-tête, échappement et valeurs vides', () => {
@@ -168,7 +148,7 @@ describe('stockage', () => {
 
   it('sauve puis recharge le journal', () => {
     const s = stockageMemoire();
-    const essai = creerEssaiSilence({ ...contexte, scenario: '4-silence' }, ['A3']);
+    const essai = creerEssaiSilence({ ...contexte }, ['A3']);
     expect(sauverEssais(s, [essai])).toBe(true);
     expect(chargerEssais(s)).toEqual([essai]);
   });
@@ -197,14 +177,14 @@ describe('stockage d’un journal ancien', () => {
 
 describe('resumer', () => {
   it('calcule les taux sur les notes jouées et compte à part les changements sans attaque', () => {
-    const m = { midi: 40, noteAttendue: 'E2', apresAttaque: true };
+    const m = { scenario: '1-accordage-calme', midi: 40, noteAttendue: 'E2', apresAttaque: true };
     const essais = [
       creerEssai({ ...contexte, id: 1 }, { ...m, numero: 1, note: 'E2', frequence: 82.6, latenceMs: 180 }),
       creerEssai({ ...contexte, id: 2 }, { ...m, numero: 2, note: 'E2', frequence: 82.2, latenceMs: 350 }),
       creerEssai({ ...contexte, id: 3 }, { ...m, numero: 3, note: 'E3', midi: 52, frequence: 164.8, latenceMs: 200 }),
       creerEssai({ ...contexte, id: 4 }, { ...m, numero: 4, note: 'E3', midi: 52, frequence: 164.8, latenceMs: null, apresAttaque: false }),
-      creerEssaiSilence({ ...contexte, id: 5, scenario: '4-silence' }, ['A3']),
-      creerEssaiSilence({ ...contexte, id: 6, scenario: '4-silence' }, []),
+      creerEssaiSilence({ ...contexte, id: 5 }, ['A3']),
+      creerEssaiSilence({ ...contexte, id: 6 }, []),
     ];
     const [s1, s4] = resumer(essais);
     expect(s1).toMatchObject({
@@ -220,5 +200,26 @@ describe('resumer', () => {
     expect(s1!.ecartMoyenAbsCents).toBe(4.3);
     expect(s1!.partLatenceOk).toBeCloseTo(2 / 3, 5);
     expect(s4).toMatchObject({ scenario: '4-silence', essais: 2, attaquesEvaluees: 0, changementsSansAttaque: 0, fauxPositifs: 1 });
+  });
+});
+
+describe('attaques non détectées', () => {
+  it('creerEssaiNonDetecte enregistre une attaque sans note', () => {
+    const e = creerEssaiNonDetecte(contexte, { scenario: '1-accordage-calme', noteAttendue: 'bb2' });
+    expect(e).toMatchObject({ note_attendue: 'A#2', note_detectee: '', attaque: true, latence_ms: null, ecart_cents: null });
+  });
+
+  it('comptent comme erreurs, sauf dans le scénario bruyant', () => {
+    const juste = (scenario: string, id: number) =>
+      creerEssai({ ...contexte, id }, { scenario, numero: id, note: 'E2', midi: 40, frequence: 82.4, latenceMs: 200, apresAttaque: true, noteAttendue: 'E2' });
+    const rate = (scenario: string, id: number) => creerEssaiNonDetecte({ ...contexte, id }, { scenario, noteAttendue: 'E2' });
+    const [s1, s2] = resumer([
+      juste('1-accordage-calme', 1),
+      rate('1-accordage-calme', 2),
+      juste('2-accordage-bruyant', 3),
+      rate('2-accordage-bruyant', 4),
+    ]);
+    expect(s1).toMatchObject({ attaquesEvaluees: 2, bonnesNotes: 1, nonDetectees: 1 });
+    expect(s2).toMatchObject({ attaquesEvaluees: 1, bonnesNotes: 1, nonDetectees: 1 });
   });
 });
