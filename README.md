@@ -38,5 +38,6 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 ## Application
 
 - [x] Spécifications revues au regard du POC (version 2)
-- [ ] Phase 0 : points à confirmer, scénario 6 du POC
+- [x] Points de la spec tranchés (interface en Svelte)
+- [ ] Scénario 6 du POC (avant la phase 4)
 - [ ] Phases 1 à 7 (spec §12)

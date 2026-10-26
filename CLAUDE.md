@@ -4,11 +4,10 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Prochaine étape : phase 0 de l'application** (spec §12), pas de code avant qu'elle soit finie :
-  1. faire trancher par l'utilisateur les points « à confirmer » (tableau en fin de `docs/revue-specs-app.md`), puis reporter ses réponses dans la spec et la revue ;
-  2. jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
-- **Ensuite** : phases 1 et 2 de la spec (§12, consignes §13), dans `app/` si l'emplacement est confirmé.
-- **Décidé** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
+- **Prochaine étape** : phases 1 et 2 de l'application, dans `app/`, avec Vite, Svelte et TypeScript (spec §12, consignes §13).
+- **Avant la phase 4 (mode 2)** : jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
+- **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
+- **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
 
 ## À reprendre du POC dans l'application
 Valeurs validées, règles du mode 2 et modules à copier : spec §3, §5.2 et §8. `poc-guitare/` reste l'outil de mesure : ne pas le modifier pour l'application.
@@ -17,4 +16,4 @@ Valeurs validées, règles du mode 2 et modules à copier : spec §3, §5.2 et �
 - Tout en français : code, commentaires, docs, commits, échanges.
 - Modifier `CLAUDE.md` ou `.claude/` : suivre `.claude/rules/claude-md.md` (racine < 200 lignes, règles par chemin, skills).
 - Push direct sur `main` (branche par défaut), pas de PR sans demande. Chaque push lance la CI et le déploiement Pages (https://gnatali.github.io/fretmap/, source Pages = « GitHub Actions ») : vérifier les deux.
-- Dans `poc-guitare/` : `npm test`, `npm run build` (tsc + Vite), `npm run dev:https` (téléphone ; via `@vitejs/plugin-basic-ssl`, Vite n'a pas d'option `--https`).
+- Commandes du POC, dans `poc-guitare/` (celles de `app/` seront ajoutées en phase 1) : `npm test`, `npm run build` (tsc + Vite), `npm run dev:https` (téléphone ; via `@vitejs/plugin-basic-ssl`, Vite n'a pas d'option `--https`).

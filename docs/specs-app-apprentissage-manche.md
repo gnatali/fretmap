@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2** : mise en cohérence avec les résultats du POC. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md). Les passages marqués **(à confirmer)** attendent une décision de l'utilisateur avant la phase 1.
+**Version 2.1** : mise en cohérence avec les résultats du POC (version 2), puis points à confirmer tranchés le 26/10/2026 : toutes les propositions acceptées, interface en Svelte. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -50,7 +50,7 @@ L'objectif pédagogique est la mémorisation des notes case par case, pas seulem
 
 Ces points sont des acquis du POC et ne doivent pas être remis en cause sans raison (nouvelle mesure).
 
-- **Plateforme de référence** : Android, navigateur Chrome **(à confirmer : le navigateur n'est pas enregistré dans les journaux du POC)**. Tester en priorité sur ce couple, micro intégré du téléphone.
+- **Plateforme de référence** : Android, navigateur Chrome (confirmé par l'utilisateur ; les journaux du POC n'enregistrent pas le navigateur). Tester en priorité sur ce couple, micro intégré du téléphone.
 - **Instrument de référence** : guitare acoustique, jouée seule, une corde à la fois.
 - **Micro** : désactiver `echoCancellation`, `noiseSuppression` et `autoGainControl` dans `getUserMedia`, et vérifier dans les réglages effectifs de la piste que c'est bien le cas.
 - **Démarrage audio** : l'`AudioContext` est créé uniquement après un clic utilisateur (bouton « Démarrer »), avant toute opération asynchrone.
@@ -82,11 +82,11 @@ Ces points sont des acquis du POC et ne doivent pas être remis en cause sans ra
 |---|---|
 | Langage | TypeScript |
 | Build | Vite |
-| Interface | Vanilla TypeScript et DOM, ou Svelte si la complexité de l'état le justifie (à trancher au début de la phase 1) |
+| Interface | Svelte, sans SvelteKit (site statique, routage simple entre écrans), avec `@sveltejs/vite-plugin-svelte` ; dernière version stable, vérifiée en phase 1 |
 | Audio | Web Audio API, `pitchy` pour la détection (comme dans le POC) |
-| Tests unitaires | Vitest |
+| Tests unitaires | Vitest, avec le plugin Svelte pour les composants |
 | Tests end-to-end | Playwright : écrans principaux et mode 1 ; mode 2 avec un micro simulé par fichier audio (voir 10) |
-| Lint et format | ESLint et Prettier |
+| Lint et format | ESLint (`eslint-plugin-svelte`) et Prettier (`prettier-plugin-svelte`) |
 | Déploiement | GitHub Actions vers GitHub Pages |
 | Stockage | `localStorage` (progression, réglages) |
 
@@ -99,7 +99,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 ### 5.1 Mode 1 : manche virtuel et quiz
 
 **Manche**
-- Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12 **(à confirmer)**.
+- Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12.
 - Affichage des notes sur les cases, masquable (une option par niveau).
 - Cordes à vide visibles à gauche, cases cliquables au pouce (zone minimale de 44 px de haut).
 - Orientation : affichage en portrait (manche vertical) par défaut, en paysage possible.
@@ -130,7 +130,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 8. Une attaque sans note stable au bout de 1,5 s affiche « Note non reconnue, rejouez » et ne compte pas comme une erreur.
 
 **Tolérance**
-- Par défaut : la note est juste si elle tombe sur le bon demi-ton (±50 cents), comme dans le POC **(à confirmer)**. Le POC a mesuré des notes justes jouées jusqu'à +30 cents près du sillet.
+- Par défaut : la note est juste si elle tombe sur le bon demi-ton (±50 cents), comme dans le POC. Le POC a mesuré des notes justes jouées jusqu'à +30 cents près du sillet.
 - Options « justesse » : ±30 ou ±20 cents, pour les niveaux avancés.
 - Octave : par défaut, le nom de la note suffit (E2 et E3 sont équivalents). Option « octave stricte ».
 
@@ -156,7 +156,7 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 
 ### 5.4 Niveaux et réglages
 
-**Niveaux** (progression linéaire, déverrouillage automatique, communs aux deux modes) **(à confirmer)**
+**Niveaux** (progression linéaire, déverrouillage automatique, communs aux deux modes)
 
 | Niveau | Contenu | Condition de passage |
 |---|---|---|
@@ -256,7 +256,7 @@ Règles :
 
 ## 8. Architecture des fichiers
 
-L'application est dans `app/`, à côté du POC qui reste la référence de mesure **(à confirmer)**. GitHub Pages publie l'application à la racine du site et le POC sous `/poc/` : le workflow `.github/workflows/pages.yml` existant est adapté, `ci.yml` lance les tests des deux projets.
+L'application est dans `app/`, à côté du POC qui reste la référence de mesure. GitHub Pages publie l'application à la racine du site et le POC sous `/poc/` : le workflow `.github/workflows/pages.yml` existant est adapté, `ci.yml` lance les tests des deux projets.
 
 ```
 fretmap/
@@ -271,7 +271,8 @@ fretmap/
     ├── tsconfig.json
     ├── vite.config.ts
     ├── src/
-    │   ├── main.ts                  # Point d'entrée et routage simple entre écrans
+    │   ├── main.ts                  # Point d'entrée : monte App.svelte
+    │   ├── App.svelte               # Routage simple entre écrans
     │   ├── audio/                   # Copié du POC sans modification
     │   │   ├── micro.ts
     │   │   ├── pitch.ts             # ChaineDetection : attaque, lissage, stabilité, tolérance d'octave
@@ -289,14 +290,18 @@ fretmap/
     │   │   └── validation.ts        # Réponse du mode 1 ; mode 2 : règles de Campagne.traiterNote du POC
     │   ├── ui/
     │   │   ├── textes.ts            # Tous les textes de l'interface
-    │   │   ├── accueil.ts
-    │   │   ├── manche.ts            # Rendu du manche (SVG)
-    │   │   ├── mode1.ts
-    │   │   ├── mode2.ts
-    │   │   ├── accordeur.ts
-    │   │   ├── statistiques.ts
-    │   │   ├── reglages.ts
-    │   │   └── composants.ts        # Boutons, aiguille, barre de niveau
+    │   │   ├── ecrans/
+    │   │   │   ├── Accueil.svelte
+    │   │   │   ├── Mode1.svelte
+    │   │   │   ├── Mode2.svelte
+    │   │   │   ├── Accordeur.svelte
+    │   │   │   ├── Statistiques.svelte
+    │   │   │   └── Reglages.svelte
+    │   │   └── composants/
+    │   │       ├── Manche.svelte    # Rendu du manche (SVG)
+    │   │       ├── Aiguille.svelte
+    │   │       ├── BarreNiveau.svelte
+    │   │       └── …                # Boutons et autres éléments communs
     │   └── styles.css
     ├── tests/
     │   ├── unit/                    # Vitest
@@ -305,7 +310,7 @@ fretmap/
         └── icone.svg
 ```
 
-Les modules `music/`, `progression/` et `quiz/` ne dépendent pas du DOM : ils doivent être testables sans navigateur.
+Les modules `music/`, `progression/`, `quiz/` et `audio/` sont en TypeScript pur, sans Svelte, et `music/`, `progression/` et `quiz/` ne dépendent pas du DOM : ils doivent être testables sans navigateur. Les composants Svelte affichent l'état et transmettent les actions ; ils ne contiennent pas de logique métier.
 
 Les règles de validation du mode 2 (première note stable après une attaque, note précédente ignorée une fois, non-détection au bout de 1,5 s) sont dans `poc-guitare/src/journal/campagne.ts` (`Campagne.traiterNote`) : les reprendre dans `quiz/validation.ts` avec leurs tests (`poc-guitare/tests/campagne.test.ts`).
 
@@ -372,11 +377,11 @@ La version 1 est terminée quand :
 
 | Phase | Contenu | Livrable |
 |---|---|---|
-| 0 | Confirmer les points marqués « à confirmer » (voir `revue-specs-app.md`) ; jouer le scénario 6 du POC | Spécification figée |
-| 1 | Mise en place dans `app/` : Vite, TypeScript, lint, adaptation de `ci.yml` et `pages.yml`, copie des modules `audio/` et `music/` du POC avec leurs tests | Page d'accueil déployée, POC toujours en ligne sous `/poc/` |
+| 0 | Points à confirmer tranchés (fait le 26/10/2026) ; scénario 6 du POC à jouer avant la phase 4 | Spécification figée |
+| 1 | Mise en place dans `app/` : Vite, Svelte, TypeScript, lint, adaptation de `ci.yml` et `pages.yml`, copie des modules `audio/` et `music/` du POC avec leurs tests | Page d'accueil déployée, POC toujours en ligne sous `/poc/` |
 | 2 | Modèle de données, stockage, `music/manche.ts` testé | Tests unitaires verts |
 | 3 | Mode 1 : manche, quiz, score, statistiques | Mode 1 jouable |
-| 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé | Mode 2 jouable sur Android |
+| 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé (après le scénario 6 du POC) | Mode 2 jouable sur Android |
 | 5 | Accordeur complet, réglages, export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
@@ -385,7 +390,7 @@ La version 1 est terminée quand :
 
 ## 13. Consignes pour Claude Code
 
-- Ne pas commencer avant que les points « à confirmer » soient tranchés.
+- Le mode 2 (phase 4) attend le scénario 6 du POC ; d'ici là, la limite de plage du mode 2 reste aux cases 0 à 5.
 - Commencer par la phase 1 et la phase 2. Ne pas construire l'interface avant que les modules `music/` et `progression/` soient testés.
 - Reprendre le code audio du POC sans le modifier, sauf si une constante doit changer. Toute modification est notée dans le commit et justifiée par une mesure.
 - Ne pas modifier `poc-guitare/` : il reste l'outil de mesure (campagne guidée).
