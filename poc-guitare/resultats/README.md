@@ -2,7 +2,46 @@
 
 Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrable §11).
 
-## Session du 26/10/2026 : `journal-poc-guitare-20261026-1903`
+## Session du 26/10/2026 à 19:54, campagne guidée : `journal-poc-guitare-20261026-1954`
+
+Guitare acoustique, micro intégré d'un ordinateur portable. 252 essais enregistrés par la campagne guidée, avec la tolérance d'octave activée. **Le scénario 5 (13 essais) est exclu de cette analyse** et devra être refait.
+
+Les taux portent sur les notes jouées, c'est-à-dire la première détection après une attaque.
+
+| Scénario | Notes jouées | Bonnes notes | Écart moyen absolu | Latence médiane | < 300 ms | Octaves erronées | Changements sans attaque |
+|---|---|---|---|---|---|---|---|
+| 1 · cordes à vide, calme | 60 | 57/60 (95 %) | 3,0 cents | 196 ms | 60/60 | 0 | 14 |
+| 3 · cases 1 à 5, six cordes (F2 à A4) | 90 | 87/90 (96,7 %), dont 1 non détectée | 6,0 cents | 200 ms | 89/89 | 0 | 11 |
+| 2 · cordes à vide, bruit | 60 | 59/60 (98,3 %) | 3,9 cents | 200 ms | 60/60 | 0 | 3 |
+| 4 · silence 30 s | — | — | — | — | — | — | 0 faux positif |
+
+### Hypothèses
+
+| # | Critère | Résultat | État |
+|---|---|---|---|
+| H1 | Écart moyen < 5 cents | 3,0 cents (scénario 1). Écart-type par corde entre 0,3 et 1,3 cent ; les décalages propres à chaque corde (A2 −6,6, G3 +3,9…) se retrouvent en scénario 2, avec une légère dérive : ils viennent de l'accordage | Validée |
+| H2 | ≥ 90 % de bonnes notes | 144/150 (96 %) sur les scénarios 1 et 3, de E2 à A4 | Validée jusqu'à A4 ; E5 non testé (point I1) |
+| H3 | Latence < 300 ms | 209 sur 209 sous 300 ms ; médiane 196 à 200 ms, maximum 283 ms | Validée |
+| H4 | 0 note sur 30 s de silence | 0 faux positif | Validée (un seul test) |
+| H5 | ≥ 80 % en conditions réelles | 98,3 % en bruit (scénario 2) | Validée pour le bruit ; le scénario 5 reste à refaire |
+
+D'après les critères du §8, ces résultats donnent un **Go provisoire** avec le micro intégré du portable. Limites : une seule guitare (acoustique), un seul appareil, et E5 n'est pas couvert.
+
+Dans le scénario 3, les cases 1 à 4 de la corde 6 sortent nettement trop hautes (F2 +30 cents, G2 +20, G#2 +12). Ce sont des bonnes notes : l'écart vient de la pression du doigt et de la justesse de la guitare près du sillet, pas de la détection.
+
+### Les 7 erreurs à l'attaque
+
+- **4 au changement de corde** (essais 30, 50, 69 et 109). La page détecte la note de l'étape précédente : A2 au lieu de D3, G3 au lieu de B3, B3 au lieu de E4, D3 au lieu de D#3. Pour au moins trois d'entre elles, la corde précédente sonne encore quand la nouvelle est attaquée, et la première détection prend l'ancienne note. En mode 2, ce sera une vraie situation d'usage.
+- 1 non-détection (F2, corde 6 case 1) et 2 notes trop hautes sur cordes graves (F#2 → G2, E2 → G2), avec des latences courtes (116 ms) qui laissent penser à une détection prise sur le transitoire de l'attaque.
+
+### Les 28 changements sans attaque
+
+- **La tolérance d'octave fonctionne** : il n'y a plus aucun saut E2 → E3 ou F2 → F3, contre 15 lors de la session précédente.
+- **Environ 15 changements vers 94 à 106 Hz** (A2 → G#2 à −62 cents, G2/A#2/F#2 → G#2, E2 → F#2) pendant que la note s'éteint. Ces fréquences correspondent à la résonance de caisse d'une guitare acoustique (environ 95 à 110 Hz) : quand la corde s'éteint, c'est la caisse qui domine.
+- **5 sauts de deux octaves**, B3 → B5 (harmonique 4). La tolérance actuelle ne couvre qu'une octave.
+- Quelques décalages d'un demi-ton vers le bas sur des notes jouées en case (F3 → E3, C4 → B3, F4 → E4).
+
+## Session du 26/10/2026 à 19:03, avant correctifs : `journal-poc-guitare-20261026-1903`
 
 Guitare acoustique, micro intégré d'un ordinateur portable. 127 essais enregistrés automatiquement : scénarios 1, 2 et 3. Le scénario 4 (silence) n'a pas été joué.
 
