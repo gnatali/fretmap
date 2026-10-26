@@ -45,6 +45,7 @@ La section **Campagne de test guidée**, en haut de la page, déroule les scéna
 
 Règles de comptage :
 - une répétition = une note jouée (nouvelle note stable après une attaque) ; les changements sans attaque sont enregistrés mais ne comptent pas ;
+- à chaque changement de corde, la consigne demande d'étouffer la corde précédente ; si la première note jouée d'une étape est encore la note de l'étape précédente (corde qui sonne encore), elle est ignorée une fois, non comptée et non enregistrée, comme le fera le mode 2 ; ensuite, elle compte comme une erreur ;
 - une attaque sans note stable après 1,5 s est enregistrée « non détectée » et compte comme une erreur, sauf en scénario 2 où le bruit peut déclencher une fausse attaque (enregistrée, non comptée) ;
 - **Passer l'étape** saute la note en cours ; **Arrêter** met fin à la campagne (les essais restent dans le journal) ;
 - si la page est rechargée, **Reprendre la campagne** repart du début de l'étape en cours ; si le micro est arrêté, l'étape reprend à son début après **Démarrer**.
@@ -56,7 +57,7 @@ Pendant la campagne, les sections Réglages, Accordeur et Historique sont masqu�
 1. Cliquer sur **Démarrer** et autoriser le micro. La page affiche la fréquence d'échantillonnage, la fenêtre d'analyse et l'état des traitements du navigateur (qui doivent être désactivés).
 2. Sans jouer, cliquer sur **Mesurer le bruit ambiant** : le seuil de silence est fixé au bruit mesuré pendant 2 s + 10 dB.
 3. Jouer une note : elle s'affiche quand elle est restée sur le même demi-ton pendant 100 ms. La ligne « Mesure brute » montre chaque mesure de pitchy et la raison d'un éventuel rejet.
-   Avec la **tolérance d'octave** (activée par défaut dans les réglages), une mesure à l'octave de la note jouée est ramenée à cette note tant qu'aucune nouvelle attaque n'a lieu : sur les cordes graves, la fondamentale s'éteint avant l'harmonique 2 et la détection sautait sinon à l'octave supérieure pendant la résonance.
+   Avec la **tolérance d'octave** (activée par défaut dans les réglages), une mesure à une ou deux octaves de la note jouée est ramenée à cette note tant qu'aucune nouvelle attaque n'a lieu : pendant la résonance, la fondamentale peut s'éteindre avant les harmoniques 2 ou 4, et la détection sautait sinon d'une octave (E2 → E3) ou de deux (B3 → B5).
 4. L'historique garde les 10 dernières notes stables, avec la latence entre l'attaque et l'affichage. Une note apparue sans nouvelle attaque (changement pendant la résonance) est marquée « sans attaque ».
 5. **Accordeur** : choisir l'accordage (standard, demi-ton plus bas, drop D, DADGAD) et le mode.
    - *Cordes* : « Auto » vise la corde la plus proche, ou toucher une corde pour la viser. Chaque bouton affiche la fréquence cible, recalculée quand A4 change.
@@ -85,7 +86,7 @@ Toutes les constantes sont documentées (unité et valeur initiale) dans le code
 | Plage acceptée | 70 à 1400 Hz | `src/audio/pitch.ts` | non |
 | Lissage | médiane sur 5 mesures | `src/audio/pitch.ts` | mode oui, taille non |
 | Durée de stabilité | 100 ms | `src/audio/pitch.ts` | non |
-| Tolérance d'octave | activée, ±50 cents autour de l'octave | `src/audio/pitch.ts` | activation oui |
+| Tolérance d'octave | activée, une ou deux octaves, ±50 cents | `src/audio/pitch.ts` | activation oui |
 | Détection d'attaque | hausse de 6 dB sur 100 ms | `src/audio/niveau.ts` | non |
 | Référence A4 | 440 Hz (430 à 450) | `src/music/notes.ts` | oui |
 | Zones de l'accordeur | ±5 cents (vert), ±15 cents (orange) | `src/music/accordages.ts` | non |

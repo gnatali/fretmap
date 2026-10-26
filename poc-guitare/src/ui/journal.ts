@@ -186,6 +186,12 @@ export class VueJournal {
     this.btnSilence.disabled = active || !microActif;
   }
 
+  /** La note en cours ne sera pas enregistrée (campagne : note de l'étape précédente, encore sonore). */
+  ignorerNoteEnCours(): void {
+    const enCours = this.suivi.enCours();
+    if (enCours) this.derniereEnregistree = Math.max(this.derniereEnregistree, enCours.numero);
+  }
+
   /** Attaque restée sans note stable pendant une campagne. */
   enregistrerNonDetecte(note: ContexteNote): void {
     const essai = creerEssaiNonDetecte(

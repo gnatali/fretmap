@@ -39,6 +39,8 @@ describe('construireProgramme', () => {
     expect(s3[4]).toMatchObject({ note: 'A2', indication: 'Corde 6, case 5' });
     expect(s3[24]).toMatchObject({ note: 'E4', indication: 'Corde 2, case 5' });
     expect(s3[29]).toMatchObject({ note: 'A4', indication: 'Corde 1, case 5' });
+    expect(s3[0]!.consigne).toMatch(/^Étouffez la corde précédente/);
+    expect(s3[1]!.consigne).not.toMatch(/Étouffez/);
   });
 
   it('scénario 5 : tirage reproductible, dans la plage E2–A4, sans répétition consécutive', () => {
@@ -102,6 +104,36 @@ describe('Campagne', () => {
     expect(r2[1]).toMatchObject({ type: 'etape' });
     expect(c.etape).toMatchObject({ type: 'note', note: 'A2' });
     expect(c.progression().part).toBeCloseTo(2 / 12, 5);
+  });
+
+  it('ignore une fois la note précédente encore sonore au début d’une étape, puis la compte comme erreur', () => {
+    const c = campagneS1();
+    const joue = (t: number, note: string) => {
+      c.traiter(etat(t, { attaque: true, silence: false }));
+      return c.traiter(etat(t + 200, { frequence: frequence(note), nouvelle: true, latence: 200 }));
+    };
+    joue(20_000, 'E2');
+    joue(22_000, 'E2');
+    expect(c.etape).toMatchObject({ note: 'A2' });
+    expect(joue(24_000, 'E2')).toEqual([{ type: 'ancienneNote', attendue: 'A2', detectee: 'E2' }]);
+    expect(c.repetitionsFaites).toBe(0);
+    expect(joue(26_000, 'E2')[0]).toMatchObject({ type: 'resultat', juste: false, detectee: 'E2' });
+    expect(joue(28_000, 'A2')[0]).toMatchObject({ type: 'resultat', juste: true });
+    expect(c.etape).toMatchObject({ note: 'D3' });
+    expect(joue(30_000, 'A2')[0]).toMatchObject({ type: 'ancienneNote' });
+  });
+
+  it('ne considère pas comme encore sonore une note séparée par une pause', () => {
+    const c = new Campagne(construireProgramme(options({ scenarios: [1, 2], repetitionsCordes: 1 })));
+    c.demarrer(0);
+    c.continuer(0);
+    c.calibrageTermine(2000);
+    while (c.etape?.type !== 'pause') c.passer(3000);
+    c.continuer(3000);
+    expect(c.etape).toMatchObject({ scenario: '2-accordage-bruyant', note: 'E2' });
+    c.traiter(etat(4000, { attaque: true, silence: false }));
+    const r = c.traiter(etat(4200, { frequence: frequence('E4'), nouvelle: true, latence: 200 }));
+    expect(r[0]).toMatchObject({ type: 'resultat', juste: false, detectee: 'E4' });
   });
 
   it('compte une attaque sans note comme non détectée en scénario 1', () => {

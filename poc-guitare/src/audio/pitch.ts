@@ -15,10 +15,15 @@ export const TAILLE_LISSAGE = 5;
 /** Durée pendant laquelle la note doit rester sur le même demi-ton pour être « détectée », en ms. Valeur initiale 100 ms. */
 export const DUREE_STABILITE_MS = 100;
 /**
- * Tolérance d'octave : écart maximal autour de l'octave supérieure ou inférieure de la note jouée pour qu'une mesure
+ * Tolérance d'octave : écart maximal autour d'une octave supérieure ou inférieure de la note jouée pour qu'une mesure
  * soit ramenée à cette note, en cents. Valeur initiale 50 cents (un quart de ton de part et d'autre).
  */
 export const TOLERANCE_OCTAVE_CENTS = 50;
+/**
+ * Nombre d'octaves couvertes par la tolérance, de part et d'autre de la note jouée. Valeur initiale 2 : l'harmonique 4
+ * (deux octaves) peut dominer pendant la résonance, par exemple B3 → B5.
+ */
+export const OCTAVES_TOLERANCE = 2;
 
 export type ModeLissage = 'mediane' | 'moyenne';
 
@@ -142,12 +147,20 @@ export interface EtatDetection {
 }
 
 /**
- * Ramène une fréquence à la note de référence si elle est à une octave au-dessus ou au-dessous (± tolérance).
- * @returns la fréquence corrigée, ou la fréquence d'origine si elle n'est pas à l'octave.
+ * Ramène une fréquence à la note de référence si elle est à une ou plusieurs octaves (jusqu'à OCTAVES_TOLERANCE)
+ * au-dessus ou au-dessous, à ± tolérance près.
+ * @returns la fréquence corrigée, ou la fréquence d'origine si elle n'est pas à une octave de la référence.
  */
-export function replierOctave(frequence: number, reference: number, toleranceCents = TOLERANCE_OCTAVE_CENTS): number {
-  for (const facteur of [2, 0.5]) {
-    if (Math.abs(ecartCents(frequence, reference * facteur)) <= toleranceCents) return frequence / facteur;
+export function replierOctave(
+  frequence: number,
+  reference: number,
+  toleranceCents = TOLERANCE_OCTAVE_CENTS,
+  octaves = OCTAVES_TOLERANCE,
+): number {
+  for (let n = 1; n <= octaves; n++) {
+    for (const facteur of [2 ** n, 2 ** -n]) {
+      if (Math.abs(ecartCents(frequence, reference * facteur)) <= toleranceCents) return frequence / facteur;
+    }
   }
   return frequence;
 }

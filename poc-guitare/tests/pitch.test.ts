@@ -127,6 +127,13 @@ describe('tolérance d’octave', () => {
     expect(replierOctave(123.5, 82.4)).toBe(123.5);
   });
 
+  it('replierOctave couvre deux octaves (harmonique 4), mais pas l’harmonique 3', () => {
+    expect(replierOctave(987.8, 246.9)).toBeCloseTo(246.95, 2);
+    expect(replierOctave(61.7, 246.9)).toBeCloseTo(246.8, 2);
+    expect(replierOctave(740.8, 246.9)).toBe(740.8);
+    expect(replierOctave(987.8, 246.9, 50, 1)).toBe(987.8);
+  });
+
   const sampleRate = 44100;
   const e2 = cordeSynthetique(82.41, sampleRate, TAILLE_FENETRE);
   const e3 = cordeSynthetique(164.81, sampleRate, TAILLE_FENETRE);

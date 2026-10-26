@@ -170,6 +170,10 @@ export class VueCampagne {
             : `✗ ${e.detectee} au lieu de ${e.attendue}`;
           this.flash(e.juste);
           break;
+        case 'ancienneNote':
+          this.deps.journal.ignorerNoteEnCours();
+          this.resultat.textContent = `${e.detectee} sonne encore : étouffez-la et rejouez ${e.attendue} (non compté).`;
+          break;
         case 'nonDetectee':
           this.deps.journal.enregistrerNonDetecte(e.note);
           this.resultat.textContent = e.comptee

@@ -31,14 +31,14 @@ Dans le scénario 3, les cases 1 à 4 de la corde 6 sortent nettement trop haute
 
 ### Les 7 erreurs à l'attaque
 
-- **4 au changement de corde** (essais 30, 50, 69 et 109). La page détecte la note de l'étape précédente : A2 au lieu de D3, G3 au lieu de B3, B3 au lieu de E4, D3 au lieu de D#3. Pour au moins trois d'entre elles, la corde précédente sonne encore quand la nouvelle est attaquée, et la première détection prend l'ancienne note. En mode 2, ce sera une vraie situation d'usage.
+- **4 au changement de corde** (essais 30, 50, 69 et 109, corrigés depuis : consigne d'étouffer la corde précédente, et première note ignorée une fois si c'est encore la note précédente). La page détecte la note de l'étape précédente : A2 au lieu de D3, G3 au lieu de B3, B3 au lieu de E4, D3 au lieu de D#3. Pour au moins trois d'entre elles, la corde précédente sonne encore quand la nouvelle est attaquée, et la première détection prend l'ancienne note. En mode 2, ce sera une vraie situation d'usage.
 - 1 non-détection (F2, corde 6 case 1) et 2 notes trop hautes sur cordes graves (F#2 → G2, E2 → G2), avec des latences courtes (116 ms) qui laissent penser à une détection prise sur le transitoire de l'attaque.
 
 ### Les 28 changements sans attaque
 
 - **La tolérance d'octave fonctionne** : il n'y a plus aucun saut E2 → E3 ou F2 → F3, contre 15 lors de la session précédente.
 - **Environ 15 changements vers 94 à 106 Hz** (A2 → G#2 à −62 cents, G2/A#2/F#2 → G#2, E2 → F#2) pendant que la note s'éteint. Ces fréquences correspondent à la résonance de caisse d'une guitare acoustique (environ 95 à 110 Hz) : quand la corde s'éteint, c'est la caisse qui domine.
-- **5 sauts de deux octaves**, B3 → B5 (harmonique 4). La tolérance actuelle ne couvre qu'une octave.
+- **5 sauts de deux octaves**, B3 → B5 (harmonique 4). La tolérance d'octave ne couvrait qu'une octave ; elle en couvre deux depuis.
 - Quelques décalages d'un demi-ton vers le bas sur des notes jouées en case (F3 → E3, C4 → B3, F4 → E4).
 
 ## Session du 26/10/2026 à 19:03, avant correctifs : `journal-poc-guitare-20261026-1903`

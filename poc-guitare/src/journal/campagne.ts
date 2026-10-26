@@ -13,6 +13,10 @@ export const DUREE_ANNONCE_MS = 3000;
 const SECONDES_PAR_ATTAQUE = 2;
 /** Cases jouées dans les scénarios 3 et 5. */
 const CASES = [1, 2, 3, 4, 5] as const;
+/** Consignes des étapes de jeu : au changement de corde, la précédente peut encore sonner et fausser la détection. */
+const CONSIGNE_NOUVELLE_CORDE = 'Étouffez la corde précédente, puis laissez sonner environ 1 s entre deux attaques.';
+const CONSIGNE_MEME_CORDE = 'Laissez sonner environ 1 s entre deux attaques.';
+const CONSIGNE_NOTE_AU_HASARD = 'Étouffez la note précédente, puis jouez une seule fois, naturellement.';
 
 export type NumeroScenario = 1 | 2 | 3 | 4 | 5;
 
@@ -59,6 +63,8 @@ export type Etape =
 export type Evenement =
   | { type: 'etape'; etape: Etape; index: number }
   | { type: 'resultat'; attendue: string; detectee: string; juste: boolean; cents: number | null; latenceMs: number | null }
+  /** Première note de l'étape identique à la note précédente, encore sonore : ignorée, non comptée. */
+  | { type: 'ancienneNote'; attendue: string; detectee: string }
   | { type: 'nonDetectee'; note: ContexteNote; comptee: boolean }
   | { type: 'silenceTermine'; notes: readonly string[] }
   | { type: 'calibrer' }
@@ -108,7 +114,7 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
       indication: `Corde ${c.numero} à vide`,
       note: c.note,
       repetitions: options.repetitionsCordes,
-      consigne: 'Laissez sonner environ 1 s entre deux attaques.',
+      consigne: CONSIGNE_NOUVELLE_CORDE,
     }));
 
   if (choisis.has(1)) {
@@ -139,7 +145,7 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
           indication: `Corde ${c.numero}, case ${numeroCase}`,
           note: midiVersNote(c.midi + numeroCase).libelle,
           repetitions: options.essaisParCase,
-          consigne: 'Laissez sonner environ 1 s entre deux attaques.',
+          consigne: numeroCase === CASES[0] ? CONSIGNE_NOUVELLE_CORDE : CONSIGNE_MEME_CORDE,
         });
       }
     }
@@ -167,7 +173,7 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
         indication: 'Où vous voulez sur le manche',
         note: midiVersNote(midi).libelle,
         repetitions: 1,
-        consigne: 'Une seule fois, naturellement.',
+        consigne: CONSIGNE_NOTE_AU_HASARD,
       });
     }
   }
@@ -228,13 +234,17 @@ export function estimerDureeMinutes(programme: readonly Etape[]): number {
  * Enchaîne les étapes d'un programme à partir du flux de détection.
  * Une étape « note » compte une répétition par note jouée (nouvelle note stable après une attaque) ou par attaque
  * restée sans note pendant DELAI_NON_DETECTION_MS (sauf en scénario bruyant) ; les changements sans attaque ne
- * comptent pas. Les annonces, le calibrage et le silence passent seuls ; seules les pauses attendent continuer().
+ * comptent pas. Comme le fera le mode 2, si la première note jouée d'une étape est la note de l'étape précédente,
+ * elle est ignorée une fois : c'est la corde précédente qui sonne encore. Ensuite, elle compte comme une erreur.
+ * Les annonces, le calibrage et le silence passent seuls ; seules les pauses attendent continuer().
  */
 export class Campagne {
   private indexCourant = -1;
   private debutEtape = 0;
   private repetitions = 0;
   private attaqueSansNote: number | null = null;
+  /** La note précédente encore sonore a déjà été ignorée une fois dans cette étape. */
+  private ancienneIgnoree = false;
   private silence: TestSilence | null = null;
 
   constructor(readonly programme: readonly Etape[]) {}
@@ -333,6 +343,10 @@ export class Campagne {
     if (etat.nouvelleNoteStable && etat.stable && etat.apresAttaque) {
       this.attaqueSansNote = null;
       const juste = etat.stable.libelle === e.note;
+      if (!juste && this.repetitions === 0 && !this.ancienneIgnoree && etat.stable.libelle === this.notePrecedente()) {
+        this.ancienneIgnoree = true;
+        return [{ type: 'ancienneNote', attendue: e.note, detectee: etat.stable.libelle }];
+      }
       return [
         {
           type: 'resultat',
@@ -354,6 +368,19 @@ export class Campagne {
     return [];
   }
 
+  /**
+   * Note de l'étape de jeu précédente, si elle peut encore sonner : null si une pause, un silence ou le calibrage
+   * la sépare de l'étape en cours.
+   */
+  private notePrecedente(): string | null {
+    for (let i = this.indexCourant - 1; i >= 0; i--) {
+      const e = this.programme[i]!;
+      if (e.type === 'note') return e.note;
+      if (e.type !== 'annonce') return null;
+    }
+    return null;
+  }
+
   private compter(e: Extract<Etape, { type: 'note' }>, tMs: number): Evenement[] {
     this.repetitions++;
     return this.repetitions >= e.repetitions ? this.aller(this.indexCourant + 1, tMs) : [];
@@ -364,6 +391,7 @@ export class Campagne {
     this.debutEtape = tMs;
     this.repetitions = 0;
     this.attaqueSansNote = null;
+    this.ancienneIgnoree = false;
     const etape = this.programme[this.indexCourant]!;
     this.silence = etape.type === 'silence' ? new TestSilence(tMs, etape.dureeMs) : null;
     const evenements: Evenement[] = [{ type: 'etape', etape, index: this.indexCourant }];
