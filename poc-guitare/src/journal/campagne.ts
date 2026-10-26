@@ -16,7 +16,7 @@ const CASES = [1, 2, 3, 4, 5] as const;
 /** Consignes des étapes de jeu : au changement de corde, la précédente peut encore sonner et fausser la détection. */
 const CONSIGNE_NOUVELLE_CORDE = 'Étouffez la corde précédente, puis laissez sonner environ 1 s entre deux attaques.';
 const CONSIGNE_MEME_CORDE = 'Laissez sonner environ 1 s entre deux attaques.';
-const CONSIGNE_NOTE_AU_HASARD = 'Étouffez la note précédente, puis jouez une seule fois, naturellement.';
+const CONSIGNE_POSITION_AU_HASARD = 'Étouffez la corde précédente, puis jouez une seule fois, naturellement.';
 
 export type NumeroScenario = 1 | 2 | 3 | 4 | 5;
 
@@ -54,6 +54,9 @@ export type Etape =
       scenario: string;
       /** Où jouer la note : « Corde 6 à vide », « Corde 4, case 3 »… */
       indication: string;
+      /** Texte affiché en grand : la note (scénarios 1 à 3) ou la case à jouer (scénario 5, la note n'est pas montrée). */
+      enGrand: string;
+      /** Note attendue, enregistrée dans le journal. */
       note: string;
       repetitions: number;
     })
@@ -112,6 +115,7 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
       scenario: idScenario(numero),
       titre: titreScenario(numero),
       indication: `Corde ${c.numero} à vide`,
+      enGrand: c.note,
       note: c.note,
       repetitions: options.repetitionsCordes,
       consigne: CONSIGNE_NOUVELLE_CORDE,
@@ -143,6 +147,7 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
           scenario: idScenario(3),
           titre: titreScenario(3),
           indication: `Corde ${c.numero}, case ${numeroCase}`,
+          enGrand: midiVersNote(c.midi + numeroCase).libelle,
           note: midiVersNote(c.midi + numeroCase).libelle,
           repetitions: options.essaisParCase,
           consigne: numeroCase === CASES[0] ? CONSIGNE_NOUVELLE_CORDE : CONSIGNE_MEME_CORDE,
@@ -156,24 +161,26 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
       type: 'annonce',
       scenario: idScenario(5),
       titre: titreScenario(5),
-      consigne: 'Jouez chaque note affichée où vous voulez, naturellement : vibrato léger, arrêts rapides.',
+      consigne: 'Jouez chaque position affichée (corde et case), naturellement : vibrato léger, arrêts rapides.',
     });
-    // Toutes les notes jouables sur les cordes à vide et les cases 1 à 5 (E2 à A4).
-    const midis = [...new Set(cordesStandard.flatMap((c) => [0, ...CASES].map((k) => c.midi + k)))].sort((a, b) => a - b);
+    // Toutes les positions des cordes à vide et des cases 1 à 5 (E2 à A4). La note n'est pas montrée avant le jeu.
+    const positions = cordesStandard.flatMap((c) => [0, ...CASES].map((k) => ({ corde: c.numero, numeroCase: k, midi: c.midi + k })));
     const hasard = aleatoire(options.graine);
     let precedente: number | null = null;
     for (let i = 0; i < options.notesAuHasard; i++) {
-      const candidates = midis.filter((m) => m !== precedente);
-      const midi = candidates[Math.floor(hasard() * candidates.length)]!;
-      precedente = midi;
+      // Jamais deux fois la même note de suite, même sur une autre corde.
+      const candidates = positions.filter((p) => p.midi !== precedente);
+      const position = candidates[Math.floor(hasard() * candidates.length)]!;
+      precedente = position.midi;
       etapes.push({
         type: 'note',
         scenario: idScenario(5),
         titre: titreScenario(5),
-        indication: 'Où vous voulez sur le manche',
-        note: midiVersNote(midi).libelle,
+        indication: `Corde ${position.corde}`,
+        enGrand: position.numeroCase === 0 ? 'À vide' : `Case ${position.numeroCase}`,
+        note: midiVersNote(position.midi).libelle,
         repetitions: 1,
-        consigne: CONSIGNE_NOTE_AU_HASARD,
+        consigne: CONSIGNE_POSITION_AU_HASARD,
       });
     }
   }

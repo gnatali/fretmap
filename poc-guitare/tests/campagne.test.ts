@@ -43,15 +43,30 @@ describe('construireProgramme', () => {
     expect(s3[1]!.consigne).not.toMatch(/Étouffez/);
   });
 
-  it('scénario 5 : tirage reproductible, dans la plage E2–A4, sans répétition consécutive', () => {
-    const a = notes(construireProgramme(options()), '5-jeu-naturel');
-    const b = notes(construireProgramme(options()), '5-jeu-naturel');
-    const c = notes(construireProgramme(options({ graine: 7 })), '5-jeu-naturel');
+  it('scénario 5 : positions au hasard (corde et case), note cachée, tirage reproductible', () => {
+    const s5 = (graine: number) =>
+      construireProgramme(options({ graine })).filter(
+        (e): e is Extract<Etape, { type: 'note' }> => e.type === 'note' && e.scenario === '5-jeu-naturel',
+      );
+    const a = s5(42);
     expect(a).toHaveLength(20);
-    expect(a).toEqual(b);
-    expect(a).not.toEqual(c);
-    for (let i = 1; i < a.length; i++) expect(a[i]).not.toBe(a[i - 1]);
-    for (const n of a) expect(nomVersMidi(n)).toBeGreaterThanOrEqual(40), expect(nomVersMidi(n)).toBeLessThanOrEqual(69);
+    expect(a.map((e) => e.note)).toEqual(s5(42).map((e) => e.note));
+    expect(a.map((e) => e.note)).not.toEqual(s5(7).map((e) => e.note));
+    const ouvertes: Record<string, number> = { '6': 40, '5': 45, '4': 50, '3': 55, '2': 59, '1': 64 };
+    for (const [i, e] of a.entries()) {
+      const corde = /^Corde ([1-6])$/.exec(e.indication)?.[1];
+      const numeroCase = e.enGrand === 'À vide' ? 0 : Number(/^Case ([1-5])$/.exec(e.enGrand)?.[1]);
+      expect(corde, e.indication).toBeDefined();
+      expect(Number.isInteger(numeroCase), e.enGrand).toBe(true);
+      expect(nomVersMidi(e.note)).toBe(ouvertes[corde!]! + numeroCase);
+      expect(e.enGrand).not.toBe(e.note);
+      if (i > 0) expect(e.note).not.toBe(a[i - 1]!.note);
+    }
+  });
+
+  it('scénarios 1 et 3 : la note est affichée en grand', () => {
+    const p = construireProgramme(options());
+    for (const e of p) if (e.type === 'note' && e.scenario !== '5-jeu-naturel') expect(e.enGrand).toBe(e.note);
   });
 
   it('ne garde que les scénarios choisis', () => {

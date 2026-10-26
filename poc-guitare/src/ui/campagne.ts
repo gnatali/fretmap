@@ -201,9 +201,14 @@ export class VueCampagne {
     this.consigne.textContent = etape.consigne;
     const estNote = etape.type === 'note';
     this.indication.textContent = estNote ? etape.indication : '';
-    this.note.textContent = estNote ? etape.note : '';
+    this.note.textContent = estNote ? etape.enGrand : '';
+    // Une position (« Case 2 », « À vide ») est plus longue qu'une note : taille réduite pour tenir sur un téléphone.
+    this.note.classList.toggle('position', estNote && etape.enGrand !== etape.note);
     this.indication.hidden = this.note.hidden = !estNote;
+    const dernier = this.resultat.textContent ?? '';
     if (etape.type !== 'note') this.resultat.textContent = '';
+    // Nouvelle étape de jeu : le dernier résultat concerne la note précédente, pas celle qui s'affiche.
+    else if (dernier && !dernier.startsWith('Précédente')) this.resultat.textContent = `Précédente : ${dernier}`;
     this.btnContinuer.hidden = etape.type !== 'pause';
     const fin = etape.type === 'fin';
     this.btnPasser.hidden = this.btnArreter.hidden = fin;

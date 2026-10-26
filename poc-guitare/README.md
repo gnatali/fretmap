@@ -31,7 +31,7 @@ La section **Campagne de test guidée**, en haut de la page, déroule les scéna
 
 1. Renseigner **Guitare** et **Matériel**, choisir les scénarios et le nombre d'attaques (durée estimée affichée), puis **Lancer la campagne**. Le micro démarre s'il est arrêté.
 2. **Préparation** : accorder la guitare sur un accordeur de référence, puis **Continuer**. Le bruit ambiant est mesuré pendant 2 s (ne pas jouer).
-3. Les étapes s'enchaînent seules. Chaque note à jouer s'affiche en grand avec l'endroit où la jouer (« Corde 4, case 3 · F3 »), un compteur (2 / 3) et le résultat de la dernière attaque (✓ E2 +2 cents · 190 ms, ✗ E3 au lieu de E2, ✗ non détectée). L'étape suivante démarre dès que le compte est atteint.
+3. Les étapes s'enchaînent seules. Chaque note à jouer s'affiche en grand avec l'endroit où la jouer (« Corde 4, case 3 · F3 » ; au scénario 5, seulement la position : « Corde 3 · Case 2 »), un compteur (2 / 3) et le résultat de la dernière attaque (✓ E2 +2 cents · 190 ms, ✗ E3 au lieu de E2, ✗ non détectée). L'étape suivante démarre dès que le compte est atteint.
 4. **Continuer** n'apparaît que lorsqu'une pause est nécessaire : avant le silence (scénario 4, 30 s avec compte à rebours) et avant le scénario bruyant (scénario 2, placé en dernier pour n'allumer la source de bruit qu'une fois).
 5. À la fin, **Exporter CSV / JSON**.
 
@@ -39,7 +39,7 @@ La section **Campagne de test guidée**, en haut de la page, déroule les scéna
 |---|---|---|
 | 1 | 1 · cordes à vide, calme | 6 cordes × 10 attaques |
 | 2 | 3 · cases 1 à 5 | 6 cordes × 5 cases × 3 attaques (F2 à A4) |
-| 3 | 5 · jeu naturel | 20 notes au hasard entre E2 et A4, une attaque chacune, à jouer où l'on veut |
+| 3 | 5 · jeu naturel | 20 positions au hasard (corde et case, cases 0 à 5), une attaque chacune ; la note n'est pas affichée avant le jeu |
 | 4 | 4 · silence | 30 s |
 | 5 | 2 · cordes à vide, bruit | 6 cordes × 10 attaques |
 

@@ -121,6 +121,7 @@ fieldset.scenarios label.case { align-self: auto; padding-bottom: 0; }
 .campagne-titre { color: var(--discret); font-size: 0.9rem; }
 .campagne-indication { font-size: 1.2rem; font-weight: 600; }
 .campagne-note { font-size: 4.5rem; font-weight: 700; line-height: 1; }
+.campagne-note.position { font-size: 3rem; }
 .campagne-consigne { font-size: 1.05rem; }
 .carte-campagne:not([data-type='note']) .campagne-consigne { font-size: 1.3rem; font-weight: 600; }
 .campagne-compteur { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; min-height: 1.2em; }
