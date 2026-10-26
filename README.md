@@ -27,6 +27,8 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] J3 : accordeur
 - [x] J4 : journal de test
 - [x] Campagne de test guidée (tous les scénarios avec un seul bouton)
-- [x] Scénarios 1 à 4 (campagne du 26/10, micro intégré du portable)
+- [x] Scénarios 1 à 4 (campagne du 26/10, micro intégré d'un téléphone Android)
 - [x] Scénario 5 refait (positions au hasard) : 20/20
 - [x] `SYNTHESE.md` : décision **Go**
+- [x] Accordeur validé sur la guitare
+- [ ] Scénario 6 : cases 6 à 12, jusqu'à E5 (plage du produit, point I1)

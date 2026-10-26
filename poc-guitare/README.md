@@ -39,9 +39,10 @@ La section **Campagne de test guidée**, en haut de la page, déroule les scéna
 |---|---|---|
 | 1 | 1 · cordes à vide, calme | 6 cordes × 10 attaques |
 | 2 | 3 · cases 1 à 5 | 6 cordes × 5 cases × 3 attaques (F2 à A4) |
-| 3 | 5 · jeu naturel | 20 positions au hasard (corde et case, cases 0 à 5), une attaque chacune ; la note n'est pas affichée avant le jeu |
-| 4 | 4 · silence | 30 s |
-| 5 | 2 · cordes à vide, bruit | 6 cordes × 10 attaques |
+| 3 | 6 · aigus, cases 6 à 12 | cordes 2 et 1 × 7 cases × 3 attaques (F4 à B4, A#4 à E5) : plage jusqu'à E5 (point I1) |
+| 4 | 5 · jeu naturel | 20 positions au hasard (corde et case, cases 0 à 5), une attaque chacune ; la note n'est pas affichée avant le jeu |
+| 5 | 4 · silence | 30 s |
+| 6 | 2 · cordes à vide, bruit | 6 cordes × 10 attaques |
 
 Règles de comptage :
 - une répétition = une note jouée (nouvelle note stable après une attaque) ; les changements sans attaque sont enregistrés mais ne comptent pas ;

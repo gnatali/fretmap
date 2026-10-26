@@ -21,12 +21,12 @@ const frequence = (note: string) => midiVersFrequence(nomVersMidi(note)!);
 const types = (evenements: Evenement[]) => evenements.map((e) => e.type);
 
 describe('construireProgramme', () => {
-  it('enchaîne préparation, calibrage, scénarios 1, 3, 5, 4 puis 2, et fin', () => {
+  it('enchaîne préparation, calibrage, scénarios 1, 3, 6, 5, 4 puis 2, et fin', () => {
     const p = construireProgramme(options());
     const resume = p
       .filter((e) => e.type !== 'note')
       .map((e) => `${e.type}:${'scenario' in e && e.scenario ? e.scenario.split('-')[0] : ''}`);
-    expect(resume).toEqual(['pause:', 'calibrage:', 'annonce:1', 'annonce:3', 'annonce:5', 'pause:4', 'silence:4', 'pause:2', 'fin:']);
+    expect(resume).toEqual(['pause:', 'calibrage:', 'annonce:1', 'annonce:3', 'annonce:6', 'annonce:5', 'pause:4', 'silence:4', 'pause:2', 'fin:']);
     expect(notes(p, '1-accordage-calme')).toEqual(['E2', 'A2', 'D3', 'G3', 'B3', 'E4']);
     expect(notes(p, '2-accordage-bruyant')).toEqual(['E2', 'A2', 'D3', 'G3', 'B3', 'E4']);
     expect(p.filter((e) => e.type === 'note' && e.scenario === '1-accordage-calme').every((e) => e.type === 'note' && e.repetitions === 10)).toBe(true);
@@ -41,6 +41,16 @@ describe('construireProgramme', () => {
     expect(s3[29]).toMatchObject({ note: 'A4', indication: 'Corde 1, case 5' });
     expect(s3[0]!.consigne).toMatch(/^Étouffez la corde précédente/);
     expect(s3[1]!.consigne).not.toMatch(/Étouffez/);
+  });
+
+  it('scénario 6 : cases 6 à 12 des cordes 2 et 1, jusqu’à E5', () => {
+    const p = construireProgramme(options());
+    expect(notes(p, '6-aigus-cases-6-12')).toEqual(['F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4', 'A#4', 'B4', 'C5', 'C#5', 'D5', 'D#5', 'E5']);
+    const s6 = p.filter((e) => e.type === 'note' && e.scenario === '6-aigus-cases-6-12');
+    expect(s6[0]).toMatchObject({ indication: 'Corde 2, case 6', repetitions: 3 });
+    expect(s6[13]).toMatchObject({ indication: 'Corde 1, case 12', note: 'E5' });
+    expect(s6[7]!.consigne).toMatch(/^Étouffez la corde précédente/);
+    expect(s6[8]!.consigne).not.toMatch(/Étouffez/);
   });
 
   it('scénario 5 : positions au hasard (corde et case), note cachée, tirage reproductible', () => {
@@ -64,7 +74,7 @@ describe('construireProgramme', () => {
     }
   });
 
-  it('scénarios 1 et 3 : la note est affichée en grand', () => {
+  it('scénarios 1, 3 et 6 : la note est affichée en grand', () => {
     const p = construireProgramme(options());
     for (const e of p) if (e.type === 'note' && e.scenario !== '5-jeu-naturel') expect(e.enGrand).toBe(e.note);
   });

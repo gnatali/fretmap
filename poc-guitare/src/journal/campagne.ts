@@ -13,18 +13,21 @@ export const DUREE_ANNONCE_MS = 3000;
 const SECONDES_PAR_ATTAQUE = 2;
 /** Cases jouées dans les scénarios 3 et 5. */
 const CASES = [1, 2, 3, 4, 5] as const;
+/** Cases jouées dans le scénario 6, sur les cordes 2 et 1 : au-delà de A4 (corde 1, case 5), jusqu'à E5 (case 12). */
+const CASES_AIGUES = [6, 7, 8, 9, 10, 11, 12] as const;
+const CORDES_AIGUES = [2, 1] as const;
 /** Consignes des étapes de jeu : au changement de corde, la précédente peut encore sonner et fausser la détection. */
 const CONSIGNE_NOUVELLE_CORDE = 'Étouffez la corde précédente, puis laissez sonner environ 1 s entre deux attaques.';
 const CONSIGNE_MEME_CORDE = 'Laissez sonner environ 1 s entre deux attaques.';
 const CONSIGNE_POSITION_AU_HASARD = 'Étouffez la corde précédente, puis jouez une seule fois, naturellement.';
 
-export type NumeroScenario = 1 | 2 | 3 | 4 | 5;
+export type NumeroScenario = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface OptionsCampagne {
   scenarios: readonly NumeroScenario[];
   /** Attaques par corde à vide (scénarios 1 et 2). */
   repetitionsCordes: number;
-  /** Attaques par note (scénario 3). */
+  /** Attaques par note (scénarios 3 et 6). */
   essaisParCase: number;
   /** Notes tirées au hasard (scénario 5). */
   notesAuHasard: number;
@@ -33,7 +36,7 @@ export interface OptionsCampagne {
 }
 
 export const OPTIONS_DEFAUT: Omit<OptionsCampagne, 'graine'> = {
-  scenarios: [1, 2, 3, 4, 5],
+  scenarios: [1, 2, 3, 4, 5, 6],
   repetitionsCordes: 10,
   essaisParCase: 3,
   notesAuHasard: 20,
@@ -54,7 +57,7 @@ export type Etape =
       scenario: string;
       /** Où jouer la note : « Corde 6 à vide », « Corde 4, case 3 »… */
       indication: string;
-      /** Texte affiché en grand : la note (scénarios 1 à 3) ou la case à jouer (scénario 5, la note n'est pas montrée). */
+      /** Texte affiché en grand : la note (scénarios 1 à 3 et 6) ou la case à jouer (scénario 5, la note n'est pas montrée). */
       enGrand: string;
       /** Note attendue, enregistrée dans le journal. */
       note: string;
@@ -93,7 +96,10 @@ export function aleatoire(graine: number): () => number {
   };
 }
 
-/** Programme complet de la campagne. L'ordre limite les pauses : le scénario bruyant passe en dernier. */
+/**
+ * Programme complet de la campagne : 1, 3, 6, 5, 4 puis 2. L'ordre limite les pauses : le scénario bruyant passe
+ * en dernier.
+ */
 export function construireProgramme(options: OptionsCampagne): Etape[] {
   const choisis = new Set(options.scenarios);
   const cordesStandard = cordes(ACCORDAGE_STANDARD);
@@ -151,6 +157,31 @@ export function construireProgramme(options: OptionsCampagne): Etape[] {
           note: midiVersNote(c.midi + numeroCase).libelle,
           repetitions: options.essaisParCase,
           consigne: numeroCase === CASES[0] ? CONSIGNE_NOUVELLE_CORDE : CONSIGNE_MEME_CORDE,
+        });
+      }
+    }
+  }
+
+  if (choisis.has(6)) {
+    etapes.push({
+      type: 'annonce',
+      scenario: idScenario(6),
+      titre: titreScenario(6),
+      consigne: `Jouez chaque note ${options.essaisParCase} fois, cases 6 à 12 des cordes 2 et 1.`,
+    });
+    for (const numeroCorde of CORDES_AIGUES) {
+      const c = cordesStandard.find((corde) => corde.numero === numeroCorde)!;
+      for (const numeroCase of CASES_AIGUES) {
+        const note = midiVersNote(c.midi + numeroCase).libelle;
+        etapes.push({
+          type: 'note',
+          scenario: idScenario(6),
+          titre: titreScenario(6),
+          indication: `Corde ${c.numero}, case ${numeroCase}`,
+          enGrand: note,
+          note,
+          repetitions: options.essaisParCase,
+          consigne: numeroCase === CASES_AIGUES[0] ? CONSIGNE_NOUVELLE_CORDE : CONSIGNE_MEME_CORDE,
         });
       }
     }

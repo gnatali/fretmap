@@ -8,6 +8,7 @@ export const SCENARIOS = [
   { id: '3-frettes-1-5', nom: '3 · Frettes 1 à 5' },
   { id: '4-silence', nom: '4 · Silence (30 s)' },
   { id: '5-jeu-naturel', nom: '5 · Jeu naturel' },
+  { id: '6-aigus-cases-6-12', nom: '6 · Aigus, cases 6 à 12 (jusqu’à E5)' },
 ] as const;
 
 export const SCENARIO_SILENCE = '4-silence';

@@ -1,10 +1,10 @@
 # Résultats des tests
 
-Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrable §11).
+Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrable §11). Toutes les sessions ont été faites sur un téléphone Android, avec son micro intégré : c'est ce que désigne « micro intégré portable » dans la colonne `materiel`.
 
 ## Session du 26/10/2026 à 22:47, scénario 5 : `journal-poc-guitare-20261026-2247`
 
-Guitare acoustique, micro intégré du portable. Campagne réduite au scénario 5 (jeu naturel), avec la version qui affiche la corde et la case à jouer (cases 0 à 5) et la règle « corde précédente encore sonore ».
+Guitare acoustique, micro intégré du téléphone Android. Campagne réduite au scénario 5 (jeu naturel), avec la version qui affiche la corde et la case à jouer (cases 0 à 5) et la règle « corde précédente encore sonore ».
 
 | Mesure | Valeur |
 |---|---|
@@ -18,7 +18,7 @@ Avec la session de 19:54 (98 % en bruit de fond), **H5 est validée**. Sur 20 no
 
 ## Session du 26/10/2026 à 19:54, campagne guidée : `journal-poc-guitare-20261026-1954`
 
-Guitare acoustique, micro intégré d'un ordinateur portable. 252 essais enregistrés par la campagne guidée, avec la tolérance d'octave activée. **Le scénario 5 (13 essais) est exclu de cette analyse** et devra être refait.
+Guitare acoustique, micro intégré du téléphone Android. 252 essais enregistrés par la campagne guidée, avec la tolérance d'octave activée. **Le scénario 5 (13 essais) est exclu de cette analyse** et devra être refait.
 
 Les taux portent sur les notes jouées, c'est-à-dire la première détection après une attaque.
 
@@ -34,12 +34,12 @@ Les taux portent sur les notes jouées, c'est-à-dire la première détection ap
 | # | Critère | Résultat | État |
 |---|---|---|---|
 | H1 | Écart moyen < 5 cents | 3,0 cents (scénario 1). Écart-type par corde entre 0,3 et 1,3 cent ; les décalages propres à chaque corde (A2 −6,6, G3 +3,9…) se retrouvent en scénario 2, avec une légère dérive : ils viennent de l'accordage | Validée |
-| H2 | ≥ 90 % de bonnes notes | 144/150 (96 %) sur les scénarios 1 et 3, de E2 à A4 | Validée jusqu'à A4 ; E5 non testé (point I1) |
+| H2 | ≥ 90 % de bonnes notes | 144/150 (96 %) sur les scénarios 1 et 3, de E2 à A4 | Validée jusqu'à A4 ; E5 non testé (point I1, scénario 6 ajouté depuis) |
 | H3 | Latence < 300 ms | 209 sur 209 sous 300 ms ; médiane 196 à 200 ms, maximum 283 ms | Validée |
 | H4 | 0 note sur 30 s de silence | 0 faux positif | Validée (un seul test) |
 | H5 | ≥ 80 % en conditions réelles | 98,3 % en bruit (scénario 2) | Validée pour le bruit ; le scénario 5 reste à refaire |
 
-D'après les critères du §8, ces résultats donnent un **Go provisoire** avec le micro intégré du portable. Limites : une seule guitare (acoustique), un seul appareil, et E5 n'est pas couvert.
+D'après les critères du §8, ces résultats donnent un **Go provisoire** avec le micro intégré du téléphone. Limites : une seule guitare (acoustique), un seul appareil, et E5 n'est pas couvert.
 
 Dans le scénario 3, les cases 1 à 4 de la corde 6 sortent nettement trop hautes (F2 +30 cents, G2 +20, G#2 +12). Ce sont des bonnes notes : l'écart vient de la pression du doigt et de la justesse de la guitare près du sillet, pas de la détection.
 
@@ -57,7 +57,7 @@ Dans le scénario 3, les cases 1 à 4 de la corde 6 sortent nettement trop haute
 
 ## Session du 26/10/2026 à 19:03, avant correctifs : `journal-poc-guitare-20261026-1903`
 
-Guitare acoustique, micro intégré d'un ordinateur portable. 127 essais enregistrés automatiquement : scénarios 1, 2 et 3. Le scénario 4 (silence) n'a pas été joué.
+Guitare acoustique, micro intégré du téléphone Android. 127 essais enregistrés automatiquement : scénarios 1, 2 et 3. Le scénario 4 (silence) n'a pas été joué.
 
 Session enregistrée avant trois changements de la page : la note attendue est désormais figée au début de chaque note, la tolérance d'octave est activée par défaut, et le journal distingue les notes jouées (`attaque = true`) des changements sans attaque. Ci-dessous, une note « jouée » est un essai avec latence.
 
