@@ -15,5 +15,6 @@ Site d'apprentissage des notes du manche de guitare (`docs/specs-poc-manche-guit
 
 ## Règles
 - Tout en français : code, commentaires, docs, commits, échanges.
+- Modifier `CLAUDE.md` ou `.claude/` : suivre `.claude/rules/claude-md.md` (racine < 200 lignes, règles par chemin, skills).
 - Push direct sur `main` (branche par défaut), pas de PR sans demande. Chaque push lance la CI et le déploiement Pages (https://gnatali.github.io/fretmap/, source Pages = « GitHub Actions ») : vérifier les deux.
 - Dans `poc-guitare/` : `npm test`, `npm run build` (tsc + Vite), `npm run dev:https` (téléphone ; via `@vitejs/plugin-basic-ssl`, Vite n'a pas d'option `--https`).
