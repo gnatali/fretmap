@@ -28,5 +28,5 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] J4 : journal de test
 - [x] Campagne de test guidée (tous les scénarios avec un seul bouton)
 - [x] Scénarios 1 à 4 (campagne du 26/10, micro intégré du portable)
-- [x] `SYNTHESE.md` : Go conditionnel
-- [ ] Scénario 5 à refaire (positions au hasard), puis décision définitive
+- [x] Scénario 5 refait (positions au hasard) : 20/20
+- [x] `SYNTHESE.md` : décision **Go**

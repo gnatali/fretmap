@@ -2,6 +2,20 @@
 
 Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrable §11).
 
+## Session du 26/10/2026 à 22:47, scénario 5 : `journal-poc-guitare-20261026-2247`
+
+Guitare acoustique, micro intégré du portable. Campagne réduite au scénario 5 (jeu naturel), avec la version qui affiche la corde et la case à jouer (cases 0 à 5) et la règle « corde précédente encore sonore ».
+
+| Mesure | Valeur |
+|---|---|
+| Notes jouées | 20, sans changement sans attaque ni non-détection |
+| Bonnes notes | **20/20 (100 %)**, aucune erreur d'octave |
+| Latence | médiane 183 ms, de 117 à 217 ms, 20 sur 20 sous 300 ms |
+| Écart moyen absolu | 5,4 cents (notes jouées en case, avec vibrato : l'écart traduit le jeu, pas la détection) |
+| Notes couvertes | de E2 à G4 |
+
+Avec la session de 19:54 (98 % en bruit de fond), **H5 est validée**. Sur 20 notes toutes justes, la borne basse de l'intervalle de confiance à 95 % est d'environ 84 %. Le journal n'enregistre pas la corde et la case jouées, seulement la note attendue.
+
 ## Session du 26/10/2026 à 19:54, campagne guidée : `journal-poc-guitare-20261026-1954`
 
 Guitare acoustique, micro intégré d'un ordinateur portable. 252 essais enregistrés par la campagne guidée, avec la tolérance d'octave activée. **Le scénario 5 (13 essais) est exclu de cette analyse** et devra être refait.
