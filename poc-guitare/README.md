@@ -23,7 +23,7 @@ npm install
 
 Le micro exige un contexte sécurisé : `localhost` ou HTTPS.
 
-Version en ligne, mise à jour à chaque push sur la branche par défaut : https://gnatali.github.io/fretmap/ (pratique pour tester sur téléphone).
+Version en ligne, mise à jour à chaque push sur la branche par défaut : https://gnatali.github.io/fretmap/poc/ (pratique pour tester sur téléphone).
 
 ## Campagne de test guidée
 
