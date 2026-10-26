@@ -58,6 +58,15 @@ describe('SuiviMesure', () => {
     expect(terminee?.note).toBe('D3');
     expect(s.enCours()?.note).toBe('G3');
   });
+
+  it('fige la note attendue au début de la note, même si elle change avant la fin', () => {
+    const s = new SuiviMesure();
+    s.traiter(etat(0, { frequence: 110, nouvelle: true, latence: 150 }), 'A2');
+    s.traiter(etat(100, { frequence: 110 }), 'D3');
+    expect(s.traiter(etat(200, { attaque: true, silence: false }), 'D3')?.noteAttendue).toBe('A2');
+    s.traiter(etat(350, { frequence: 146.8, nouvelle: true, latence: 150 }), 'D3');
+    expect(s.terminer()?.noteAttendue).toBe('D3');
+  });
 });
 
 describe('TestSilence', () => {
@@ -74,10 +83,10 @@ describe('TestSilence', () => {
 });
 
 describe('creerEssai', () => {
-  const mesure: Mesure = { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4 };
+  const mesure: Mesure = { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180.4, noteAttendue: 'E2' };
 
   it('calcule fréquence théorique, écart et latence par rapport à la note attendue', () => {
-    const e = creerEssai({ ...contexte, noteAttendue: 'E2' }, mesure);
+    const e = creerEssai(contexte, mesure);
     expect(e).toMatchObject({
       note_attendue: 'E2',
       note_detectee: 'E2',
@@ -92,20 +101,20 @@ describe('creerEssai', () => {
   });
 
   it('détecte une erreur d’octave', () => {
-    const e = creerEssai({ ...contexte, noteAttendue: 'E3' }, mesure);
+    const e = creerEssai(contexte, { ...mesure, noteAttendue: 'E3' });
     expect(e.octave_erronee).toBe(true);
     expect(e.ecart_cents).toBeCloseTo(-1196, 0);
-    expect(creerEssai({ ...contexte, noteAttendue: 'F2' }, mesure).octave_erronee).toBe(false);
+    expect(creerEssai(contexte, { ...mesure, noteAttendue: 'F2' }).octave_erronee).toBe(false);
   });
 
   it('normalise les bémols et tient compte de A4', () => {
-    const e = creerEssai({ ...contexte, noteAttendue: 'bb2', a4: 432 }, { ...mesure, note: 'A#2', midi: 46, frequence: 114.4 });
+    const e = creerEssai({ ...contexte, a4: 432 }, { ...mesure, note: 'A#2', midi: 46, frequence: 114.4, noteAttendue: 'bb2' });
     expect(e.note_attendue).toBe('A#2');
     expect(e.freq_theorique_hz).toBeCloseTo(114.42, 2);
   });
 
   it('laisse les champs de comparaison vides sans note attendue', () => {
-    const e = creerEssai({ ...contexte, noteAttendue: '' }, mesure);
+    const e = creerEssai(contexte, { ...mesure, noteAttendue: '' });
     expect(e.freq_theorique_hz).toBeNull();
     expect(e.ecart_cents).toBeNull();
     expect(e.octave_erronee).toBeNull();
@@ -121,7 +130,7 @@ describe('creerEssaiSilence', () => {
 
 describe('export', () => {
   const essais: Essai[] = [
-    creerEssai({ ...contexte, noteAttendue: 'E2', materiel: 'casque, micro "USB"' }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180 }),
+    creerEssai({ ...contexte, materiel: 'casque, micro "USB"' }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, noteAttendue: 'E2' }),
     creerEssaiSilence({ ...contexte, id: 2, scenario: '4-silence' }, []),
   ];
 
@@ -169,11 +178,11 @@ describe('stockage', () => {
 
 describe('resumer', () => {
   it('calcule bonnes notes, écart moyen absolu, latence et faux positifs par scénario', () => {
-    const c = { ...contexte, noteAttendue: 'E2' };
+    const c = contexte;
     const essais = [
-      creerEssai({ ...c, id: 1 }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180 }),
-      creerEssai({ ...c, id: 2 }, { numero: 2, note: 'E2', midi: 40, frequence: 82.2, latenceMs: 350 }),
-      creerEssai({ ...c, id: 3 }, { numero: 3, note: 'E3', midi: 52, frequence: 164.8, latenceMs: 200 }),
+      creerEssai({ ...c, id: 1 }, { numero: 1, note: 'E2', midi: 40, frequence: 82.6, latenceMs: 180, noteAttendue: 'E2' }),
+      creerEssai({ ...c, id: 2 }, { numero: 2, note: 'E2', midi: 40, frequence: 82.2, latenceMs: 350, noteAttendue: 'E2' }),
+      creerEssai({ ...c, id: 3 }, { numero: 3, note: 'E3', midi: 52, frequence: 164.8, latenceMs: 200, noteAttendue: 'E2' }),
       creerEssaiSilence({ ...contexte, id: 4, scenario: '4-silence' }, ['A3']),
       creerEssaiSilence({ ...contexte, id: 5, scenario: '4-silence' }, []),
     ];

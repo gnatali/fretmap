@@ -65,6 +65,8 @@ export interface Mesure {
   /** Médiane des fréquences lissées pendant toute la durée stable de la note, en Hz. */
   frequence: number;
   latenceMs: number | null;
+  /** Note attendue au moment où la note a commencé (et non quand elle se termine). */
+  noteAttendue: string;
 }
 
 function arrondir(valeur: number, decimales: number): number {
@@ -77,12 +79,15 @@ function arrondir(valeur: number, decimales: number): number {
  * La fréquence retenue est la médiane sur toute la note, moins sensible à l'attaque que la première valeur stable.
  */
 export class SuiviMesure {
-  private courante: { numero: number; note: string; midi: number; frequences: number[]; latenceMs: number | null } | null =
-    null;
+  private courante: Omit<Mesure, 'frequence'> & { frequences: number[] } | null = null;
   private compteur = 0;
 
-  /** @returns la mesure qui vient de se terminer, ou null. */
-  traiter(etat: EtatDetection): Mesure | null {
+  /**
+   * @param noteAttendue note attendue à cet instant ; elle est figée au début de chaque note, pour qu'un changement
+   * de corde dans l'accordeur pendant que la note sonne ne soit pas attribué à cette note.
+   * @returns la mesure qui vient de se terminer, ou null.
+   */
+  traiter(etat: EtatDetection, noteAttendue = ''): Mesure | null {
     if (etat.nouvelleNoteStable && etat.stable) {
       const terminee = this.terminer();
       this.courante = {
@@ -91,6 +96,7 @@ export class SuiviMesure {
         midi: etat.stable.midi,
         frequences: [etat.stable.frequence],
         latenceMs: etat.latenceMs,
+        noteAttendue,
       };
       return terminee;
     }
@@ -106,7 +112,8 @@ export class SuiviMesure {
   enCours(): Mesure | null {
     const c = this.courante;
     if (!c) return null;
-    return { numero: c.numero, note: c.note, midi: c.midi, frequence: mediane(c.frequences), latenceMs: c.latenceMs };
+    const { frequences, ...reste } = c;
+    return { ...reste, frequence: mediane(frequences) };
   }
 
   terminer(): Mesure | null {
@@ -146,22 +153,20 @@ export interface ContexteEssai {
   scenario: string;
   guitare: string;
   materiel: string;
-  /** Note attendue saisie (« E2 », « Bb4 »…), vide si inconnue. */
-  noteAttendue: string;
   a4: number;
   date: Date;
 }
 
-/** Essai pour une note jouée. L'écart est calculé par rapport à la note attendue. */
+/** Essai pour une note jouée. L'écart est calculé par rapport à la note attendue au début de la note. */
 export function creerEssai(contexte: ContexteEssai, mesure: Mesure): Essai {
-  const midiAttendu = nomVersMidi(contexte.noteAttendue);
+  const midiAttendu = nomVersMidi(mesure.noteAttendue);
   const freqTheorique = midiAttendu === null ? null : midiVersFrequence(midiAttendu, contexte.a4);
   return {
     id: contexte.id,
     scenario: contexte.scenario,
     guitare: contexte.guitare.trim(),
     materiel: contexte.materiel.trim(),
-    note_attendue: midiAttendu === null ? contexte.noteAttendue.trim() : midiVersNote(midiAttendu).libelle,
+    note_attendue: midiAttendu === null ? mesure.noteAttendue.trim() : midiVersNote(midiAttendu).libelle,
     note_detectee: mesure.note,
     freq_mesuree_hz: arrondir(mesure.frequence, 2),
     freq_theorique_hz: freqTheorique === null ? null : arrondir(freqTheorique, 2),
@@ -176,7 +181,7 @@ export function creerEssai(contexte: ContexteEssai, mesure: Mesure): Essai {
 }
 
 /** Essai du scénario 4 : nombre de notes détectées pendant le silence. */
-export function creerEssaiSilence(contexte: Omit<ContexteEssai, 'noteAttendue' | 'a4'>, notes: readonly string[]): Essai {
+export function creerEssaiSilence(contexte: Omit<ContexteEssai, 'a4'>, notes: readonly string[]): Essai {
   return {
     id: contexte.id,
     scenario: contexte.scenario,

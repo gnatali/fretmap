@@ -129,7 +129,7 @@ export class VueJournal {
   traiter(etat: EtatDetection): void {
     if (this.suivreAccordeur.checked) this.synchroniserNoteAttendue();
 
-    const terminee = this.suivi.traiter(etat);
+    const terminee = this.suivi.traiter(etat, this.noteAttendue.value);
     if (terminee) this.derniere = terminee;
 
     if (this.testSilence) {
@@ -186,7 +186,6 @@ export class VueJournal {
         scenario: this.scenario.value,
         guitare: this.guitare.value,
         materiel: this.materiel.value,
-        noteAttendue: this.noteAttendue.value,
         a4: this.deps.a4(),
         date: new Date(),
       },
