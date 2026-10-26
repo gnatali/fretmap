@@ -4,7 +4,9 @@ description: Intégrer et analyser un journal de campagne exporté par le POC (J
 ---
 # Analyser un journal de campagne
 
-1. Copier le JSON dans `poc-guitare/resultats/` sans le renommer, puis générer le CSV avec `versCsv` de `src/journal/essais.ts` (RFC 4180, CRLF). Vérifier : une ligne d'en-tête + une ligne par essai.
+1. Copier le JSON dans `poc-guitare/resultats/` sans le renommer, puis générer le CSV à côté, depuis la racine du dépôt (dépendances du POC installées : `npm ci` dans `poc-guitare/`) :
+   `node .claude/skills/analyser-journal/scripts/journal-vers-csv.mjs poc-guitare/resultats/<journal>.json`
+   Le script réutilise `chargerEssais` et `versCsv` de `src/journal/essais.ts` : même format que l'export de la page (RFC 4180, CRLF). Il affiche le nombre d'essais et refuse un journal dont un essai est invalide.
 2. Calculer par scénario, sur les notes jouées (voir `.claude/rules/resultats.md`) : bonnes notes, écart moyen absolu en cents, latence médiane et maximale, part sous 300 ms, octaves erronées, changements sans attaque, non-détections, faux positifs (scénario 4).
 3. Expliquer chaque erreur à l'attaque (corde précédente encore sonore, transitoire, harmonique) et les changements sans attaque.
 4. Ajouter une section en tête de `resultats/README.md` (session, matériel, tableau, analyse).
