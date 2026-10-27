@@ -12,8 +12,9 @@ permissions:
   pages: write
   id-token: write
 
+# Un groupe par branche : un push hors de la branche par défaut (job sauté) n'annule plus le déploiement en cours.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
