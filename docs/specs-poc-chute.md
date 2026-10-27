@@ -63,7 +63,7 @@ Le même outillage que `app/`, pour que le code passe dans l'application sans r�
 | Élément | Choix |
 |---|---|
 | Langage | TypeScript 6.0 |
-| Build | Vite, `base` : `/fretmap/poc-chute/` |
+| Build | Vite, `base: './'` (chemins relatifs, comme l'application), publié sous `/fretmap/poc-chute/` |
 | Interface | Svelte 5 (runes), sans SvelteKit |
 | Audio | Web Audio API, `pitchy` (comme l'application) |
 | Rendu de la chute | Composants Svelte en DOM, position en `transform: translateY` calculée à chaque `requestAnimationFrame` ; repli sur Canvas 2D si l'hypothèse HC1 (fluidité) échoue |
@@ -83,14 +83,14 @@ poc-chute/
   SYNTHESE.md                après la campagne : résultats par hypothèse, décision
   resultats/                 journaux de la campagne
   src/
-    main.ts
+    main.ts, styles.css      copies de l'application (démarrage, variables de couleur claires et sombres)
     App.svelte               choix de l'écran : départ, partie, fin
     ecoute.svelte.ts         copie de app/src/ecoute.svelte.ts (classe Ecoute)
     audio/                   copie de app/src/audio/ (micro, niveau, pitch)
     music/                   copie de app/src/music/ (manche, notes, notation, accordages)
     quiz/                    copie de app/src/quiz/tirage.ts (tirerQuestion) et validation.ts (SuiviMode2)
-    progression/             copie de app/src/progression/niveaux.ts (NIVEAUX, positionsDuNiveau, CASE_MAX_MODE2)
-                             et statistiques.ts (poidsPosition, poidsDuMode), allégés de ce qui ne sert pas
+    progression/             copie de app/src/progression/modele.ts (types), niveaux.ts (NIVEAUX, positionsDuNiveau,
+                             CASE_MAX_MODE2) et statistiques.ts (poidsPosition, poidsDuMode)
     jeu/                     nouveau, TypeScript pur, sans DOM
       chute.ts               file de notes, progression dans le temps, apparitions, notes ratées
       vitesse.ts             durée de chute adaptative
@@ -101,13 +101,12 @@ poc-chute/
       textes.ts              tous les textes de l'interface
       ecrans/                Depart.svelte, Partie.svelte, Fin.svelte
       composants/            MancheChute.svelte (manche, notes qui tombent, ligne de jeu), Indicateur.svelte
-      styles.css             variables de couleur (clair et sombre), reprises de l'application
   tests/
     unit/*.test.ts
     e2e/*.spec.ts
 ```
 
-- Les copies sont **figées** : elles ne suivent pas les changements de l'application pendant le POC. Chaque copie est signalée dans le commit qui l'ajoute, avec l'empreinte du commit source.
+- Les copies sont **figées** et **identiques** à l'application (commit `34203e7`), code inutilisé compris : `diff` avec `app/` reste vide, ce qui facilite le retour dans l'application. Elles ne suivent pas les changements de l'application pendant le POC. Les tests unitaires de ces modules sont copiés avec eux. Liste dans `poc-chute/README.md`.
 - `jeu/` ne dépend que de `music/`, `quiz/` et `progression/`. Il reçoit le temps en paramètre (pas d'appel à `performance.now()`), pour être testé sans navigateur. C'est le dossier qui passera dans `app/src/` en cas de Go.
 
 ---
@@ -378,7 +377,7 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 ## 15. Consignes pour Claude Code
 
 - Commencer par la logique (`jeu/`) et le mode simulation : le jeu doit se jouer au clavier avant de brancher le micro.
-- Ne modifier ni `app/` ni `poc-guitare/`. Copier les modules de l'application sans les changer, sauf pour retirer ce qui ne sert pas, en le notant dans le commit.
+- Ne modifier ni `app/` ni `poc-guitare/`. Les modules copiés de l'application restent identiques à l'original ; une modification sur mesure est notée dans le commit.
 - Garder `jeu/` sans DOM et sans horloge propre : le temps est passé en paramètre.
 - Tous les textes de l'interface dans `ui/textes.ts`, en français ; cibles tactiles d'au moins 44 px ; couleurs par variables (clair et sombre).
 - Documenter chaque constante de 7 avec sa valeur initiale et son origine.

@@ -1,7 +1,7 @@
 name: Déploiement GitHub Pages
 
-# Publie sur GitHub Pages, à chaque push sur la branche par défaut, l'application (racine du site)
-# et le POC (sous /poc/).
+# Publie sur GitHub Pages, à chaque push sur la branche par défaut, l'application (racine du site),
+# le POC (sous /poc/) et le POC « Notes qui tombent » (sous /poc-chute/).
 # Prérequis (une fois) : Settings → Pages → Build and deployment → Source : « GitHub Actions ».
 on:
   push:
@@ -29,6 +29,7 @@ jobs:
           cache-dependency-path: |
             app/package-lock.json
             poc-guitare/package-lock.json
+            poc-chute/package-lock.json
       - name: Application
         working-directory: app
         run: |
@@ -41,11 +42,18 @@ jobs:
           npm ci
           npm test
           npm run build
+      - name: POC Notes qui tombent
+        working-directory: poc-chute
+        run: |
+          npm ci
+          npm test
+          npm run build
       - name: Assemblage du site
         run: |
           mkdir -p site
           cp -r app/dist/. site/
           cp -r poc-guitare/dist site/poc
+          cp -r poc-chute/dist site/poc-chute
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:

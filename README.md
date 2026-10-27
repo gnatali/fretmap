@@ -13,12 +13,15 @@ Le projet commence par un POC qui vérifie qu'un navigateur peut détecter de fa
 | [`poc-guitare/SYNTHESE.md`](poc-guitare/SYNTHESE.md) | Synthèse du POC : résultats par hypothèse et décision |
 | [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2.7) |
 | [`docs/revue-specs-app.md`](docs/revue-specs-app.md) | Revue des spécifications de l'application au regard du POC, décisions |
+| [`poc-chute/`](poc-chute/) | POC du jeu « Notes qui tombent » (Svelte, TypeScript, Vite), futur mode 3 |
+| [`docs/specs-poc-chute.md`](docs/specs-poc-chute.md) | Spécifications du POC « Notes qui tombent » |
 
 ## Démo en ligne
 
 Publication automatique sur GitHub Pages à chaque push sur la branche par défaut :
 - application : **https://gnatali.github.io/fretmap/**
 - POC : **https://gnatali.github.io/fretmap/poc/**
+- POC « Notes qui tombent » : **https://gnatali.github.io/fretmap/poc-chute/**
 
 Le site est servi en HTTPS : le micro fonctionne aussi depuis un téléphone, sans certificat auto-signé.
 Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : *Settings → Pages → Build and deployment → Source : GitHub Actions*.
@@ -51,3 +54,12 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Phase 5 : accordeur (quatre accordages, cordes et chromatique, référence A4), écran Réglages, export et import JSON, réinitialisation
 - [x] Phase 6 : niveaux débloqués automatiquement (par mode, 80 % sur les dernières réponses), tirage pondéré, focus clavier, affichage à 360 px
 - [ ] Phase 7 : essais sur Android avec la guitare (checklist manuelle, spec §10), corrections
+
+## POC « Notes qui tombent »
+
+- [x] Spécifications (version 1), à partir de 20 questions
+- [x] Phase 1 : squelette de `poc-chute/`, copies figées de l'application, CI et Pages
+- [ ] Phase 2 : logique du jeu (`src/jeu/`) et tests unitaires
+- [ ] Phase 3 : écrans en portrait, animation, mode simulation, tests de bout en bout
+- [ ] Phase 4 : micro, retours, journal et export
+- [ ] Phase 5 : campagne sur Android, synthèse, décision
