@@ -88,8 +88,6 @@
     niveau = n;
     suivante();
   }}
-  {notation}
-  onNotation={(n) => etat.definirReglage('notation', n)}
 >
   <label>
     <input

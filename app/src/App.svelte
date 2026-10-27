@@ -1,9 +1,11 @@
 <script lang="ts">
   import { EtatApp } from './etat.svelte';
   import type { Stockage } from './progression/stockage';
+  import Accordeur from './ui/ecrans/Accordeur.svelte';
   import Accueil, { type Destination } from './ui/ecrans/Accueil.svelte';
   import Mode1 from './ui/ecrans/Mode1.svelte';
   import Mode2 from './ui/ecrans/Mode2.svelte';
+  import Reglages from './ui/ecrans/Reglages.svelte';
   import Statistiques from './ui/ecrans/Statistiques.svelte';
 
   interface Props {
@@ -27,8 +29,12 @@
     <Mode1 {etat} onQuitter={accueil} />
   {:else if ecran === 'mode2'}
     <Mode2 {etat} onQuitter={accueil} />
+  {:else if ecran === 'accordeur'}
+    <Accordeur {etat} onQuitter={accueil} />
   {:else if ecran === 'statistiques'}
     <Statistiques {etat} onQuitter={accueil} />
+  {:else if ecran === 'reglages'}
+    <Reglages {etat} onQuitter={accueil} />
   {:else}
     <Accueil niveau={etat.progression.niveauActuel} onAller={(d) => (ecran = d)} />
   {/if}

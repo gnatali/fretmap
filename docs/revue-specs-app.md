@@ -60,3 +60,6 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | N5 | Notation avant l'écran Réglages | Implémentée dès la phase 3, avec un choix provisoire dans le mode 1 |
 | N6 | Mode 2, note fausse | Chaque note fausse compte comme une réponse fausse (score, série, statistiques) ; la question reste posée jusqu'à la bonne note |
 | N7 | Mise en veille de l'écran | Empêchée tant que le micro écoute (mode 2, puis accordeur) ; pas en mode 1, où l'on touche l'écran |
+| N8 | Choix provisoires des modes (phase 5) | La notation passe dans l'écran Réglages ; « afficher les notes » et « afficher la case » restent aussi au-dessus de la question |
+| N9 | Retour sonore | Un seul réglage : bip quand la note du mode 2 ou la corde de l'accordeur est juste |
+| N10 | Réinitialiser la progression | Efface niveau, scores et statistiques, garde les réglages ; l'import demande aussi une confirmation |

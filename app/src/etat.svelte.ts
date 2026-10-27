@@ -1,5 +1,5 @@
 // État de l'application : relie l'interface au stockage. Aucune règle métier ici (voir progression/ et quiz/).
-import { type Progression, type Reglages } from './progression/modele';
+import { progressionInitiale, type Progression, type Reglages } from './progression/modele';
 import { enregistrerReponse, type Reponse } from './progression/statistiques';
 import { charger, sauver, stockageLocal, type EtatChargement, type Stockage } from './progression/stockage';
 
@@ -23,6 +23,17 @@ export class EtatApp {
   definirReglage<C extends keyof Reglages>(cle: C, valeur: Reglages[C]): void {
     this.progression = { ...this.progression, reglages: { ...this.progression.reglages, [cle]: valeur } };
     this.sauver();
+  }
+
+  /** Remplace toute la progression (import d'un fichier exporté). */
+  remplacer(progression: Progression): void {
+    this.progression = progression;
+    this.sauver();
+  }
+
+  /** Repart d'une progression neuve (niveau, scores, statistiques) en gardant les réglages. */
+  reinitialiser(): void {
+    this.remplacer({ ...progressionInitiale(), reglages: { ...this.progression.reglages } });
   }
 
   private sauver(): void {

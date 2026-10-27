@@ -161,3 +161,10 @@ export function exporterJson(progression: Progression): string {
 export function importerJson(texte: string): Progression | null {
   return lireJson(texte);
 }
+
+/** Nom du fichier d'export, daté du jour (heure locale) : « fretmap-progression-2026-10-27.json ». */
+export function nomFichierExport(date: Date): string {
+  const deuxChiffres = (n: number) => String(n).padStart(2, '0');
+  const jour = `${date.getFullYear()}-${deuxChiffres(date.getMonth() + 1)}-${deuxChiffres(date.getDate())}`;
+  return `fretmap-progression-${jour}.json`;
+}

@@ -38,7 +38,7 @@ test('mode 1 : une bonne réponse, une mauvaise, puis les statistiques après re
 
 test('accueil : pas de défilement horizontal sur téléphone', async ({ page }) => {
   await page.goto('/');
-  for (const nom of [/^Mode 1/, /^Mode 2/, /^Statistiques/]) {
+  for (const nom of [/^Mode 1/, /^Mode 2/, /^Accordeur/, /^Statistiques/, /^Réglages/]) {
     await page.getByRole('button', { name: nom }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole('button', { name: /^(Arrêter|Retour)$/ }).click();

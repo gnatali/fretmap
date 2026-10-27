@@ -7,6 +7,7 @@ import {
   exporterJson,
   importerJson,
   migrer,
+  nomFichierExport,
   sauver,
   type Stockage,
 } from '../../src/progression/stockage';
@@ -132,5 +133,9 @@ describe('export et import JSON', () => {
     expect(importerJson('bonjour')).toBeNull();
     expect(importerJson('{"version":1')).toBeNull();
     expect(importerJson('[]')).toBeNull();
+  });
+
+  it('nomme le fichier d’export avec la date du jour', () => {
+    expect(nomFichierExport(new Date(2026, 9, 7, 23, 30))).toBe('fretmap-progression-2026-10-07.json');
   });
 });

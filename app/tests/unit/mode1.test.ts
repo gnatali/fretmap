@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/svelte';
+import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EtatApp } from '../../src/etat.svelte';
 import { CLE_STOCKAGE } from '../../src/progression/stockage';
@@ -79,17 +80,13 @@ describe('mode 1', () => {
     expect(document.querySelectorAll('.case.evidence')).toHaveLength(13);
   });
 
-  it('change de notation et enregistre le réglage', async () => {
-    const { etat, stockage } = demarrer();
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.notation }), {
-      target: { value: 'anglo-saxonne' },
-    });
+  it('suit la notation des réglages', async () => {
+    const { etat } = demarrer();
+    etat.definirReglage('notation', 'anglo-saxonne');
+    await tick();
     expect(question()).toBe('Trouvez E');
-    expect(etat.progression.reglages.notation).toBe('anglo-saxonne');
-    expect(stockage.donnees[CLE_STOCKAGE]).toContain('"notation":"anglo-saxonne"');
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.notation }), {
-      target: { value: 'francaise' },
-    });
+    etat.definirReglage('notation', 'francaise');
+    await tick();
     expect(question()).toBe('Trouvez Mi');
   });
 

@@ -30,6 +30,12 @@ function cents(valeur: number): string {
   return `${arrondi > 0 ? '+' : '−'}${Math.abs(arrondi)} cents`;
 }
 
+/** Niveau en dBFS : « −58 dBFS ». */
+function dbfs(valeur: number): string {
+  const arrondi = Math.round(valeur);
+  return `${arrondi < 0 ? '−' : ''}${Math.abs(arrondi)} dBFS`;
+}
+
 /** « Corde 5, case 3 », « Corde 6, à vide ». */
 function position(corde: number, numeroCase: number): string {
   return numeroCase === 0 ? `Corde ${corde}, à vide` : `Corde ${corde}, case ${numeroCase}`;
@@ -38,7 +44,6 @@ function position(corde: number, numeroCase: number): string {
 export const TEXTES = {
   titre: 'fretmap',
   sousTitre: 'Apprendre les notes du manche de guitare',
-  bientot: 'Bientôt disponible',
   lienPoc: 'Essayer la détection de notes (POC)',
   niveauActuel: (niveau: number) => `Niveau actuel : ${niveau}`,
   entrees: {
@@ -54,7 +59,6 @@ export const TEXTES = {
   quiz: {
     niveau: 'Niveau',
     nomNiveau: (niveau: number, description: string) => `${niveau} · ${description}`,
-    notation: 'Notation',
     score: (bonnes: number, questions: number) => `${bonnes} / ${questions}`,
     pourcentage: (p: number | null) => (p === null ? '–' : `${p} %`),
     serie: (serie: number, meilleure: number) => `Série ${serie} (meilleure : ${meilleure})`,
@@ -97,9 +101,63 @@ export const TEXTES = {
     reponse: (juste: boolean, jouee: string, demandee: string) =>
       juste ? `${jouee} (juste)` : `${jouee} au lieu de ${demandee}`,
   },
+  accordeur: {
+    titre: 'Accordeur',
+    accordage: 'Accordage',
+    nomAccordage: (nom: string, notes: string) => `${nom} : ${notes}`,
+    mode: 'Mode',
+    modes: { cordes: 'Cordes', chromatique: 'Chromatique' },
+    choixCorde: 'Corde à accorder',
+    auto: 'Auto',
+    autoDetail: 'la plus proche',
+    cible: (hz: number) =>
+      `cible ${hz.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Hz`,
+    cordeProche: 'corde la plus proche',
+    noteProche: 'note la plus proche',
+    aiguille: 'Écart à la note visée',
+    jouez: 'Jouez une corde',
+    attente: '…',
+    juste: (ecart: number) => `Juste ✓ (${cents(ecart)})`,
+    ecart: (ecart: number, horsEchelle: boolean) =>
+      `${cents(ecart)} · ${horsEchelle ? 'beaucoup ' : ''}trop ${ecart < 0 ? 'bas' : 'haut'}`,
+    centre: (ecart: number) => cents(ecart),
+    a4: (la4: string) => `Référence ${la4} (Hz)`,
+    bip: 'Bip quand la corde est juste',
+  },
+  reglages: {
+    titre: 'Réglages',
+    affichage: 'Affichage',
+    notation: 'Notation des notes',
+    afficherNotes: 'Afficher les notes sur le manche (mode 1)',
+    mode2: 'Mode 2',
+    tolerance: 'Justesse demandée',
+    tolerances: { 50: 'Demi-ton (par défaut)', 30: '±30 cents', 20: '±20 cents' } as Record<number, string>,
+    octaveStricte: 'Octave stricte (Mi2 et Mi3 ne sont plus équivalents)',
+    afficherCaseMode2: 'Afficher la case dans la question',
+    microEtSon: 'Micro et son',
+    a4: (la4: string) => `Référence ${la4}, de 430 à 450 Hz`,
+    seuil: (db: number) => `Seuil de silence : ${dbfs(db)} (bruit ambiant + 10 dB)`,
+    mesurer: 'Mesurer le bruit ambiant',
+    mesureEnCours: 'Ne jouez pas : mesure du bruit ambiant (2 s)…',
+    mesureFaite: (db: number) => `Seuil fixé à ${dbfs(db)}.`,
+    retourSonore: 'Retour sonore : bip quand la note ou la corde est juste',
+    progression: 'Progression',
+    conseilExport: 'Le navigateur peut effacer les données du site : exportez la progression de temps en temps.',
+    exporter: 'Exporter la progression',
+    importer: 'Importer une progression',
+    importInvalide: 'Ce fichier n’est pas une progression fretmap exportée.',
+    confirmerImport: 'Remplacer la progression actuelle par celle du fichier ?',
+    remplacer: 'Remplacer',
+    importFait: 'Progression importée.',
+    reinitialiser: 'Réinitialiser la progression',
+    confirmerReinitialisation: 'Effacer le niveau, les scores et les statistiques ? Les réglages sont gardés.',
+    effacer: 'Effacer',
+    reinitialisationFaite: 'Progression réinitialisée.',
+    annuler: 'Annuler',
+  },
   micro: {
     explication:
-      'Le mode 2 écoute votre guitare avec le micro de l’appareil. Le navigateur va demander l’autorisation ; ' +
+      'La page écoute votre guitare avec le micro de l’appareil. Le navigateur va demander l’autorisation ; ' +
       'le son n’est ni enregistré ni envoyé. Au démarrage, ne jouez pas pendant 2 s : mesure du bruit ambiant.',
     demarrer: 'Démarrer le micro',
     couper: 'Couper le micro',

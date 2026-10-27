@@ -1,21 +1,18 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { NOTATIONS, type Notation } from '../../music/notation';
   import type { Niveau } from '../../progression/modele';
   import { NIVEAUX } from '../../progression/niveaux';
   import { TEXTES } from '../textes';
 
-  // Réglages au-dessus d'un quiz (modes 1 et 2) : niveau, notation, puis les cases à cocher propres au mode.
-  // Provisoire pour la notation : l'écran Réglages la reprendra en phase 5 (spec §5.1).
+  // Au-dessus d'un quiz (modes 1 et 2) : niveau au choix jusqu'à la phase 6, puis l'aide propre au mode
+  // (afficher les notes, afficher la case), aussi réglable dans l'écran Réglages.
   interface Props {
     niveau: Niveau;
     onNiveau: (niveau: Niveau) => void;
-    notation: Notation;
-    onNotation: (notation: Notation) => void;
     children?: Snippet;
   }
 
-  let { niveau, onNiveau, notation, onNotation, children }: Props = $props();
+  let { niveau, onNiveau, children }: Props = $props();
 </script>
 
 <div class="reglages">
@@ -24,14 +21,6 @@
     <select value={niveau} onchange={(e) => onNiveau(Number(e.currentTarget.value) as Niveau)}>
       {#each NIVEAUX as n (n.niveau)}
         <option value={n.niveau}>{TEXTES.quiz.nomNiveau(n.niveau, TEXTES.niveaux[n.niveau]!)}</option>
-      {/each}
-    </select>
-  </label>
-  <label>
-    {TEXTES.quiz.notation}
-    <select value={notation} onchange={(e) => onNotation(e.currentTarget.value as Notation)}>
-      {#each NOTATIONS as n (n)}
-        <option value={n}>{TEXTES.notations[n]}</option>
       {/each}
     </select>
   </label>

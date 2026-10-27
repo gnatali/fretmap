@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.5** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), puis comptage des notes fausses du mode 2 (version 2.5). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.6** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), puis précisions de la phase 5 sur les réglages (version 2.6). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -101,7 +101,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Manche**
 - Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12.
 - Affichage des notes sur les cases, masquable (une option par niveau).
-- Au-dessus du manche : choix du niveau, de la notation des notes (5.4) et de l'affichage des notes. Ces deux réglages sont enregistrés ; l'écran Réglages les reprend en phase 5.
+- Au-dessus du manche : choix du niveau (jusqu'à la phase 6) et de l'affichage des notes, réglage enregistré et aussi présent dans l'écran Réglages. La notation des notes (5.4) se choisit dans l'écran Réglages.
 - Cordes à vide visibles à gauche, cases cliquables au pouce (zone minimale de 44 px de haut).
 - Orientation : affichage en portrait (manche vertical) par défaut, en paysage possible.
 
@@ -123,7 +123,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Ce que le micro peut vérifier** : la hauteur jouée, donc le nom de la note, et l'octave si l'option « octave stricte » est active. Il ne peut pas vérifier la corde : une même note se joue à plusieurs endroits (B4 = corde 2 case 12 = corde 1 case 7). La corde affichée est une consigne ; les statistiques sont attribuées à la position demandée.
 
 **Déroulement**
-1. Affichage de la question : la note et la corde ; l'utilisateur cherche la case. L'option « afficher la case » (aide) montre la position complète. Comme en mode 1, le niveau, la notation et cette option se choisissent au-dessus de la question ; l'écran Réglages les reprend en phase 5.
+1. Affichage de la question : la note et la corde ; l'utilisateur cherche la case. L'option « afficher la case » (aide) montre la position complète. Comme en mode 1, le niveau et cette option se choisissent au-dessus de la question ; l'option est aussi dans l'écran Réglages.
 2. Calibrage au démarrage du micro : 2 s de mesure du bruit ambiant, avec la consigne « ne jouez pas ».
 3. L'utilisateur joue la note. Consigne affichée : étouffer la corde précédente avant de jouer.
 4. Seule compte la **première note stable après une attaque** (stable 100 ms sur le même demi-ton). Les changements de note pendant la résonance, sans nouvelle attaque, sont ignorés.
@@ -153,7 +153,7 @@ Repris du POC, avec les mêmes fonctions :
 - Mode cordes (sélection automatique ou manuelle) et mode chromatique.
 - Aiguille de −50 à +50 cents, zone verte à ±5 cents, orange à ±15. Au-delà de ±50 cents, le repère reste au bord et le texte indique « beaucoup trop bas / trop haut ».
 - Référence A4 réglable de 430 à 450 Hz.
-- Retour visuel quand la corde est juste pendant 300 ms, bip optionnel.
+- Retour visuel quand la corde est juste pendant 300 ms, bip optionnel (réglage « retour sonore », aussi sur l'écran de l'accordeur).
 - La hauteur est suivie en continu pendant que l'on tourne la mécanique, sans attendre de nouvelle attaque, avec la tolérance d'octave.
 
 Accessible depuis la page d'accueil, pas seulement depuis un mode.
@@ -192,9 +192,9 @@ Les notes sont affichées en dièses (A#, convention du POC), dans la notation c
 - Afficher la case en mode 2 (oui / non)
 - Référence A4 (430 à 450 Hz)
 - Seuil de silence : « Mesurer le bruit ambiant » (2 s, sans jouer), fait aussi au démarrage du micro
-- Retour sonore (oui / non)
-- Exporter / importer la progression (JSON)
-- Réinitialiser la progression (avec confirmation)
+- Retour sonore (oui / non) : bip court (1760 Hz, hors de la plage détectée) quand la note du mode 2 ou la corde de l'accordeur est juste ; désactivé par défaut
+- Exporter / importer la progression (JSON) ; l'import remplace la progression après confirmation
+- Réinitialiser la progression (avec confirmation) : niveau, scores et statistiques ; les réglages sont gardés
 
 ---
 

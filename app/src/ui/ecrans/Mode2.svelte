@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy } from 'svelte';
   import type { EtatDetection } from '../../audio/pitch';
   import { Ecoute } from '../../ecoute.svelte';
   import type { EtatApp } from '../../etat.svelte';
@@ -12,6 +12,7 @@
   import { SuiviMode2, type EvenementMode2 } from '../../quiz/validation';
   import BarreNiveau from '../composants/BarreNiveau.svelte';
   import Manche from '../composants/Manche.svelte';
+  import Micro from '../composants/Micro.svelte';
   import ReglagesQuiz from '../composants/ReglagesQuiz.svelte';
   import ScoreSession from '../composants/ScoreSession.svelte';
   import { TEXTES } from '../textes';
@@ -51,8 +52,6 @@
   let historique = $state<{ id: number; juste: boolean; texte: string }[]>([]);
   let entendue = $state.raw<NoteDetectee | null>(null);
   let silenceProlonge = $state(false);
-  /** Micro coupé parce que l'onglet est passé en arrière-plan. */
-  let interrompu = $state(false);
   /** Après une note juste, le temps d'afficher le retour : les détections sont ignorées. */
   let enAttente = false;
   let numeroReponse = 0;
@@ -112,6 +111,7 @@
     ].slice(0, TAILLE_HISTORIQUE);
     if (juste) {
       retour = { type: 'juste', texte: TEXTES.mode2.juste(libelle(note), note.centsExacts) };
+      if (reglages.retourSonore) ecoute.bip();
       enAttente = true;
       const precedente = question;
       minuteur = setTimeout(() => suivante(precedente), DELAI_SUIVANTE_MS);
@@ -121,30 +121,10 @@
     }
   }
 
-  function demarrer(): void {
-    interrompu = false;
-    // Reprise après une coupure : on repart de zéro sur la question en cours (attaque restée sans note, silence).
-    suivi.poser(question);
-    void ecoute.demarrer();
-  }
-
-  /** Onglet en arrière-plan : micro et quiz s'arrêtent ; l'utilisateur reprend avec « Démarrer le micro ». */
-  function surVisibilite(): void {
-    if (!document.hidden || ecoute.statut === 'arrete') return;
-    void ecoute.arreter();
-    interrompu = true;
-    if (enAttente) suivante(question);
-  }
-
   ecoute.ecouter(traiter);
-  onMount(() => {
-    document.addEventListener('visibilitychange', surVisibilite);
-    return () => document.removeEventListener('visibilitychange', surVisibilite);
-  });
   onDestroy(() => {
     clearTimeout(minuteur);
     ecoute.ecouter(null);
-    void ecoute.arreter();
   });
 </script>
 
@@ -159,8 +139,6 @@
     niveau = n;
     suivante();
   }}
-  {notation}
-  onNotation={(n) => etat.definirReglage('notation', n)}
 >
   <label>
     <input
@@ -172,22 +150,13 @@
   </label>
 </ReglagesQuiz>
 
-<section class="micro">
-  {#if ecoute.statut === 'arrete'}
-    <p>{interrompu ? TEXTES.micro.interrompu : TEXTES.micro.explication}</p>
-    <button type="button" class="principal" onclick={demarrer}>{TEXTES.micro.demarrer}</button>
-  {:else if ecoute.statut === 'demarrage'}
-    <button type="button" class="principal" disabled>{TEXTES.micro.demarrage}</button>
-  {:else}
-    <button type="button" class="secondaire" onclick={() => void ecoute.arreter()}>{TEXTES.micro.couper}</button>
-  {/if}
-  {#if ecoute.erreur}<p class="alerte" role="alert">{ecoute.erreur}</p>{/if}
-  {#if ecoute.traitementsActifs.length > 0}
-    <p class="alerte">
-      {TEXTES.micro.traitements(ecoute.traitementsActifs.map((t) => TEXTES.micro.nomsTraitements[t]))}
-    </p>
-  {/if}
-</section>
+<Micro
+  {ecoute}
+  onDemarrer={() => suivi.poser(question)}
+  onInterruption={() => {
+    if (enAttente) suivante(question);
+  }}
+/>
 
 <p class="question" aria-live="polite">
   {TEXTES.mode2.question} <strong class="nom">{nomAffiche(question.nom, notation)}</strong>
@@ -263,15 +232,6 @@
 {#if !etat.sauvegardeOk}<p class="alerte">{TEXTES.sauvegardeImpossible}</p>{/if}
 
 <style>
-  .micro {
-    display: grid;
-    gap: 0.5rem;
-    justify-items: start;
-    margin: 0.5rem 0 1rem;
-  }
-  .micro p {
-    margin: 0;
-  }
   .question {
     margin: 0.5rem 0 0;
     font-size: 1.25rem;

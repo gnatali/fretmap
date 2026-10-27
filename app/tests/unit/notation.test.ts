@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { NOMS_FRANCAIS, nomAffiche, nomSurDeuxLignes } from '../../src/music/notation';
+import { NOMS_FRANCAIS, libelleAffiche, nomAffiche, nomSurDeuxLignes, nomsAffiches } from '../../src/music/notation';
 import { NOMS_NOTES } from '../../src/music/notes';
 
 describe('notation', () => {
@@ -40,5 +40,19 @@ describe('notation', () => {
     expect(nomSurDeuxLignes('G#', 'les-deux')).toEqual({ haut: 'Sol#', bas: 'G#' });
     expect(nomSurDeuxLignes('G#', 'francaise')).toEqual({ haut: 'Sol#', bas: null });
     expect(nomSurDeuxLignes('G#', 'anglo-saxonne')).toEqual({ haut: 'G#', bas: null });
+  });
+
+  it('affiche un libellé avec octave (« E2 », bémols compris) dans la notation', () => {
+    expect(libelleAffiche('E2', 'les-deux')).toBe('Mi2 (E2)');
+    expect(libelleAffiche('Bb3', 'francaise')).toBe('La#3');
+    expect(libelleAffiche('D#4', 'anglo-saxonne')).toBe('D#4');
+    expect(libelleAffiche('pas une note', 'les-deux')).toBe('pas une note');
+  });
+
+  it('affiche une suite de noms (notes d’un accordage)', () => {
+    const noms = ['D', 'A', 'D', 'G', 'A', 'D'] as const;
+    expect(nomsAffiches(noms, 'anglo-saxonne')).toBe('D A D G A D');
+    expect(nomsAffiches(noms, 'francaise')).toBe('Ré La Ré Sol La Ré');
+    expect(nomsAffiches(noms, 'les-deux')).toBe('Ré La Ré Sol La Ré (D A D G A D)');
   });
 });

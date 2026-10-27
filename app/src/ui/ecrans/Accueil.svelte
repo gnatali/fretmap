@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  export type Destination = 'mode1' | 'mode2' | 'statistiques';
+  export type Destination = 'mode1' | 'mode2' | 'accordeur' | 'statistiques' | 'reglages';
 </script>
 
 <script lang="ts">
@@ -12,14 +12,8 @@
 
   let { niveau, onAller }: Props = $props();
 
-  // Ordre de la spec §7 ; les écrans sans destination arrivent en phase 5.
-  const entrees: { texte: { titre: string; description: string }; destination?: Destination }[] = [
-    { texte: TEXTES.entrees.mode1, destination: 'mode1' },
-    { texte: TEXTES.entrees.mode2, destination: 'mode2' },
-    { texte: TEXTES.entrees.accordeur },
-    { texte: TEXTES.entrees.statistiques, destination: 'statistiques' },
-    { texte: TEXTES.entrees.reglages },
-  ];
+  // Ordre de la spec §7.
+  const entrees: Destination[] = ['mode1', 'mode2', 'accordeur', 'statistiques', 'reglages'];
 </script>
 
 <header>
@@ -30,18 +24,11 @@
 
 <nav aria-label="Écrans">
   <ul>
-    {#each entrees as { texte, destination } (texte.titre)}
+    {#each entrees as destination (destination)}
       <li>
-        <button
-          type="button"
-          disabled={!destination}
-          onclick={() => {
-            if (destination) onAller(destination);
-          }}
-        >
-          <span class="titre">{texte.titre}</span>
-          <span class="description">{texte.description}</span>
-          {#if !destination}<span class="etat">{TEXTES.bientot}</span>{/if}
+        <button type="button" onclick={() => onAller(destination)}>
+          <span class="titre">{TEXTES.entrees[destination].titre}</span>
+          <span class="description">{TEXTES.entrees[destination].description}</span>
         </button>
       </li>
     {/each}
@@ -77,39 +64,23 @@
     width: 100%;
     min-height: 44px;
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.125rem 0.75rem;
+    gap: 0.125rem;
     padding: 0.875rem 1rem;
     text-align: left;
     font: inherit;
     color: var(--texte);
     background: var(--surface);
-    border: 1px solid var(--cadre);
+    border: 2px solid var(--lien);
     border-radius: 10px;
     cursor: pointer;
-  }
-  button:not(:disabled) {
-    border-color: var(--lien);
-    border-width: 2px;
-  }
-  button:disabled {
-    cursor: not-allowed;
   }
   .titre {
     font-weight: 600;
     font-size: 1.125rem;
   }
   .description {
-    grid-column: 1;
     color: var(--discret);
     font-size: 0.9375rem;
-  }
-  .etat {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-    font-size: 0.8125rem;
-    color: var(--discret);
   }
   .poc {
     margin-top: 1.5rem;

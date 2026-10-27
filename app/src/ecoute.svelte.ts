@@ -1,10 +1,18 @@
 // Écoute du micro : démarrage, boucle d'analyse, calibrage du silence (spec §3, §5.2). Relie audio/ à l'interface ;
-// les règles de réponse sont dans quiz/validation.ts. Servira aussi à l'accordeur (phase 5).
+// les règles de réponse sont dans quiz/validation.ts. Sert au mode 2, à l'accordeur et à la mesure du bruit des réglages.
 import { ErreurMicro, demarrerMicro, type SessionMicro } from './audio/micro';
 import { DUREE_CALIBRAGE_MS, seuilDepuisBruit } from './audio/niveau';
 import { ChaineDetection, TAILLE_FENETRE, type EtatDetection } from './audio/pitch';
 
 export type StatutEcoute = 'arrete' | 'demarrage' | 'calibrage' | 'actif';
+
+/**
+ * Bip de confirmation, repris de l'accordeur du POC : fréquence en Hz, durée en ms et volume (0 à 1).
+ * 1760 Hz est hors de la plage de détection (70–1400 Hz) : le bip capté par le micro est ignoré.
+ */
+const BIP_FREQUENCE_HZ = 1760;
+const BIP_DUREE_MS = 80;
+const BIP_VOLUME = 0.15;
 
 /** Traitements du navigateur qui doivent être désactivés (spec §3). */
 export type Traitement = 'echoCancellation' | 'noiseSuppression' | 'autoGainControl';
@@ -97,6 +105,27 @@ export class Ecoute {
   /** Reçoit chaque état de détection une fois le calibrage terminé. */
   ecouter(auditeur: ((etat: EtatDetection) => void) | null): void {
     this.auditeur = auditeur;
+  }
+
+  /** Change la référence A4 de la détection (réglage de l'accordeur). */
+  definirA4(a4: number): void {
+    this.chaine.reglages.a4 = a4;
+  }
+
+  /** Bip court de confirmation (réglage « retour sonore ») ; sans effet si le micro est coupé. */
+  bip(): void {
+    const contexte = this.session?.contexte;
+    if (!contexte) return;
+    const oscillateur = contexte.createOscillator();
+    const gain = contexte.createGain();
+    const debut = contexte.currentTime;
+    const fin = debut + BIP_DUREE_MS / 1000;
+    oscillateur.frequency.value = BIP_FREQUENCE_HZ;
+    gain.gain.setValueAtTime(BIP_VOLUME, debut);
+    gain.gain.exponentialRampToValueAtTime(0.001, fin);
+    oscillateur.connect(gain).connect(contexte.destination);
+    oscillateur.start(debut);
+    oscillateur.stop(fin);
   }
 
   /**
