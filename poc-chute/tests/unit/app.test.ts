@@ -1,20 +1,19 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/svelte';
+import { tick } from 'svelte';
 import { describe, expect, it } from 'vitest';
 import './resize-observer';
 import App from '../../src/App.svelte';
+import { ErreurMicro } from '../../src/audio/micro';
+import { DUREE_CALIBRAGE_MS, MARGE_CALIBRAGE_DB } from '../../src/audio/niveau';
 import { CLE_STOCKAGE } from '../../src/jeu/stockage';
 import { TEXTES } from '../../src/ui/textes';
 import { stockageMemoire } from './memoire';
+import { microFactice } from './micro';
+
+const titre = () => screen.queryByRole('heading', { level: 1 })?.textContent;
 
 describe('écran de départ', () => {
-  it('sans simulation, le jeu au micro n’est pas encore ouvert : lien vers la simulation', () => {
-    render(App, { stockage: stockageMemoire(), simulation: false });
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(TEXTES.titre);
-    expect((screen.getByRole('button', { name: TEXTES.depart.demarrer }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByRole('link', { name: TEXTES.depart.lienSimulation }).getAttribute('href')).toBe('?simulation');
-  });
-
   it('enregistre chaque réglage dès qu’il change', async () => {
     const stockage = stockageMemoire();
     render(App, { stockage, simulation: true });
@@ -35,7 +34,48 @@ describe('écran de départ', () => {
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrerSimulation }));
     expect(document.querySelector('.compte')!.textContent).toContain('3');
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(TEXTES.titre);
+    expect(titre()).toBe(TEXTES.titre);
     expect(screen.getByRole('button', { name: TEXTES.depart.exporter(0) })).toBeTruthy();
+  });
+});
+
+describe('démarrage au micro', () => {
+  it('Démarrer lance le micro, la mesure du bruit ambiant, puis le compte à rebours ; le seuil est enregistré', async () => {
+    const stockage = stockageMemoire();
+    const { dependances, analyser } = microFactice();
+    render(App, { stockage, simulation: false, micro: dependances });
+    expect(screen.getByText(TEXTES.micro.explication)).toBeTruthy();
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrer }));
+    expect(await screen.findByText(TEXTES.micro.calibrage)).toBeTruthy();
+    expect(document.querySelector('.compte')).toBeNull();
+
+    analyser(DUREE_CALIBRAGE_MS / 100 + 1);
+    await tick();
+    expect(screen.queryByText(TEXTES.micro.calibrage)).toBeNull();
+    expect(document.querySelector('.compte')!.textContent).toContain('3');
+    // Bruit à −60 dBFS : seuil 10 dB au-dessus, gardé pour la visite suivante.
+    expect(JSON.parse(stockage.donnees[CLE_STOCKAGE]!).seuilSilenceDbfs).toBeCloseTo(-60 + MARGE_CALIBRAGE_DB, 1);
+    expect(screen.getByRole('meter', { name: TEXTES.indicateur.niveauSonore }).getAttribute('aria-valuenow')).toBe(
+      '-60',
+    );
+  });
+
+  it('un refus d’accès au micro ramène au départ avec le message', async () => {
+    const refus = new ErreurMicro('Accès au micro refusé.');
+    render(App, { stockage: stockageMemoire(), simulation: false, micro: microFactice(refus).dependances });
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrer }));
+    expect((await screen.findByRole('alert')).textContent).toBe('Accès au micro refusé.');
+    expect(titre()).toBe(TEXTES.titre);
+  });
+
+  it('« Arrêter » pendant la mesure du bruit ambiant revient au départ et coupe le micro', async () => {
+    const { dependances, session } = microFactice();
+    render(App, { stockage: stockageMemoire(), simulation: false, micro: dependances });
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrer }));
+    await screen.findByText(TEXTES.micro.calibrage);
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    expect(titre()).toBe(TEXTES.titre);
+    expect(session.arreter).toHaveBeenCalled();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });

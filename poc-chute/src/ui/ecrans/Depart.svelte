@@ -6,8 +6,8 @@
   import { NIVEAUX } from '../../progression/niveaux';
   import { TEXTES, duree } from '../textes';
 
-  // Écran de départ (spec §6.1) : niveau, durée de chute, notation, options de mesure, journal. Chaque choix est
-  // enregistré tout de suite par l'appelant.
+  // Écran de départ (spec §6.1) : niveau, durée de chute, notation, options de mesure, démarrage du micro, journal.
+  // Chaque choix est enregistré tout de suite par l'appelant.
 
   /** Pas du curseur de durée de chute, en ms : 0,5 s (spec §6.1). */
   const PAS_DUREE_MS = 500;
@@ -17,6 +17,8 @@
     reglages: ReglagesPartie;
     /** Partie au clavier, sans micro (`?simulation`). */
     simulation: boolean;
+    /** Échec du dernier démarrage du micro (refus, micro introuvable…). */
+    erreurMicro: string | null;
     /** Parties dans le journal. */
     parties: number;
     onReglages: (reglages: ReglagesPartie) => void;
@@ -25,7 +27,7 @@
     onVider: () => void;
   }
 
-  let { reglages, simulation, parties, onReglages, onDemarrer, onExporter, onVider }: Props = $props();
+  let { reglages, simulation, erreurMicro, parties, onReglages, onDemarrer, onExporter, onVider }: Props = $props();
 
   let confirmation = $state(false);
   let message = $state<string | null>(null);
@@ -103,9 +105,10 @@
     <button type="button" class="principal" onclick={onDemarrer}>{TEXTES.depart.demarrerSimulation}</button>
     <p class="aide">{TEXTES.depart.aideSimulation}</p>
   {:else}
-    <button type="button" class="principal" disabled>{TEXTES.depart.demarrer}</button>
-    <p class="aide">{TEXTES.depart.microBientot}</p>
-    <a class="lien" href="?simulation">{TEXTES.depart.lienSimulation}</a>
+    <p class="aide">{TEXTES.micro.explication}</p>
+    <p class="aide">{TEXTES.depart.accordez}</p>
+    <button type="button" class="principal" onclick={onDemarrer}>{TEXTES.depart.demarrer}</button>
+    {#if erreurMicro}<p class="alerte" role="alert">{erreurMicro}</p>{/if}
   {/if}
 </section>
 

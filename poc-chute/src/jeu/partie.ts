@@ -188,6 +188,11 @@ export class Partie {
     return this.conclure(note, evenement.juste ? 'juste' : 'fausse', etat.tMs, evenement.note, tAttaqueMs);
   }
 
+  /** Vrai si le micro n'entend rien depuis plus de 3 s alors qu'une note est attendue (message « Jouez la note… »). */
+  silenceProlonge(tMs: number): boolean {
+    return this.attendue !== null && this.suivi.silenceProlonge(tMs);
+  }
+
   /**
    * Mode simulation (spec §6.9) : joue la note attendue, juste ou un demi-ton au-dessus, sans micro ni latence.
    * Les règles du micro (ancienne note, note non reconnue) ne s'appliquent pas.

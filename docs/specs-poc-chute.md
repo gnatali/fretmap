@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1.2** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 1.3** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -67,7 +67,7 @@ Le même outillage que `app/`, pour que le code passe dans l'application sans r�
 | Interface | Svelte 5 (runes), sans SvelteKit |
 | Audio | Web Audio API, `pitchy` (comme l'application) |
 | Rendu de la chute | Composants Svelte en DOM, position en `transform: translateY` calculée à chaque `requestAnimationFrame` ; repli sur Canvas 2D si l'hypothèse HC1 (fluidité) échoue |
-| Tests | Vitest (logique), Playwright (profil Pixel 7, mode simulation) |
+| Tests | Vitest (logique), Playwright (profil Pixel 7, mode simulation et micro simulé par un fichier WAV) |
 | Lint et format | ESLint (`eslint-plugin-svelte`), Prettier (`prettier-plugin-svelte`) |
 | Stockage | `localStorage`, clé `fretmap-chute.v1` |
 | Déploiement | Job ajouté à `.github/workflows/pages.yml` (copie de `poc-chute/dist` dans `site/poc-chute`) ; job CI ajouté à `ci.yml` |
@@ -104,7 +104,7 @@ poc-chute/
       composants/            MancheChute.svelte (manche, notes qui tombent, ligne de jeu), Indicateur.svelte
   tests/
     unit/*.test.ts
-    e2e/*.spec.ts
+    e2e/*.spec.ts            son.ts : fichier WAV du micro simulé (repris de app/tests/e2e/son.ts)
 ```
 
 - Les copies sont **figées** et **identiques** à l'application (commit `34203e7`), code inutilisé compris : `diff` avec `app/` reste vide, ce qui facilite le retour dans l'application. Elles ne suivent pas les changements de l'application pendant le POC. Les tests unitaires de ces modules sont copiés avec eux. Liste dans `poc-chute/README.md`.
@@ -119,7 +119,7 @@ poc-chute/
 - Durée de chute initiale : curseur de 1 à 10 s, par pas de 0,5 s, 6 s par défaut (Q11).
 - Notation des notes : anglo-saxonne, française, les deux (défaut), comme dans l'application.
 - **Options de mesure**, repliées par défaut : « Afficher la case » et « Vitesse fixe » (6.9).
-- Bouton « Démarrer » : démarre le micro, puis le calibrage (2 s), puis la partie après un compte à rebours de 3 s. Tant que le micro n'est pas branché (phase 4), il est désactivé et un lien mène au mode simulation (`?simulation`), où il démarre la partie au clavier.
+- Bouton « Démarrer », précédé de l'explication du micro et d'un rappel d'accorder la guitare : démarre le micro, puis le calibrage (2 s), puis la partie après un compte à rebours de 3 s. Le micro est démarré à chaque partie (« Démarrer » ou « Rejouer ») et arrêté à la fin : chaque partie a son calibrage. Un refus d'autorisation ou un micro introuvable ramène à l'écran de départ, avec le message. En mode simulation (`?simulation`), le bouton « Démarrer (simulation) » lance la partie au clavier.
 - Bouton « Exporter le journal » et « Vider le journal » (avec confirmation).
 - Les choix sont enregistrés et repris à la visite suivante.
 
@@ -130,12 +130,13 @@ poc-chute/
 - Chaque **note qui tombe** descend dans la colonne de sa corde (Q5). Son étiquette donne le **nom de la note** dans la notation choisie ; la corde est donnée par la colonne ; **la case est à trouver** (Q6). La chute ne révèle pas la case : la note passe devant toutes les cases de la corde.
 - **Niveau 1** (cordes à vide) : la question ne donne pas la corde (règle de l'application). La note tombe au centre du manche, sur toute la largeur.
 - La **note attendue** (la plus basse, 6.3) est mise en évidence (contour épais) ; les autres sont atténuées.
-- **Indicateur** en bas de l'écran : note détectée et écart en cents (Q8), niveau sonore, message « Jouez la note… » après 3 s de silence et « Note non reconnue, rejouez » (règle du mode 2).
+- **Indicateur** en bas de l'écran : dernière note détectée avec son octave et son écart en cents (Q8), grisée quand elle ne sonne plus ; niveau sonore avec un repère au seuil de silence ; messages « Jouez la note… » après 3 s de silence pendant qu'une note est attendue, « Note non reconnue, rejouez » (règle du mode 2) et « Mi2 (E2) : la note précédente sonne encore, étouffez la corde » (ancienne note). Les deux derniers restent affichés jusqu'au résultat de la note attendue. Si le navigateur a laissé actif un traitement du son, une ligne le signale.
 - **Retours** à chaque résultat (Q8) :
   - note juste : la note devient verte et s'efface, avec la qualité du timing (« Parfait », « Bien », « Juste ») et les points gagnés ;
   - fausse note ou note ratée : la note devient rouge et s'efface, avec la note jouée s'il y en a une ;
   - après une erreur, la **bonne case** s'affiche 1,5 s sur le manche (toutes les cases de la corde qui donnent la note).
-- Bouton « Arrêter » : met fin à la partie (enregistrée comme interrompue).
+- Bouton « Arrêter » : met fin à la partie (enregistrée comme interrompue). Pendant le calibrage ou le compte à rebours, il ramène au départ sans rien enregistrer.
+- **Onglet en arrière-plan** : la partie s'arrête comme avec « Arrêter », et le micro est coupé (comme en mode 2 de l'application, qui coupe alors le micro). Le verrou de veille est perdu en arrière-plan, et les images sans affichage fausseraient la mesure HC1.
 
 ### 6.3 Chute et délai
 - **Progression** : chaque note a une progression `p` de 0 (apparition en haut) à 1 (ligne de jeu). À chaque image, `p` augmente de `dt / durée de chute actuelle`. La vitesse est **commune** à toutes les notes à l'écran : un changement de vitesse s'applique à toutes en même temps, et une note ne peut pas en dépasser une autre. Une image de plus de 100 ms (`DT_MAX_MS`, onglet en arrière-plan) compte pour 100 ms : les notes ne sautent pas toutes à la ligne d'un coup.
@@ -150,7 +151,7 @@ poc-chute/
 - La partie s'appuie sur `SuiviMode2`, sans modification. Quand une note devient attendue, `poser(question, précédente)` est appelé, avec la note qui vient de disparaître comme précédente.
 - **Note juste** (événement `reponse`, `juste`) : la note est validée.
 - **Fausse note** (événement `reponse`, pas `juste`) (Q14) : la note attendue est **détruite**. C'est une erreur, avec le même effet qu'une note ratée : 0 point, série cassée, ralentissement.
-- **Ancienne note** (événement `ancienneNote`) : ignorée une fois, sans effet, notée dans le journal. C'est la protection contre la corde précédente qui sonne encore, plus importante ici puisqu'une fausse note détruit la note.
+- **Ancienne note** (événement `ancienneNote`) : ignorée une fois, sans effet sur la note, message dans l'indicateur, notée dans le journal. C'est la protection contre la corde précédente qui sonne encore, plus importante ici puisqu'une fausse note détruit la note.
 - **Non reconnue** (événement `nonReconnue`) : message affiché, sans effet sur la note, noté dans le journal.
 - **Latence** (Q18) : pas de compensation. La note est validée à l'instant de la détection, même si l'attaque a eu lieu juste avant que la note touche la ligne. Le journal enregistre l'instant de l'attaque et celui de la détection, pour compter les notes perdues à cause de la latence (HC3).
 - **Statistiques** : chaque note juste ou en erreur (fausse ou ratée) met à jour la statistique de la **position demandée** (tentatives, réussites, temps de réponse moyen), comme en mode 2.
@@ -323,17 +324,17 @@ Exporter le journal après chaque série de parties et l'ajouter à `poc-chute/r
 
 ## 11. Critères d'acceptation techniques
 
-Le POC est prêt pour la campagne quand :
+Le POC est prêt pour la campagne quand (critères vérifiés en phase 4 par les tests unitaires et de bout en bout, en local et en CI ; le micro réel reste à essayer sur Android en phase 5) :
 
-- [ ] `npm run lint`, `npm run format:check`, `npm test`, `npm run build` et `npm run test:e2e` passent dans `poc-chute/`, en CI comme en local
-- [ ] Le POC est publié sur https://gnatali.github.io/fretmap/poc-chute/ sans changer l'application ni le premier POC
-- [ ] Le micro démarre au clic sur « Démarrer », calibre 2 s, puis la partie commence ; un refus d'autorisation affiche un message explicite
-- [ ] Les notes tombent le long de leur corde, dans l'ordre, avec la note attendue mise en évidence
-- [ ] Note juste, fausse note, note ratée, ancienne note et note non reconnue suivent 6.3 et 6.4
-- [ ] La vitesse s'adapte (6.5) et les points suivent le barème (6.6)
-- [ ] La partie s'arrête à 30 notes et affiche l'écran de fin
-- [ ] Le journal survit à un rechargement, s'exporte en JSON au format de 6.10, et se vide après confirmation
-- [ ] Le mode simulation permet de jouer une partie complète sans micro
+- [x] `npm run lint`, `npm run format:check`, `npm test`, `npm run build` et `npm run test:e2e` passent dans `poc-chute/`, en CI comme en local
+- [x] Le POC est publié sur https://gnatali.github.io/fretmap/poc-chute/ sans changer l'application ni le premier POC
+- [x] Le micro démarre au clic sur « Démarrer », calibre 2 s, puis la partie commence ; un refus d'autorisation affiche un message explicite
+- [x] Les notes tombent le long de leur corde, dans l'ordre, avec la note attendue mise en évidence
+- [x] Note juste, fausse note, note ratée, ancienne note et note non reconnue suivent 6.3 et 6.4
+- [x] La vitesse s'adapte (6.5) et les points suivent le barème (6.6)
+- [x] La partie s'arrête à 30 notes et affiche l'écran de fin
+- [x] Le journal survit à un rechargement, s'exporte en JSON au format de 6.10, et se vide après confirmation
+- [x] Le mode simulation permet de jouer une partie complète sans micro
 
 ---
 
@@ -346,7 +347,9 @@ Le POC est prêt pour la campagne quand :
 - `partie.test.ts` : la fausse note détruit la note attendue ; ancienne note ignorée une fois ; note non reconnue sans effet ; statistiques sur la position demandée ; fin à 30 notes ; partie interrompue.
 - `journal.test.ts` : format de l'export, mesures d'images (médiane, 95e centile, part au-delà de 33 ms), limite de 50 parties, relecture après rechargement.
 
-**De bout en bout** (`tests/e2e/`, Playwright, profil Pixel 7, mode simulation) : une partie complète au niveau 2 jusqu'à l'écran de fin ; une note ratée quand on ne joue pas ; une fausse note par la touche F ; l'export télécharge un JSON valide.
+**De bout en bout** (`tests/e2e/`, Playwright, profil Pixel 7) :
+- en mode simulation : une partie complète au niveau 2 jusqu'à l'écran de fin ; une note ratée quand on ne joue pas ; une fausse note par la touche F ; l'export télécharge un JSON valide ;
+- au micro simulé (fichier WAV, comme `app/`) : calibrage, note juste, ancienne note ignorée, fausse note, puis journal exporté avec le seuil de silence, les instants d'attaque et de détection.
 
 ---
 

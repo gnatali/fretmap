@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
+import { debordants } from './outils';
 
 // Parties au clavier (mode simulation, spec §6.9) : Espace = note juste, F = fausse note.
 
@@ -20,15 +21,6 @@ async function demarrer(page: Page, { niveau = '2', dureeMs = 10000, vitesseFixe
   }
   await page.getByRole('button', { name: 'Démarrer (simulation)' }).click();
   await expect(page.locator('.note.attendue[data-index="1"]')).toBeVisible({ timeout: 6000 });
-}
-
-/** Éléments qui dépassent le bord droit de la fenêtre. */
-async function debordants(page: Page): Promise<string[]> {
-  return page.evaluate(() =>
-    [...document.querySelectorAll('main *')]
-      .filter((e) => e.getBoundingClientRect().right > window.innerWidth + 1)
-      .map((e) => e.outerHTML.slice(0, 80)),
-  );
 }
 
 test('partie complète au clavier : 30 notes justes jusqu’à l’écran de fin', async ({ page }) => {

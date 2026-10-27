@@ -1,4 +1,5 @@
 // Tous les textes de l'interface du POC : un seul fichier, comme dans l'application.
+import type { Traitement } from '../ecoute.svelte';
 import type { EvenementPartie } from '../jeu/partie';
 import type { Timing } from '../jeu/points';
 import type { Position } from '../music/manche';
@@ -9,6 +10,13 @@ import type { Question } from '../quiz/tirage';
 type Resultat = Extract<EvenementPartie, { type: 'resultat' }>;
 
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
+
+/** Écart en cents signé : « +3 cents », « −12 cents », « 0 cent » (comme dans l'application). */
+function cents(valeur: number): string {
+  const arrondi = Math.round(valeur);
+  if (arrondi === 0) return '0 cent';
+  return `${arrondi > 0 ? '+' : '−'}${Math.abs(arrondi)} cents`;
+}
 
 /** Liste « a, b et c ». */
 function liste(elements: readonly string[]): string {
@@ -31,8 +39,7 @@ export const TEXTES = {
     demarrer: 'Démarrer',
     demarrerSimulation: 'Démarrer (simulation)',
     aideSimulation: 'Mode simulation, sans micro : Espace = note juste, F = fausse note.',
-    microBientot: 'Le jeu au micro arrive à la prochaine étape du POC. En attendant, on peut jouer au clavier.',
-    lienSimulation: 'Jouer au clavier (simulation)',
+    accordez: 'Accordez d’abord la guitare avec l’accordeur de l’application.',
     journal: 'Journal des parties',
     exporter: (parties: number) => `Exporter le journal (${pluriel(parties, 'partie')})`,
     vider: 'Vider le journal',
@@ -65,6 +72,29 @@ export const TEXTES = {
     jouer: 'Jouer la note',
     fausse: 'Fausse note',
     compteARebours: 'Départ dans',
+  },
+  micro: {
+    explication:
+      'La page écoute votre guitare avec le micro de l’appareil. Le navigateur va demander l’autorisation ; ' +
+      'le son n’est ni enregistré ni envoyé. Au démarrage, ne jouez pas pendant 2 s : mesure du bruit ambiant.',
+    demarrage: 'Demande d’accès au micro…',
+    calibrage: 'Ne jouez pas : mesure du bruit ambiant (2 s)…',
+    traitements: (noms: readonly string[]) =>
+      `Le navigateur a laissé actif : ${noms.join(', ')}. La détection peut être moins fiable.`,
+    nomsTraitements: {
+      echoCancellation: 'l’annulation d’écho',
+      noiseSuppression: 'la réduction de bruit',
+      autoGainControl: 'le gain automatique',
+    } as Record<Traitement, string>,
+  },
+  indicateur: {
+    titre: 'Note entendue',
+    aucune: '–',
+    cents,
+    niveauSonore: 'Niveau sonore',
+    jouez: 'Jouez la note…',
+    nonReconnue: 'Note non reconnue, rejouez',
+    ancienneNote: (note: string) => `${note} : la note précédente sonne encore, étouffez la corde.`,
   },
   manche: {
     nom: 'Manche',

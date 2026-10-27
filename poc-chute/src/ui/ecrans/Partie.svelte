@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import type { EtatDetection } from '../../audio/pitch';
+  import type { Ecoute } from '../../ecoute.svelte';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import {
     DUREE_RAPPEL_CASE_MS,
@@ -10,13 +12,17 @@
   } from '../../jeu/partie';
   import { bornerDuree } from '../../jeu/vitesse';
   import type { Position } from '../../music/manche';
+  import { nomAffiche } from '../../music/notation';
+  import type { NoteDetectee } from '../../music/notes';
   import type { Statistique } from '../../progression/modele';
   import { caseMaxDuNiveau } from '../../progression/niveaux';
+  import Indicateur from '../composants/Indicateur.svelte';
   import MancheChute, { type Effet, type NoteAffichee } from '../composants/MancheChute.svelte';
   import { TEXTES, consigne, duree, retour } from '../textes';
 
-  // Écran de jeu (spec §6.2 à §6.4) : compte à rebours, puis une image par requestAnimationFrame. La partie
-  // (jeu/partie.ts) décide de tout ; l'écran copie son état à chaque image et affiche les retours.
+  // Écran de jeu (spec §6.2 à §6.4) : calibrage du micro, compte à rebours, puis une image par
+  // requestAnimationFrame. La partie (jeu/partie.ts) décide de tout ; l'écran copie son état à chaque image,
+  // lui transmet les détections du micro et affiche les retours. Le micro est démarré et arrêté par App.svelte.
 
   /** Compte à rebours avant la première note, en secondes : 3 (spec §6.1). */
   const COMPTE_A_REBOURS_S = 3;
@@ -26,19 +32,24 @@
   interface Props {
     reglages: ReglagesPartie;
     statistiques: readonly Statistique[];
-    /** Partie jouée au clavier, sans micro (spec §6.9). */
-    simulation: boolean;
+    /** Écoute du micro, déjà démarrée ; null en mode simulation (partie au clavier, spec §6.9). */
+    ecoute: Ecoute | null;
     onFin: (journal: PartieJournal, statistiques: readonly Statistique[]) => void;
-    /** « Arrêter » pendant le compte à rebours : rien n'est enregistré. */
+    /** « Arrêter » avant le début de la partie (calibrage, compte à rebours) : rien n'est enregistré. */
     onAnnuler: () => void;
     /** Nombre dans [0, 1[ pour le tirage (injectable pour les tests). */
     hasard?: () => number;
   }
 
-  let { reglages, statistiques, simulation, onFin, onAnnuler, hasard }: Props = $props();
+  let { reglages, statistiques, ecoute, onFin, onAnnuler, hasard }: Props = $props();
 
+  // svelte-ignore state_referenced_locally
+  const simulation = ecoute === null;
   const caseMax = $derived(caseMaxDuNiveau(reglages.niveau, 2));
+  /** Micro calibré (ou simulation) : le compte à rebours peut partir. */
+  const pret = $derived(ecoute === null || ecoute.statut === 'actif');
   let compte = $state(COMPTE_A_REBOURS_S);
+  let decompteLance = false;
   let partie: Partie | null = null;
   const mesure = new MesureImages();
   let dernierT: number | null = null;
@@ -57,8 +68,20 @@
   let rappel = $state.raw<{ positions: readonly Position[]; jusqua: number } | null>(null);
   let effets = $state.raw<(Effet & { jusqua: number })[]>([]);
   let numeroEffet = 0;
+  // Indicateur du micro.
+  let entendue = $state.raw<NoteDetectee | null>(null);
+  /** Message de la note attendue (non reconnue, ancienne note), effacé à son résultat. */
+  let info = $state<string | null>(null);
+  let silence = $state(false);
 
   const attendue = $derived(notes[0] ?? null);
+  const message = $derived(info ?? (silence ? TEXTES.indicateur.jouez : null));
+
+  $effect(() => {
+    if (!pret || decompteLance) return;
+    decompteLance = true;
+    minuteur = setTimeout(decompter, 1000);
+  });
 
   function decompter(): void {
     compte -= 1;
@@ -83,14 +106,31 @@
     if (!partie.terminee) boucle = requestAnimationFrame(image);
   }
 
+  /**
+   * État de la chaîne de détection, après le calibrage : indicateur, puis règles du mode 2 pendant la partie.
+   * Le manche et les compteurs suivent à l'image suivante : un seul rendu par image (HC1).
+   */
+  function surDetection(etat: EtatDetection): void {
+    if (etat.stable) entendue = etat.stable;
+    if (!partie || partie.terminee) return;
+    traiter(partie.traiterDetection(etat), etat.tMs);
+    silence = partie.silenceProlonge(etat.tMs);
+  }
+
   function traiter(evenements: EvenementPartie[], t: number): void {
     for (const evenement of evenements) {
       if (evenement.type === 'resultat') {
         const juste = evenement.resultat === 'juste';
         const { question, progression } = evenement.note;
+        info = null;
         dernierRetour = { texte: retour(evenement, reglages.notation), juste };
         effets = [...effets, { id: ++numeroEffet, question, progression, juste, jusqua: t + DUREE_EFFET_MS }];
         if (!juste) rappel = { positions: question.positionsCorrectes, jusqua: t + DUREE_RAPPEL_CASE_MS };
+      } else if (evenement.type === 'nonReconnue') {
+        info = TEXTES.indicateur.nonReconnue;
+      } else if (evenement.type === 'ancienneNote') {
+        const { nom, octave } = evenement.detectee;
+        info = TEXTES.indicateur.ancienneNote(nomAffiche(nom, reglages.notation, octave));
       } else if (evenement.type === 'fin') {
         terminer();
       }
@@ -114,9 +154,8 @@
     cancelAnimationFrame(boucle);
     const journal = partie.journal({
       navigateur: navigator.userAgent,
-      // Micro branché en phase 4 : seuil et traitements viendront de l'écoute.
-      seuilSilenceDbfs: null,
-      traitementsActifs: [],
+      seuilSilenceDbfs: ecoute?.seuilDbfs ?? null,
+      traitementsActifs: ecoute ? [...ecoute.traitementsActifs] : [],
       images: mesure.resultat(),
     });
     onFin(journal, partie.statistiques);
@@ -150,11 +189,19 @@
     }
   }
 
+  /** Onglet en arrière-plan : la partie s'arrête, comme le mode 2 de l'application coupe le micro. */
+  function surVisibilite(): void {
+    if (document.hidden) arreter();
+  }
+
   onMount(() => {
-    minuteur = setTimeout(decompter, 1000);
+    ecoute?.ecouter(surDetection);
+    document.addEventListener('visibilitychange', surVisibilite);
+    return () => document.removeEventListener('visibilitychange', surVisibilite);
   });
 
   onDestroy(() => {
+    ecoute?.ecouter(null);
     clearTimeout(minuteur);
     cancelAnimationFrame(boucle);
   });
@@ -194,7 +241,11 @@
       rappel={rappel?.positions ?? []}
       {effets}
     />
-    {#if compte > 0}
+    {#if !pret}
+      <p class="preparation" aria-live="polite">
+        <span>{ecoute?.statut === 'calibrage' ? TEXTES.micro.calibrage : TEXTES.micro.demarrage}</span>
+      </p>
+    {:else if compte > 0}
       <p class="compte" aria-live="assertive">
         <span class="sr-only">{TEXTES.partie.compteARebours}</span>
         {compte}
@@ -214,7 +265,21 @@
     {dernierRetour?.texte ?? ''}
   </p>
 
-  {#if simulation}
+  {#if ecoute}
+    <Indicateur
+      {entendue}
+      enCours={!!ecoute.detection?.stable}
+      niveauDbfs={ecoute.detection?.niveauDbfs ?? null}
+      seuilDbfs={ecoute.seuilDbfs}
+      {message}
+      notation={reglages.notation}
+    />
+    {#if ecoute.traitementsActifs.length > 0}
+      <p class="alerte">
+        {TEXTES.micro.traitements(ecoute.traitementsActifs.map((t) => TEXTES.micro.nomsTraitements[t]))}
+      </p>
+    {/if}
+  {:else}
     <div class="simulation">
       <button type="button" class="principal" onclick={() => jouer(true)}>{TEXTES.partie.jouer}</button>
       <button type="button" class="secondaire" onclick={() => jouer(false)}>{TEXTES.partie.fausse}</button>
@@ -265,15 +330,33 @@
     flex: 1;
     min-height: 0;
   }
-  .compte {
+  .compte,
+  .preparation {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0;
-    font-size: 4rem;
     font-weight: 700;
+  }
+  .compte {
+    font-size: 4rem;
+  }
+  .preparation {
+    padding: 0 1rem;
+    font-size: 1.125rem;
+    text-align: center;
+  }
+  .preparation span {
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--cadre);
+    border-radius: 10px;
+  }
+  .alerte {
+    margin: 0;
+    font-size: 0.875rem;
   }
   .consigne,
   .retour {

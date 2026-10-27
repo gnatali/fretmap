@@ -5,7 +5,7 @@ import { frequenceVersNote, midiVersFrequence } from '../../src/music/notes';
 import type { Niveau } from '../../src/progression/modele';
 import { contenuNiveau, positionsDuNiveau } from '../../src/progression/niveaux';
 import { tirerQuestion } from '../../src/quiz/tirage';
-import { consigne, duree, emplacement, retour } from '../../src/ui/textes';
+import { TEXTES, consigne, duree, emplacement, retour } from '../../src/ui/textes';
 
 const question = (niveau: Niveau, corde: number, numeroCase: number) => {
   const candidates = positionsDuNiveau(niveau).filter((p) => p.corde === corde && p.case === numeroCase);
@@ -19,6 +19,14 @@ describe('duree', () => {
     expect(duree(6000)).toBe('6,0 s');
     expect(duree(4500)).toBe('4,5 s');
     expect(duree(1840)).toBe('1,8 s');
+  });
+});
+
+describe('indicateur', () => {
+  it('donne l’écart en cents signé, au singulier pour zéro', () => {
+    expect(TEXTES.indicateur.cents(3.4)).toBe('+3 cents');
+    expect(TEXTES.indicateur.cents(-12)).toBe('−12 cents');
+    expect(TEXTES.indicateur.cents(0.3)).toBe('0 cent');
   });
 });
 

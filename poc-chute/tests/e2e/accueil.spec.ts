@@ -14,10 +14,10 @@ test('la page du POC s’ouvre sans erreur', async ({ page }) => {
   expect(erreurs).toEqual([]);
 });
 
-test('sans micro (avant la phase 4), Démarrer renvoie vers la simulation au clavier', async ({ page }) => {
+test('Démarrer lance le jeu au micro ; « ?simulation » le remplace par le clavier', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled();
-  await page.getByRole('link', { name: 'Jouer au clavier (simulation)' }).click();
-  await expect(page).toHaveURL(/\?simulation$/);
+  await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeEnabled();
+  await expect(page.getByText(/ne jouez pas pendant 2 s/)).toBeVisible();
+  await page.goto('/?simulation');
   await expect(page.getByRole('button', { name: 'Démarrer (simulation)' })).toBeEnabled();
 });

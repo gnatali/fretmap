@@ -61,5 +61,5 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Phase 1 : squelette de `poc-chute/`, copies figées de l'application, CI et Pages
 - [x] Phase 2 : logique du jeu (`src/jeu/`) et tests unitaires
 - [x] Phase 3 : écrans en portrait, animation, mode simulation (au clavier), journal, tests de bout en bout
-- [ ] Phase 4 : micro (calibrage, détection, indicateur en direct)
+- [x] Phase 4 : micro (calibrage, détection, indicateur en direct), test de bout en bout avec un micro simulé
 - [ ] Phase 5 : campagne sur Android, synthèse, décision

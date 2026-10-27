@@ -183,6 +183,21 @@ describe('validation au micro', () => {
     });
   });
 
+  it('silence de plus de 3 s pendant qu’une note est attendue, compté de nouveau pour la note suivante', () => {
+    const partie = nouvellePartie();
+    for (let t = DEBUT; t <= DEBUT + 3000; t += 100) partie.traiterDetection(etat(t));
+    expect(partie.silenceProlonge(DEBUT + 3000)).toBe(false);
+    partie.traiterDetection(etat(DEBUT + 3100));
+    expect(partie.silenceProlonge(DEBUT + 3100)).toBe(true);
+    partie.traiterDetection(etat(DEBUT + 3200, { note: 'E2', nouvelle: true }));
+    expect(partie.silenceProlonge(DEBUT + 3200)).toBe(false);
+    avancer(partie, DEBUT + 3200, DEBUT + 3250);
+    expect(partie.attendue!.question.nom).toBe('F');
+    partie.traiterDetection(etat(DEBUT + 3300));
+    expect(partie.silenceProlonge(DEBUT + 6300)).toBe(false);
+    expect(partie.silenceProlonge(DEBUT + 6400)).toBe(true);
+  });
+
   it('niveau 1 : la question ne donne pas la corde, E est accepté à l’octave de la corde 1', () => {
     const partie = nouvellePartie({ niveau: 1 });
     expect(partie.attendue!.question).toMatchObject({ nom: 'E', cordeDemandee: false });
