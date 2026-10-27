@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1.1** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 1.2** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -119,7 +119,7 @@ poc-chute/
 - Durée de chute initiale : curseur de 1 à 10 s, par pas de 0,5 s, 6 s par défaut (Q11).
 - Notation des notes : anglo-saxonne, française, les deux (défaut), comme dans l'application.
 - **Options de mesure**, repliées par défaut : « Afficher la case » et « Vitesse fixe » (6.9).
-- Bouton « Démarrer » : démarre le micro, puis le calibrage (2 s), puis la partie après un compte à rebours de 3 s.
+- Bouton « Démarrer » : démarre le micro, puis le calibrage (2 s), puis la partie après un compte à rebours de 3 s. Tant que le micro n'est pas branché (phase 4), il est désactivé et un lien mène au mode simulation (`?simulation`), où il démarre la partie au clavier.
 - Bouton « Exporter le journal » et « Vider le journal » (avec confirmation).
 - Les choix sont enregistrés et repris à la visite suivante.
 
@@ -277,7 +277,7 @@ Dans `src/jeu/`, nommées en majuscules et commentées avec leur valeur initiale
 | `BONUS_ALTEREE`, `BONUS_CASES_HAUTES` | 0,5 ; 0,5 (cases 7 à 12) | Q13, proposition |
 | `CASE_HAUTE_MIN` | 7 | Q13, proposition |
 | `PALIER_SERIE`, `MULTIPLICATEUR_MAX` | 10, 4 | Q13, proposition |
-| `DUREE_RAPPEL_CASE_MS` | 1500 | Q8, proposition |
+| `DUREE_RAPPEL_CASE_MS` | 1500 (dans `jeu/partie.ts`) | Q8, proposition |
 | `PARTIES_GARDEES` | 50 | proposition |
 | `DT_MAX_MS` | 100 | proposition (version 1.1) |
 
@@ -358,8 +358,8 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 |---|---|
 | 1 | Squelette de `poc-chute/` (outillage de `app/`), copies des modules, jobs CI et Pages, règle `.claude/rules/poc-chute-code.md`, ligne d'état dans `CLAUDE.md` |
 | 2 | `src/jeu/` (chute, vitesse, points, partie, journal) et tests unitaires |
-| 3 | Écrans en portrait (départ, partie, fin), animation, mode simulation, tests de bout en bout |
-| 4 | Branchement du micro (`Ecoute`, `SuiviMode2`), indicateur, retours, mesures d'images, export du journal |
+| 3 | Tout ce qui ne dépend pas du micro : écrans en portrait (départ, partie, fin), animation, retours visuels, mode simulation, réglages, statistiques et journal enregistrés, mesure des images, export et vidage du journal, tests de bout en bout |
+| 4 | Branchement du micro : `Ecoute`, calibrage, `traiterDetection` (`SuiviMode2`), indicateur en direct, messages « Jouez la note… » et « Note non reconnue », seuil et traitements dans le journal, test de bout en bout avec un micro simulé (fichier WAV, comme `app/`) |
 | 5 | Campagne sur Android (S1 à S4), analyse des journaux, `SYNTHESE.md`, décision |
 
 ---

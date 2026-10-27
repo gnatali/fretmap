@@ -13,3 +13,11 @@ test('la page du POC s’ouvre sans erreur', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Retour à l’application' })).toHaveAttribute('href', '../');
   expect(erreurs).toEqual([]);
 });
+
+test('sans micro (avant la phase 4), Démarrer renvoie vers la simulation au clavier', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Démarrer', exact: true })).toBeDisabled();
+  await page.getByRole('link', { name: 'Jouer au clavier (simulation)' }).click();
+  await expect(page).toHaveURL(/\?simulation$/);
+  await expect(page.getByRole('button', { name: 'Démarrer (simulation)' })).toBeEnabled();
+});

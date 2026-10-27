@@ -4,7 +4,14 @@ Jeu où les notes descendent le long des cordes du manche et se jouent à la gui
 
 En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/workflows/pages.yml`).
 
-État : phases 1 (squelette, copies de l'application, CI et Pages) et 2 (logique du jeu dans `src/jeu/`, sans interface) faites. Les écrans arrivent en phase 3, le micro en phase 4 (spec §13).
+État : phases 1 à 3 faites (squelette, logique du jeu, écrans). Le jeu se joue **au clavier** en mode simulation ; le micro arrive en phase 4 (spec §13).
+
+## Utilisation
+
+- https://gnatali.github.io/fretmap/poc-chute/?simulation : partie au clavier, sans micro. **Espace** (ou « Jouer la note ») = note juste, **F** (ou « Fausse note ») = fausse note.
+- Sans `?simulation`, le bouton Démarrer reste désactivé jusqu'au branchement du micro.
+- Écran de départ : niveau, durée de chute au départ, notation, options de mesure (afficher la case, vitesse fixe), export et vidage du journal. Les choix sont gardés.
+- Partie : 30 notes, compte à rebours de 3 s, bouton « Arrêter ». Écran de fin : résumé, notes manquées avec leur bonne case, « Rejouer ».
 
 ## Commandes
 
@@ -47,4 +54,15 @@ TypeScript pur, sans DOM ; le temps est passé en paramètre. Règles : spec §6
 | `journal.ts`  | Format du journal exporté, mesure des images (HC1), nom du fichier                                                                                                        |
 | `stockage.ts` | `localStorage` (`fretmap-chute.v1`) : réglages, seuil, statistiques par position, 50 dernières parties                                                                    |
 
-Propres au POC aussi : `src/App.svelte`, `src/ui/`, `playwright.config.ts`, `tests/e2e/`, et les tests de `src/jeu/` dans `tests/unit/`.
+## Interface (`src/ui/`)
+
+| Fichier                            | Rôle                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `src/App.svelte`                   | Choix de l'écran, données chargées et enregistrées (`jeu/stockage.ts`), export du journal                    |
+| `ui/ecrans/Depart.svelte`          | Réglages de la partie, démarrage, journal                                                                    |
+| `ui/ecrans/Partie.svelte`          | Compte à rebours, boucle `requestAnimationFrame`, barre du haut, consigne, retours, touches de la simulation |
+| `ui/ecrans/Fin.svelte`             | Résumé, notes manquées, Rejouer                                                                              |
+| `ui/composants/MancheChute.svelte` | Manche vertical, notes qui tombent, ligne de jeu, bonne case après une erreur, effets                        |
+| `ui/textes.ts`                     | Tous les textes, et leur mise en forme (durée, consigne, retour, emplacement)                                |
+
+Propres au POC aussi : `playwright.config.ts`, `tests/e2e/`, et les tests de `src/jeu/` et `src/ui/` dans `tests/unit/`.

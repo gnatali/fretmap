@@ -23,6 +23,8 @@ import { apresResultat, vitesseInitiale, type EtatVitesse } from './vitesse';
 
 /** Notes par partie : 30 (spec §6.7, Q15), à ajuster. */
 export const NOTES_PAR_PARTIE = 30;
+/** Durée d'affichage de la bonne case après une erreur, en ms : 1,5 s (spec §6.2, Q8), à ajuster. */
+export const DUREE_RAPPEL_CASE_MS = 1500;
 /** Validation au micro : le demi-ton, octave non stricte, sans réglage dans le POC (spec §3). */
 export const OPTIONS_VALIDATION: OptionsMode2 = { tolerance: 50, octaveStricte: false };
 /** Le jeu se joue au micro : ses statistiques sont celles du mode 2 du modèle de l'application. */
