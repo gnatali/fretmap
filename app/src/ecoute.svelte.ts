@@ -9,12 +9,31 @@ export type StatutEcoute = 'arrete' | 'demarrage' | 'calibrage' | 'actif';
 /** Traitements du navigateur qui doivent être désactivés (spec §3). */
 export type Traitement = 'echoCancellation' | 'noiseSuppression' | 'autoGainControl';
 
+/** Verrou qui empêche la mise en veille de l'écran (WakeLockSentinel dans le navigateur). */
+export interface VerrouEcran {
+  release(): Promise<void>;
+}
+
 export interface DependancesEcoute {
   demarrerMicro: (tailleFenetre: number) => Promise<SessionMicro>;
   /** Planifie l'analyse suivante (requestAnimationFrame dans le navigateur). */
   planifier: (rappel: () => void) => number;
   annuler: (id: number) => void;
   maintenant: () => number;
+  /** Garde l'écran allumé ; null si le navigateur ne le permet pas ou refuse. */
+  garderEcranAllume: () => Promise<VerrouEcran | null>;
+}
+
+/**
+ * Screen Wake Lock : l'écran reste allumé pendant qu'on joue, les mains sur la guitare. Le navigateur le libère
+ * de lui-même quand la page passe en arrière-plan ; il peut aussi le refuser (économie d'énergie) : rien ne change alors.
+ */
+async function garderEcranAllume(): Promise<VerrouEcran | null> {
+  try {
+    return (await navigator.wakeLock?.request('screen')) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 const DEPENDANCES_NAVIGATEUR: DependancesEcoute = {
@@ -22,7 +41,17 @@ const DEPENDANCES_NAVIGATEUR: DependancesEcoute = {
   planifier: (rappel) => requestAnimationFrame(rappel),
   annuler: (id) => cancelAnimationFrame(id),
   maintenant: () => performance.now(),
+  garderEcranAllume,
 };
+
+/** Rend la veille de l'écran au téléphone ; sans erreur si le navigateur l'a déjà libérée. */
+async function liberer(verrou: VerrouEcran | null): Promise<void> {
+  try {
+    await verrou?.release();
+  } catch {
+    // Déjà libéré (page passée en arrière-plan) : rien à faire.
+  }
+}
 
 export interface ReglagesEcoute {
   a4: number;
@@ -47,6 +76,7 @@ export class Ecoute {
   private boucle = 0;
   private calibrage: { debut: number | null; mesures: number[] } | null = null;
   private auditeur: ((etat: EtatDetection) => void) | null = null;
+  private verrouEcran: VerrouEcran | null = null;
   /** Change à chaque arrêt : un démarrage en cours sait ainsi qu'il a été annulé. */
   private generation = 0;
 
@@ -100,6 +130,14 @@ export class Ecoute {
     this.chaine.reinitialiser();
     this.calibrer();
     this.boucle = this.deps.planifier(() => this.analyser());
+    void this.garderEcran(generation);
+  }
+
+  /** Garde l'écran allumé tant que le micro écoute ; libère le verrou si l'écoute s'est arrêtée entre-temps. */
+  private async garderEcran(generation: number): Promise<void> {
+    const verrou = await this.deps.garderEcranAllume();
+    if (generation === this.generation) this.verrouEcran = verrou;
+    else await liberer(verrou);
   }
 
   /** Mesure le bruit ambiant pendant DUREE_CALIBRAGE_MS (« ne jouez pas »), puis fixe le seuil de silence. */
@@ -115,8 +153,10 @@ export class Ecoute {
     this.detection = null;
     this.statut = 'arrete';
     const session = this.session;
+    const verrou = this.verrouEcran;
     this.session = null;
-    await session?.arreter();
+    this.verrouEcran = null;
+    await Promise.all([session?.arreter(), liberer(verrou)]);
   }
 
   /** Traite un état de détection : calibrage, puis transmission à l'auditeur. Appelé par la boucle d'analyse. */

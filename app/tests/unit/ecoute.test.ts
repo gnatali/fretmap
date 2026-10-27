@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ErreurMicro, type SessionMicro } from '../../src/audio/micro';
 import { DUREE_CALIBRAGE_MS, MARGE_CALIBRAGE_DB } from '../../src/audio/niveau';
-import { Ecoute } from '../../src/ecoute.svelte';
+import { Ecoute, type VerrouEcran } from '../../src/ecoute.svelte';
 import { etat } from './detection';
 
 /** Session de micro factice : silence numérique, aucun appareil. */
@@ -18,16 +18,26 @@ function sessionFactice(reglagesPiste: MediaTrackSettings = {}) {
   return { session, arreter };
 }
 
-function ecoute(session: SessionMicro | Promise<SessionMicro> = sessionFactice().session) {
+function ecoute(
+  session: SessionMicro | Promise<SessionMicro> = sessionFactice().session,
+  verrou: Promise<VerrouEcran | null> = Promise.resolve(null),
+) {
   const surSeuil = vi.fn();
   const rappels: (() => void)[] = [];
+  const garderEcranAllume = vi.fn(() => verrou);
   const e = new Ecoute({ a4: 440, seuilSilenceDb: -45 }, surSeuil, {
     demarrerMicro: () => Promise.resolve(session),
     planifier: (rappel) => rappels.push(rappel),
     annuler: () => {},
     maintenant: () => 0,
+    garderEcranAllume,
   });
-  return { e, surSeuil, rappels };
+  return { e, surSeuil, rappels, garderEcranAllume };
+}
+
+/** Verrou d'écran factice, comme un WakeLockSentinel. */
+function verrouFactice() {
+  return { release: vi.fn(async () => {}) };
 }
 
 describe('Ecoute', () => {
@@ -89,5 +99,40 @@ describe('Ecoute', () => {
     expect(autre.arreter).toHaveBeenCalledOnce();
     expect(e2.statut).toBe('arrete');
     expect(e2.detection).toBeNull();
+  });
+
+  it('garde l’écran allumé pendant l’écoute et le libère à l’arrêt', async () => {
+    const verrou = verrouFactice();
+    const { e, garderEcranAllume } = ecoute(undefined, Promise.resolve(verrou));
+    await e.demarrer();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(garderEcranAllume).toHaveBeenCalledOnce();
+    expect(verrou.release).not.toHaveBeenCalled();
+    await e.arreter();
+    expect(verrou.release).toHaveBeenCalledOnce();
+  });
+
+  it('libère l’écran obtenu après l’arrêt, et continue si le navigateur refuse ou l’a déjà libéré', async () => {
+    const verrou = verrouFactice();
+    let obtenir: (v: VerrouEcran) => void = () => {};
+    const { e } = ecoute(undefined, new Promise((r) => (obtenir = r)));
+    await e.demarrer();
+    await e.arreter();
+    obtenir(verrou);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(verrou.release).toHaveBeenCalledOnce();
+
+    // Refus (économie d'énergie) : le micro démarre quand même.
+    const { e: e2 } = ecoute();
+    await e2.demarrer();
+    expect(e2.statut).toBe('calibrage');
+
+    // Verrou déjà libéré par le navigateur (page en arrière-plan) : l'arrêt ne lève pas d'erreur.
+    const deja = { release: vi.fn(() => Promise.reject(new DOMException('déjà libéré'))) };
+    const { e: e3 } = ecoute(undefined, Promise.resolve(deja));
+    await e3.demarrer();
+    await new Promise((r) => setTimeout(r, 0));
+    await expect(e3.arreter()).resolves.toBeUndefined();
+    expect(e3.statut).toBe('arrete');
   });
 });

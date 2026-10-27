@@ -263,6 +263,7 @@ Règles :
 - Interface pensée pour Android en portrait. Cibles tactiles d'au moins 44 px.
 - Pas de survol (hover) nécessaire pour une action.
 - Le bouton « Démarrer » du micro est toujours visible en mode 2.
+- Tant que le micro écoute (mode 2, accordeur), l'écran ne se met pas en veille (Screen Wake Lock) : on joue les mains sur la guitare. Sans effet si le navigateur ne le permet pas ou le refuse (économie d'énergie).
 
 **Accessibilité**
 - Contrastes WCAG AA au minimum.
