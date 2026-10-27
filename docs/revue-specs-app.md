@@ -48,3 +48,10 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | I7 | Emplacement de l'application dans le dépôt | `app/`, POC publié sous `/poc/` |
 | P2 | Mode 2 au-delà de la case 5 | Ouvert après le scénario 6 du POC (H2 jusqu'à E5), à jouer avant la phase 4 |
 | §4 | Interface | Svelte (sans SvelteKit) |
+
+## Décisions du 27/10/2026
+
+| # | Question | Décision |
+|---|---|---|
+| N1 | Notation des notes affichées | Réglage anglo-saxonne / française / les deux ; « les deux » par défaut (« Mi (E) ») |
+| N2 | Numéro d'octave en notation française | Le même qu'en anglo-saxon (Mi2 = E2) |

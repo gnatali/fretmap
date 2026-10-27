@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.1** : mise en cohérence avec les résultats du POC (version 2), puis points à confirmer tranchés le 26/10/2026 : toutes les propositions acceptées, interface en Svelte. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.2** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), puis réglage de notation des notes le 27/10/2026. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -170,11 +170,20 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 
 En mode 2, un niveau dont les positions dépassent la plage validée (5.2) est limité à cette plage.
 
-Les notes sont affichées en dièses (A#, convention du POC).
+Les notes sont affichées en dièses (A#, convention du POC), dans la notation choisie dans les réglages.
+
+**Notation des notes**
+- Anglo-saxonne : C, C#, D, D#, E, F, F#, G, G#, A, A#, B.
+- Française : Do, Do#, Ré, Ré#, Mi, Fa, Fa#, Sol, Sol#, La, La#, Si.
+- Les deux (défaut) : la notation française d'abord, l'anglo-saxonne entre parenthèses : « Mi (E) », « Do# (C#) ».
+- L'octave garde le même numéro dans les deux notations (Mi2 = E2, La4 = A4 : numérotation scientifique).
+- Places étroites (bulles des cases du manche) : avec « les deux », la note française au-dessus et l'anglo-saxonne en dessous, en plus petit.
+- Toutes les notes affichées suivent ce réglage : questions et retours des modes 1 et 2, notes du manche, indicateur en direct, accordeur, libellés pour lecteurs d'écran. Le stockage, les statistiques, l'export JSON et les comparaisons restent en notation anglo-saxonne (C#4) : seul l'affichage change.
 
 **Réglages** (accessibles en permanence)
 - Tolérance du mode 2 : demi-ton (défaut) / ±30 / ±20 cents
 - Octave stricte (oui / non)
+- Notation des notes : anglo-saxonne / française / les deux (défaut)
 - Afficher les notes sur le manche (oui / non)
 - Afficher la case en mode 2 (oui / non)
 - Référence A4 (430 à 450 Hz)
@@ -212,6 +221,7 @@ interface Reglages {
   a4: number;                                   // 430 à 450
   seuilSilenceDb: number;                       // mesuré ; −45 par défaut
   retourSonore: boolean;
+  notation: 'anglo-saxonne' | 'francaise' | 'les-deux';  // affichage seulement ; 'les-deux' par défaut
 }
 
 interface Progression {
@@ -227,6 +237,7 @@ Règles :
 - Les statistiques sont mises à jour à chaque réponse, dans le mode concerné. Une attaque « non reconnue » (5.2) n'est pas une réponse.
 - Une migration est prévue dès la v1 (fonction `migrer(progression)`), même vide.
 - Un export JSON et un import JSON permettent de sauvegarder la progression manuellement.
+- Un réglage ajouté sans changer le sens des autres ne change pas la version du schéma : `migrer` complète les réglages absents avec leur valeur par défaut (cas de `notation`).
 
 ---
 
@@ -283,6 +294,7 @@ fretmap/
     │   ├── music/                   # Fonctions pures, testées
     │   │   ├── notes.ts             # Copié du POC : fréquence ↔ MIDI ↔ nom
     │   │   ├── accordages.ts        # Copié du POC
+    │   │   ├── notation.ts          # Nom affiché d'une note : anglo-saxon, français ou les deux
     │   │   └── manche.ts            # Note d'une position (corde + case), positions d'une note
     │   ├── progression/
     │   │   ├── modele.ts            # Types du §6 et valeurs par défaut des réglages
@@ -342,9 +354,10 @@ Les règles de validation du mode 2 (première note stable après une attaque, n
 - `notes.ts` : conversions fréquence ↔ MIDI ↔ nom, cas limites (A4 à 432 Hz, fréquences hors plage). Les tests du POC sont repris.
 - `manche.ts` : pour chaque corde et chaque case, la note calculée est correcte (couvrir les 6 × 13 positions).
 - `accordages.ts` : chaque accordage renvoie six notes et les fréquences attendues.
+- `notation.ts` : les 12 noms dans les trois notations, avec et sans octave, format « les deux ».
 - `validation.ts` : mode 1 (juste, fausse, case équivalente sur la même corde) ; mode 2 (dans la tolérance, hors tolérance, octave stricte et non stricte, première note après l'attaque, changement sans attaque ignoré, note précédente ignorée une fois, non-détection).
 - `niveaux.ts` : passage de niveau au seuil, pas de passage en dessous, niveau 5 sans fin, limite de plage du mode 2.
-- `stockage.ts` : sauvegarde, lecture, migration, comportement si `localStorage` est vide ou corrompu.
+- `stockage.ts` : sauvegarde, lecture, migration (dont un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
 
 **End-to-end (Playwright)**
 - Mode 1 : une question complète, bonne réponse et mauvaise réponse.
@@ -373,6 +386,7 @@ La version 1 est terminée quand :
 - [ ] La progression survit à un rechargement, et l'export et l'import JSON fonctionnent
 - [ ] Les réglages sont persistants et modifient le comportement immédiatement
 - [ ] Toute l'interface est en français
+- [ ] La notation des notes choisie (anglo-saxonne, française ou les deux) s'applique à tous les écrans
 - [ ] Les tests unitaires couvrent les modules `music/`, `progression/` et `quiz/`
 - [ ] La checklist manuelle du mode 2 est cochée pour la version livrée
 
@@ -387,7 +401,7 @@ La version 1 est terminée quand :
 | 2 | Modèle de données, stockage, `music/manche.ts` testé | Tests unitaires verts |
 | 3 | Mode 1 : manche, quiz, score, statistiques ; niveau au choix jusqu'à la phase 6 | Mode 1 jouable |
 | 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé (après le scénario 6 du POC) | Mode 2 jouable sur Android |
-| 5 | Accordeur complet, réglages, export et import | Accordeur et réglages |
+| 5 | Accordeur complet, réglages (dont la notation des notes), export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
 
