@@ -1,16 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { contenuNiveau, positionsDuNiveau } from '../../src/progression/niveaux';
+import type { Niveau } from '../../src/progression/modele';
 import { tirerQuestion } from '../../src/quiz/tirage';
 import { verifierMode1 } from '../../src/quiz/validation';
 
-const question = (niveau: 1 | 2 | 3 | 4 | 5, corde: number, numeroCase: number) => {
+const question = (niveau: Niveau, corde: number, numeroCase: number) => {
   const candidates = positionsDuNiveau(niveau).filter((p) => p.corde === corde && p.case === numeroCase);
   return tirerQuestion(candidates, contenuNiveau(niveau), () => 0);
 };
 
 describe('verifierMode1', () => {
   it('accepte la bonne case et refuse les autres', () => {
-    const c5 = question(5, 5, 4);
+    const c5 = question(7, 5, 4);
     expect(c5.nom).toBe('C#');
     expect(verifierMode1(c5, { corde: 5, case: 4 })).toEqual({
       juste: true,
@@ -21,11 +22,11 @@ describe('verifierMode1', () => {
 
   it('refuse la même note sur une autre corde quand la corde est demandée', () => {
     // C#3 : corde 5 case 4, mais aussi corde 6 case 9.
-    expect(verifierMode1(question(5, 5, 4), { corde: 6, case: 9 }).juste).toBe(false);
+    expect(verifierMode1(question(7, 5, 4), { corde: 6, case: 9 }).juste).toBe(false);
   });
 
   it('accepte la case 0 et la case 12 d’une même corde', () => {
-    const e6 = question(5, 6, 0);
+    const e6 = question(7, 6, 0);
     expect(verifierMode1(e6, { corde: 6, case: 12 }).juste).toBe(true);
     expect(verifierMode1(e6, { corde: 6, case: 0 }).juste).toBe(true);
   });

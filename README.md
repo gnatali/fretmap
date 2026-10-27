@@ -45,4 +45,5 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Phase 1 : mise en place de `app/` (Svelte, lint, CI), modules audio et musique repris du POC, accueil déployé
 - [x] Phase 2 : modèle de données, stockage `localStorage` (migration, export et import JSON), `music/manche.ts`
 - [x] Phase 3 : mode 1 jouable (manche, quiz, score, niveau au choix), écran Statistiques, tests de bout en bout
+- [x] Mode 1 : sept niveaux, notation des notes (« Mi (E) » par défaut, française ou anglo-saxonne)
 - [ ] Phases 4 à 7 (spec §12)

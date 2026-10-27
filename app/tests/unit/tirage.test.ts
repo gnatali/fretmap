@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { contenuNiveau, positionsDuNiveau } from '../../src/progression/niveaux';
 import { tirerQuestion } from '../../src/quiz/tirage';
 
-describe('tirerQuestion avec la corde (niveaux 2 à 5)', () => {
-  const candidates = positionsDuNiveau(5);
-  const options = contenuNiveau(5);
+describe('tirerQuestion avec la corde (niveaux 2 à 7)', () => {
+  const candidates = positionsDuNiveau(7);
+  const options = contenuNiveau(7);
 
   it('tire une position et accepte ses cases sur la même corde', () => {
     const q = tirerQuestion(candidates, options, () => 0);

@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte';
   import type { EtatApp } from '../../etat.svelte';
   import type { Position } from '../../music/manche';
+  import { NOTATIONS, nomAffiche, type Notation } from '../../music/notation';
   import type { Niveau } from '../../progression/modele';
   import { NIVEAUX, contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
   import { SCORE_INITIAL, noter, pourcentage } from '../../quiz/score';
@@ -32,6 +33,7 @@
   let marques = $state<Record<string, Marque>>({});
   let retour = $state<{ juste: boolean; texte: string } | null>(null);
   let minuteur: ReturnType<typeof setTimeout> | undefined;
+  const notation = $derived(etat.progression.reglages.notation);
 
   function nouvelleQuestion(precedente?: Question): Question {
     return tirerQuestion(positionsDuNiveau(niveau), contenuNiveau(niveau), hasard, precedente);
@@ -59,7 +61,9 @@
         };
     retour = {
       juste,
-      texte: juste ? TEXTES.mode1.juste : TEXTES.mode1.faux(question.nom, positionsCorrectes, question.cordeDemandee),
+      texte: juste
+        ? TEXTES.mode1.juste
+        : TEXTES.mode1.faux(nomAffiche(question.nom, notation), positionsCorrectes, question.cordeDemandee),
     };
     score = noter(score, juste);
     // Juste : la position touchée est connue (E sur la corde 1, ou la case 12) ; faux : la position tirée.
@@ -85,6 +89,14 @@
       {/each}
     </select>
   </label>
+  <label>
+    {TEXTES.mode1.notation}
+    <select value={notation} onchange={(e) => etat.definirReglage('notation', e.currentTarget.value as Notation)}>
+      {#each NOTATIONS as n (n)}
+        <option value={n}>{TEXTES.notations[n]}</option>
+      {/each}
+    </select>
+  </label>
   <label class="case-a-cocher">
     <input
       type="checkbox"
@@ -96,7 +108,7 @@
 </div>
 
 <p class="question" aria-live="polite">
-  {TEXTES.mode1.question} <strong class="nom">{question.nom}</strong>
+  {TEXTES.mode1.question} <strong class="nom">{nomAffiche(question.nom, notation)}</strong>
   {#if question.cordeDemandee}{TEXTES.mode1.surLaCorde} <strong>{question.position.corde}</strong>{/if}
 </p>
 
@@ -107,6 +119,7 @@
 <Manche
   {caseMax}
   afficherNotes={etat.progression.reglages.afficherNotes}
+  {notation}
   cordeEnEvidence={question.cordeDemandee ? question.position.corde : null}
   {marques}
   onToucher={toucher}

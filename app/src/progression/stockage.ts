@@ -1,5 +1,6 @@
 // Lecture et écriture de la progression dans localStorage, migration, export et import JSON (spec §6, §9).
 import { estCase, estNumeroCorde } from '../music/manche';
+import { NOTATIONS } from '../music/notation';
 import { bornerA4 } from '../music/notes';
 import {
   NIVEAU_MAX,
@@ -60,6 +61,7 @@ function normaliserReglages(valeur: unknown): Reglages {
     seuilSilenceDb:
       typeof r.seuilSilenceDb === 'number' && Number.isFinite(r.seuilSilenceDb) ? r.seuilSilenceDb : d.seuilSilenceDb,
     retourSonore: booleen(r.retourSonore, d.retourSonore),
+    notation: NOTATIONS.find((n) => n === r.notation) ?? d.notation,
   };
 }
 

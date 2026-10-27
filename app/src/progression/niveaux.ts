@@ -16,8 +16,10 @@ export const NIVEAUX: readonly ContenuNiveau[] = [
   { niveau: 1, caseMax: 0, naturelles: false, cordeDemandee: false },
   { niveau: 2, caseMax: 5, naturelles: true, cordeDemandee: true },
   { niveau: 3, caseMax: 5, naturelles: false, cordeDemandee: true },
-  { niveau: 4, caseMax: 7, naturelles: false, cordeDemandee: true },
-  { niveau: 5, caseMax: 12, naturelles: false, cordeDemandee: true },
+  { niveau: 4, caseMax: 7, naturelles: true, cordeDemandee: true },
+  { niveau: 5, caseMax: 7, naturelles: false, cordeDemandee: true },
+  { niveau: 6, caseMax: 12, naturelles: true, cordeDemandee: true },
+  { niveau: 7, caseMax: 12, naturelles: false, cordeDemandee: true },
 ];
 
 export function contenuNiveau(niveau: Niveau): ContenuNiveau {

@@ -1,14 +1,15 @@
 // Modèle de données de la progression (spec §6) et valeurs par défaut.
 import { SEUIL_SILENCE_DBFS_DEFAUT } from '../audio/niveau';
 import type { NumeroCorde } from '../music/manche';
+import type { Notation } from '../music/notation';
 import { A4_DEFAUT_HZ } from '../music/notes';
 
 /** Version du schéma enregistré ; toute évolution passe par `migrer` (progression/stockage.ts). */
 export const VERSION_SCHEMA = 1;
 
 export type Mode = 1 | 2;
-export type Niveau = 1 | 2 | 3 | 4 | 5;
-export const NIVEAU_MAX: Niveau = 5;
+export type Niveau = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export const NIVEAU_MAX: Niveau = 7;
 export type Tolerance = 50 | 30 | 20;
 export const TOLERANCES: readonly Tolerance[] = [50, 30, 20];
 
@@ -37,6 +38,8 @@ export interface Reglages {
   /** Seuil de silence en dBFS, mesuré au démarrage du micro. */
   seuilSilenceDb: number;
   retourSonore: boolean;
+  /** Affichage des noms de notes seulement ; les données restent en notation anglo-saxonne. */
+  notation: Notation;
 }
 
 export interface ScoreNiveau {
@@ -63,6 +66,7 @@ export const REGLAGES_DEFAUT: Readonly<Reglages> = {
   seuilSilenceDb: SEUIL_SILENCE_DBFS_DEFAUT,
   // Silencieux par défaut, comme le bip de l'accordeur du POC.
   retourSonore: false,
+  notation: 'les-deux',
 };
 
 export function progressionInitiale(): Progression {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { EtatApp } from '../../etat.svelte';
   import { CASE_MAX, NUMEROS_CORDES, noteDePosition } from '../../music/manche';
+  import { nomAffiche } from '../../music/notation';
   import { TEXTES } from '../textes';
 
   interface Props {
@@ -17,6 +18,7 @@
   const tempsMoyen = $derived(
     tentatives ? stats.reduce((t, s) => t + s.tempsMoyenMs * s.tentatives, 0) / tentatives : 0,
   );
+  const notation = $derived(etat.progression.reglages.notation);
   const cases = Array.from({ length: CASE_MAX + 1 }, (_, k) => k);
 
   function niveau(taux: number | null): string {
@@ -57,9 +59,10 @@
         {#each NUMEROS_CORDES as corde (corde)}
           {@const s = parPosition.get(`${corde}-${numeroCase}`)}
           {@const taux = s ? Math.round((s.reussites / s.tentatives) * 100) : null}
+          {@const note = noteDePosition({ corde, case: numeroCase })}
           <td
             class={niveau(taux)}
-            title={noteDePosition({ corde, case: numeroCase }).libelle}
+            title={nomAffiche(note.nom, notation, note.octave)}
             aria-label={TEXTES.statistiques.cellule(corde, numeroCase, taux, s?.tentatives ?? 0)}
           >
             {taux === null ? '·' : taux}

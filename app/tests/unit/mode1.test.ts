@@ -24,7 +24,7 @@ describe('mode 1', () => {
 
   it('valide la bonne case, enregistre la réponse et passe à la question suivante après 1 s', async () => {
     const { stockage, etat } = demarrer();
-    expect(question()).toBe('Trouvez E');
+    expect(question()).toBe('Trouvez Mi (E)');
     await fireEvent.click(caseDuManche('Corde 6, à vide'));
     expect(screen.getByRole('status').textContent).toContain(TEXTES.mode1.juste);
     expect(document.querySelector('.score')?.textContent).toContain('1 / 1');
@@ -33,7 +33,7 @@ describe('mode 1', () => {
 
     await vi.advanceTimersByTimeAsync(1000);
     // La note précédente n'est pas reposée : A.
-    expect(question()).toBe('Trouvez A');
+    expect(question()).toBe('Trouvez La (A)');
     expect(screen.getByRole('status').textContent).toBe('');
   });
 
@@ -52,7 +52,7 @@ describe('mode 1', () => {
   it('signale une erreur et montre les bonnes cases', async () => {
     const { etat } = demarrer();
     await fireEvent.click(caseDuManche('Corde 5, à vide'));
-    expect(screen.getByRole('status').textContent).toContain('Faux : E est la corde 6 ou la corde 1, à vide');
+    expect(screen.getByRole('status').textContent).toContain('Faux : Mi (E) est la corde 6 ou la corde 1, à vide');
     for (const corde of [6, 1]) {
       expect(caseDuManche(`Corde ${corde}, à vide`).getAttribute('aria-label')).toContain(
         TEXTES.manche.marque.attendue,
@@ -72,10 +72,33 @@ describe('mode 1', () => {
 
   it('change de niveau', async () => {
     demarrer();
-    await fireEvent.change(screen.getByRole('combobox'), { target: { value: '5' } });
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.niveau }), { target: { value: '7' } });
     expect(screen.getAllByRole('button', { name: /^Corde 1, case/ })).toHaveLength(12);
     // Au-delà du niveau 1, la question indique la corde, mise en évidence.
-    expect(question()).toBe('Trouvez E sur la corde 6');
+    expect(question()).toBe('Trouvez Mi (E) sur la corde 6');
     expect(document.querySelectorAll('.case.evidence')).toHaveLength(13);
+  });
+
+  it('change de notation et enregistre le réglage', async () => {
+    const { etat, stockage } = demarrer();
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.notation }), {
+      target: { value: 'anglo-saxonne' },
+    });
+    expect(question()).toBe('Trouvez E');
+    expect(etat.progression.reglages.notation).toBe('anglo-saxonne');
+    expect(stockage.donnees[CLE_STOCKAGE]).toContain('"notation":"anglo-saxonne"');
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.notation }), {
+      target: { value: 'francaise' },
+    });
+    expect(question()).toBe('Trouvez Mi');
+  });
+
+  it('affiche les notes du manche sur deux lignes avec « les deux »', async () => {
+    demarrer();
+    await fireEvent.click(screen.getByRole('checkbox', { name: TEXTES.mode1.afficherNotes }));
+    const bulle = caseDuManche('Corde 6, à vide').querySelector('.note');
+    expect(bulle?.firstChild?.textContent).toBe('Mi');
+    expect(bulle?.querySelector('.secondaire')?.textContent).toBe('E');
+    expect(caseDuManche('Corde 6, à vide').getAttribute('aria-label')).toBe('Corde 6, à vide, Mi (E)');
   });
 });

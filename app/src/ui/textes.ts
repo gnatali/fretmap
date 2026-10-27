@@ -1,4 +1,5 @@
 // Tous les textes de l'interface (spec §13) : un seul fichier pour faciliter une future traduction.
+import type { Notation } from '../music/notation';
 
 /** « la corde 6 ou la corde 1 ». */
 function listeCordes(cordes: readonly number[]): string {
@@ -36,6 +37,7 @@ export const TEXTES = {
     titre: 'Mode 1',
     niveau: 'Niveau',
     nomNiveau: (niveau: number, description: string) => `${niveau} · ${description}`,
+    notation: 'Notation',
     afficherNotes: 'Afficher les notes',
     question: 'Trouvez',
     surLaCorde: 'sur la corde',
@@ -52,9 +54,16 @@ export const TEXTES = {
     1: 'Cordes à vide',
     2: 'Cases 0 à 5, notes naturelles',
     3: 'Cases 0 à 5, toutes les notes',
-    4: 'Cases 0 à 7',
-    5: 'Manche complet (0 à 12)',
+    4: 'Cases 0 à 7, notes naturelles',
+    5: 'Cases 0 à 7, toutes les notes',
+    6: 'Cases 0 à 12, notes naturelles',
+    7: 'Cases 0 à 12, toutes les notes',
   } as Record<number, string>,
+  notations: {
+    'les-deux': 'Les deux : Mi (E)',
+    francaise: 'Française : Mi',
+    'anglo-saxonne': 'Anglo-saxonne : E',
+  } as Record<Notation, string>,
   manche: {
     nom: 'Manche',
     corde: (corde: number) => `Corde ${corde}`,

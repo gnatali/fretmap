@@ -3,9 +3,12 @@ import { expect, test, type Page } from '@playwright/test';
 /** Cordes à vide de l'accordage standard, par nom de note (niveau 1). */
 const CORDES_A_VIDE: Record<string, number[]> = { E: [6, 1], A: [5], D: [4], G: [3], B: [2] };
 
-/** Note demandée par la question affichée (« Trouvez E »). */
+/** Note demandée par la question, affichée par défaut dans les deux notations (« Trouvez Mi (E) »). */
 async function noteDemandee(page: Page): Promise<string> {
-  return page.locator('.question .nom').innerText();
+  const texte = await page.locator('.question .nom').innerText();
+  const m = /^(Do|Ré|Mi|Fa|Sol|La|Si)#? \(([A-G]#?)\)$/.exec(texte);
+  expect(m, `notation « les deux » attendue : ${texte}`).not.toBeNull();
+  return m![2]!;
 }
 
 test('mode 1 : une bonne réponse, une mauvaise, puis les statistiques après rechargement', async ({ page }) => {

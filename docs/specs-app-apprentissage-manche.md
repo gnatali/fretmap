@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.2** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), puis réglage de notation des notes le 27/10/2026. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.3** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), puis sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -101,6 +101,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Manche**
 - Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12.
 - Affichage des notes sur les cases, masquable (une option par niveau).
+- Au-dessus du manche : choix du niveau, de la notation des notes (5.4) et de l'affichage des notes. Ces deux réglages sont enregistrés ; l'écran Réglages les reprend en phase 5.
 - Cordes à vide visibles à gauche, cases cliquables au pouce (zone minimale de 44 px de haut).
 - Orientation : affichage en portrait (manche vertical) par défaut, en paysage possible.
 
@@ -165,8 +166,10 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 | 1 | Cordes à vide (E, A, D, G, B, E) ; la question ne donne pas la corde | 80 % de réussite sur 20 questions |
 | 2 | Cases 0 à 5, notes naturelles | 80 % sur 20 questions |
 | 3 | Cases 0 à 5, toutes les notes | 80 % sur 30 questions |
-| 4 | Cases 0 à 7, toutes les notes | 80 % sur 30 questions |
-| 5 | Manche complet (cases 0 à 12) | Pas de passage, mode libre |
+| 4 | Cases 0 à 7, notes naturelles | 80 % sur 30 questions |
+| 5 | Cases 0 à 7, toutes les notes | 80 % sur 30 questions |
+| 6 | Cases 0 à 12, notes naturelles | 80 % sur 30 questions |
+| 7 | Cases 0 à 12, toutes les notes (manche complet) | Pas de passage, mode libre |
 
 En mode 2, un niveau dont les positions dépassent la plage validée (5.2) est limité à cette plage.
 
@@ -226,7 +229,7 @@ interface Reglages {
 
 interface Progression {
   version: 1;
-  niveauActuel: 1 | 2 | 3 | 4 | 5;
+  niveauActuel: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   scoreParNiveau: Record<number, { questions: number; reussites: number }>;
   statistiques: Statistique[];
   reglages: Reglages;
@@ -356,7 +359,7 @@ Les règles de validation du mode 2 (première note stable après une attaque, n
 - `accordages.ts` : chaque accordage renvoie six notes et les fréquences attendues.
 - `notation.ts` : les 12 noms dans les trois notations, avec et sans octave, format « les deux ».
 - `validation.ts` : mode 1 (juste, fausse, case équivalente sur la même corde) ; mode 2 (dans la tolérance, hors tolérance, octave stricte et non stricte, première note après l'attaque, changement sans attaque ignoré, note précédente ignorée une fois, non-détection).
-- `niveaux.ts` : passage de niveau au seuil, pas de passage en dessous, niveau 5 sans fin, limite de plage du mode 2.
+- `niveaux.ts` : passage de niveau au seuil, pas de passage en dessous, niveau 7 sans fin, limite de plage du mode 2.
 - `stockage.ts` : sauvegarde, lecture, migration (dont un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
 
 **End-to-end (Playwright)**
@@ -380,7 +383,7 @@ La version 1 est terminée quand :
 
 - [ ] `npm run dev`, `npm run build` et `npm test` passent sans erreur dans `app/`
 - [ ] Le déploiement GitHub Pages se fait automatiquement depuis `main`, application à la racine du site et POC sous `/poc/`
-- [ ] Le mode 1 propose les 5 niveaux, avec score, série et statistiques
+- [ ] Le mode 1 propose les 7 niveaux, avec score, série et statistiques
 - [ ] Le mode 2 valide les notes des cases 0 à 12 (ou 0 à 5 si le scénario 6 n'a pas validé E5) sur Android avec guitare acoustique
 - [ ] L'accordeur couvre les quatre accordages et la référence A4 réglable
 - [ ] La progression survit à un rechargement, et l'export et l'import JSON fonctionnent
@@ -401,7 +404,7 @@ La version 1 est terminée quand :
 | 2 | Modèle de données, stockage, `music/manche.ts` testé | Tests unitaires verts |
 | 3 | Mode 1 : manche, quiz, score, statistiques ; niveau au choix jusqu'à la phase 6 | Mode 1 jouable |
 | 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé (après le scénario 6 du POC) | Mode 2 jouable sur Android |
-| 5 | Accordeur complet, réglages (dont la notation des notes), export et import | Accordeur et réglages |
+| 5 | Accordeur complet, réglages (dont la notation des notes, déjà affichée et réglable dans le mode 1), export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
 

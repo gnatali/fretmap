@@ -4,11 +4,13 @@
 
 <script lang="ts">
   import { MARQUEURS, NUMEROS_CORDES, noteDePosition, type NumeroCorde, type Position } from '../../music/manche';
+  import { nomAffiche, nomSurDeuxLignes, type Notation } from '../../music/notation';
   import { TEXTES } from '../textes';
 
   interface Props {
     caseMax: number;
     afficherNotes?: boolean;
+    notation?: Notation;
     /** Corde de la question, mise en évidence. */
     cordeEnEvidence?: NumeroCorde | null;
     /** Marques par position, clé `${corde}-${case}`. */
@@ -20,6 +22,7 @@
   let {
     caseMax,
     afficherNotes = false,
+    notation = 'les-deux',
     cordeEnEvidence = null,
     marques = {},
     desactive = false,
@@ -63,7 +66,8 @@
       </span>
       {#each NUMEROS_CORDES as corde (corde)}
         {@const marque = marques[cle(corde, numeroCase)]}
-        {@const note = noteDePosition({ corde, case: numeroCase }).nom}
+        {@const nom = noteDePosition({ corde, case: numeroCase }).nom}
+        {@const note = nomSurDeuxLignes(nom, notation)}
         <button
           type="button"
           class="case {marque ?? ''}"
@@ -71,15 +75,17 @@
           data-position={cle(corde, numeroCase)}
           tabindex={focus.corde === corde && focus.case === numeroCase ? 0 : -1}
           disabled={desactive}
-          aria-label="{TEXTES.manche.position(corde, numeroCase)}{afficherNotes ? `, ${note}` : ''}{marque
-            ? `, ${TEXTES.manche.marque[marque]}`
-            : ''}"
+          aria-label="{TEXTES.manche.position(corde, numeroCase)}{afficherNotes
+            ? `, ${nomAffiche(nom, notation)}`
+            : ''}{marque ? `, ${TEXTES.manche.marque[marque]}` : ''}"
           onclick={() => onToucher({ corde, case: numeroCase })}
           onfocus={() => (focus = { corde, case: numeroCase })}
           onkeydown={(e) => deplacer(e, { corde, case: numeroCase })}
         >
           {#if marque}<span class="icone" aria-hidden="true">{ICONES[marque]}</span>
-          {:else if afficherNotes}<span class="note" aria-hidden="true">{note}</span>{/if}
+          {:else if afficherNotes}<span class="note" aria-hidden="true"
+              >{note.haut}{#if note.bas}<span class="secondaire">{note.bas}</span>{/if}</span
+            >{/if}
         </button>
       {/each}
     </div>
@@ -174,6 +180,18 @@
     font-weight: 600;
     background: var(--surface);
     border: 1px solid var(--cadre);
+  }
+  .note {
+    flex-direction: column;
+    height: auto;
+    min-height: 2rem;
+    padding: 0.125rem 0.25rem;
+    line-height: 1;
+  }
+  .secondaire {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--discret);
   }
   .icone {
     font-size: 1.125rem;

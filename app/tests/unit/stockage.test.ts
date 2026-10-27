@@ -36,7 +36,7 @@ const exemple = (): Progression => ({
       derniereDate: '2026-10-27T08:01:00.000Z',
     },
   ],
-  reglages: { ...REGLAGES_DEFAUT, tolerance: 30, a4: 442, afficherNotes: true },
+  reglages: { ...REGLAGES_DEFAUT, tolerance: 30, a4: 442, afficherNotes: true, notation: 'francaise' },
 });
 
 describe('charger et sauver', () => {
@@ -91,6 +91,12 @@ describe('migrer', () => {
     expect(p?.reglages).toEqual({ ...REGLAGES_DEFAUT, tolerance: 20, a4: 450 });
     expect(p?.niveauActuel).toBe(1);
     expect(p?.statistiques).toEqual([]);
+  });
+
+  it('notation absente ou invalide : « les deux » ; une notation connue est gardée', () => {
+    expect(migrer({ version: 1, reglages: {} })?.reglages.notation).toBe('les-deux');
+    expect(migrer({ version: 1, reglages: { notation: 'allemande' } })?.reglages.notation).toBe('les-deux');
+    expect(migrer({ version: 1, reglages: { notation: 'anglo-saxonne' } })?.reglages.notation).toBe('anglo-saxonne');
   });
 
   it('écarte les statistiques, scores et niveaux invalides', () => {
