@@ -11,7 +11,7 @@ Le projet commence par un POC qui vérifie qu'un navigateur peut détecter de fa
 | [`docs/specs-poc-manche-guitare.md`](docs/specs-poc-manche-guitare.md) | Spécifications du POC |
 | [`docs/revue-specs.md`](docs/revue-specs.md) | Revue de cohérence des spécifications |
 | [`poc-guitare/SYNTHESE.md`](poc-guitare/SYNTHESE.md) | Synthèse du POC : résultats par hypothèse et décision |
-| [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2.1) |
+| [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2.4) |
 | [`docs/revue-specs-app.md`](docs/revue-specs-app.md) | Revue des spécifications de l'application au regard du POC, décisions |
 
 ## Démo en ligne
@@ -35,13 +35,13 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Scénario 5 refait (positions au hasard) : 20/20
 - [x] `SYNTHESE.md` : décision **Go**
 - [x] Accordeur validé sur la guitare
-- [ ] Scénario 6 : cases 6 à 12, jusqu'à E5 (plage du produit, point I1)
+- [x] Scénario 6 : cases 6 à 12, jusqu'à E5 (plage du produit, point I1) : 42/42, H2 validée de E2 à E5 (186/192)
 
 ## Application
 
 - [x] Spécifications revues au regard du POC (version 2)
 - [x] Points de la spec tranchés (interface en Svelte)
-- [ ] Scénario 6 du POC (avant la phase 4)
+- [x] Scénario 6 du POC (avant la phase 4) : le mode 2 couvre les cases 0 à 12
 - [x] Phase 1 : mise en place de `app/` (Svelte, lint, CI), modules audio et musique repris du POC, accueil déployé
 - [x] Phase 2 : modèle de données, stockage `localStorage` (migration, export et import JSON), `music/manche.ts`
 - [x] Phase 3 : mode 1 jouable (manche, quiz, score, niveau au choix), écran Statistiques, tests de bout en bout

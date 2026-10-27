@@ -4,10 +4,10 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Application** : phases 1 à 3 faites (accueil, mode 1 jouable avec 7 niveaux au choix et notation des notes, statistiques). **Prochaine étape : phase 4** (mode 2 ; spec §5.2, §10, §12), après le scénario 6 du POC.
-- **Avant la phase 4 (mode 2)** : jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
+- **Application** : phases 1 à 3 faites (accueil, mode 1 jouable avec 7 niveaux au choix et notation des notes, statistiques). **Prochaine étape : phase 4** (mode 2, cases 0 à 12 ; spec §5.2, §10, §12).
+- **Journaux du POC** : quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
 - **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
-- **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
+- **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`), validée par le scénario 6 ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
 
 ## À reprendre du POC dans l'application
 Valeurs validées, règles du mode 2 et modules à copier : spec §3, §5.2 et §8. `poc-guitare/` reste l'outil de mesure : ne pas le modifier pour l'application.

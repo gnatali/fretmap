@@ -2,6 +2,24 @@
 
 Journaux exportés depuis la page, en JSON (export d'origine) et en CSV (livrable §11). Toutes les sessions ont été faites sur un téléphone Android, avec son micro intégré : c'est ce que désigne « micro intégré portable » dans la colonne `materiel`.
 
+## Session du 27/10/2026 à 09:41, scénario 6 : `journal-poc-guitare-20261027-0941`
+
+Guitare acoustique, micro intégré du téléphone Android. Campagne réduite au scénario 6 (aigus) : cases 6 à 12 de la corde 2 (F4 à B4), puis de la corde 1 (A#4 à E5), 3 attaques par case, dans l'ordre de la campagne. Le journal n'enregistre que la note attendue ; la corde et la case viennent de cet ordre.
+
+| Mesure | Corde 2, cases 6 à 12 | Corde 1, cases 6 à 12 | Scénario 6 |
+|---|---|---|---|
+| Notes jouées | 21 | 21 | 42, sans changement sans attaque ni non-détection |
+| Bonnes notes | 21/21 | 21/21 | **42/42 (100 %)**, aucune erreur d'octave |
+| Écart moyen absolu | 10,5 cents | 8,8 cents | 9,6 cents (de +6,9 à +18,1) |
+| Latence médiane | 217 ms | 183 ms | 200 ms |
+| Latence maximale | 333 ms | 218 ms | 333 ms ; 40 sur 42 sous 300 ms |
+
+**H2 est validée sur toute la plage du produit** : avec les scénarios 1 et 3 (session de 19:54), 186 notes jouées sur 192 sont justes (96,9 %), de E2 à E5.
+
+**Écarts** : toutes les notes sortent un peu hautes, de +6,9 à +18,1 cents. Les plus hautes sont G#4 et A#4 sur la corde 2 (cases 9 et 11, de +12 à +18 cents). Les mêmes notes jouées sur la corde 1 restent entre +7 et +10 cents : A#4 sort à +13,5 cents en moyenne sur la corde 2 (case 11) et à +7,3 sur la corde 1 (case 6). L'écart dépend donc de la position jouée, pas de la note. Il vient probablement de la pression du doigt et de la justesse de la guitare, pas de la détection. Aucune note ne dépasse 20 cents : elles seraient toutes acceptées même avec l'option « justesse » ±20 cents du mode 2.
+
+**Latence** : deux notes atteignent ou dépassent 300 ms, G#4 (essai 11, 333 ms) et A4 (essai 13, 300 ms), toutes deux sur la corde 2 (cases 9 et 10). Les autres attaques de ces cases restent entre 233 et 283 ms. La médiane est de 200 ms, comme dans les sessions précédentes. Ces deux dépassements restent isolés : sur les trois sessions de référence, 269 notes jouées sur 271 sont sous 300 ms.
+
 ## Session du 26/10/2026 à 22:47, scénario 5 : `journal-poc-guitare-20261026-2247`
 
 Guitare acoustique, micro intégré du téléphone Android. Campagne réduite au scénario 5 (jeu naturel), avec la version qui affiche la corde et la case à jouer (cases 0 à 5) et la règle « corde précédente encore sonore ».

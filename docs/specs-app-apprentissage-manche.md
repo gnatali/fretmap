@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.3** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), puis sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour. Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.4** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), puis plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -26,7 +26,7 @@ L'objectif pédagogique est la mémorisation des notes case par case, pas seulem
 
 ### Inclus (version 1)
 - Mode 1 : manche virtuel (cases 0 à 12), quiz, score, série de bonnes réponses
-- Mode 2 : détection de la note jouée et validation, cases 0 à 12 (E2 à E5) ; limité aux cases 0 à 5 (E2 à A4) tant que le scénario 6 du POC n'a pas validé H2 jusqu'à E5
+- Mode 2 : détection de la note jouée et validation, cases 0 à 12 (E2 à E5), plage validée par le scénario 6 du POC
 - Accordeur (accordages standard, drop D, demi-ton plus bas, DADGAD)
 - Niveaux de difficulté (voir 5.4), communs aux deux modes
 - Progression sauvegardée localement (`localStorage`)
@@ -72,7 +72,7 @@ Ces points sont des acquis du POC et ne doivent pas être remis en cause sans ra
 | Accordeur | vert à ±5 cents, orange à ±15 ; « juste » après 300 ms ; aiguille de −50 à +50 cents | `TOLERANCE_JUSTE_CENTS`, `TOLERANCE_PROCHE_CENTS`, `DUREE_JUSTE_MS` |
 | Référence A4 | 430 à 450 Hz, 440 par défaut | `A4_MIN_HZ`, `A4_MAX_HZ` |
 
-**Performances mesurées** (guitare acoustique, téléphone Android) : écart moyen 3,0 cents sur cordes à vide ; 96 % de bonnes notes de E2 à A4 ; latence médiane de 183 à 200 ms, maximum 283 ms ; aucune fausse note sur 30 s de silence ; 98 % en bruit de fond et 100 % en jeu naturel.
+**Performances mesurées** (guitare acoustique, téléphone Android) : écart moyen 3,0 cents sur cordes à vide ; 96,9 % de bonnes notes de E2 à E5 ; latence médiane de 183 à 200 ms, 269 notes sur 271 sous 300 ms (maximum 333 ms) ; aucune fausse note sur 30 s de silence ; 98 % en bruit de fond et 100 % en jeu naturel.
 
 ---
 
@@ -139,7 +139,8 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 
 **Plage de notes**
 - Cases 0 à 12, soit E2 à E5.
-- Tant que le scénario 6 du POC (cases 6 à 12) n'a pas validé H2 jusqu'à E5, le mode 2 se limite aux cases 0 à 5 (E2 à A4). Une constante unique fixe cette limite.
+- Plage validée par le scénario 6 du POC (27/10/2026) : 42 notes sur 42 de F4 à E5 (cases 6 à 12 des cordes 2 et 1), H2 à 96,9 % de E2 à E5. Une constante unique fixe cette limite.
+- Dans les aigus, les notes jouées sortent jusqu'à +18 cents (corde 2, cases 9 à 11) : elles restent dans toutes les tolérances proposées, ±20 comprise.
 
 **Indicateur en direct**
 - Note détectée, fréquence, écart en cents, barre de niveau sonore.
@@ -338,11 +339,11 @@ Les règles de validation du mode 2 (première note stable après une attaque, n
 
 ## 9. Points de vigilance
 
-- **Octave erronée** : dans le POC, les sauts d'octave venaient des cordes graves pendant la résonance (E2 → E3) et de l'harmonique 4 (B3 → B5), pas de l'attaque. La tolérance d'octave les supprime : aucune erreur d'octave à l'attaque sur 230 notes. Elle doit rester activée ; l'option « octave stricte » est donc possible.
+- **Octave erronée** : dans le POC, les sauts d'octave venaient des cordes graves pendant la résonance (E2 → E3) et de l'harmonique 4 (B3 → B5), pas de l'attaque. La tolérance d'octave les supprime : aucune erreur d'octave à l'attaque sur 272 notes. Elle doit rester activée ; l'option « octave stricte » est donc possible.
 - **Tolérance réelle** : le POC validait sur le demi-ton. Les notes justes jouées près du sillet ont atteint +30 cents (pression du doigt, justesse de la guitare). Ne pas resserrer la tolérance par défaut sans nouvelle mesure.
 - **Corde précédente** : au changement de corde, la corde précédente qui sonne encore a causé 4 des 7 erreurs d'une session du POC. Consigne d'étouffer, et note précédente ignorée une fois (5.2).
 - **Résonance de caisse** : vers 95 à 110 Hz sur une guitare acoustique, elle domine quand la corde s'éteint. D'où la règle « première note après l'attaque ».
-- **Latence** : mesurée dans le POC sur Android : médiane de 183 à 200 ms, maximum 283 ms, sans la latence d'entrée du matériel. Si elle dépasse 300 ms sur un appareil, réduire la fenêtre d'analyse à 2048 et le signaler dans la documentation.
+- **Latence** : mesurée dans le POC sur Android : médiane de 183 à 200 ms, 269 notes sur 271 sous 300 ms, maximum 333 ms (aigus de la corde 2), sans la latence d'entrée du matériel. Si elle dépasse 300 ms sur un appareil, réduire la fenêtre d'analyse à 2048 et le signaler dans la documentation.
 - **Calibrage** : un seuil de silence mesuré pendant que l'on joue est trop haut et bloque toute détection. La consigne « ne jouez pas » est obligatoire.
 - **Permissions micro** : messages d'erreur clairs pour refus, absence de micro, et micro occupé par une autre application (repris de `ErreurMicro` du POC).
 - **Mise en veille** : quand l'onglet passe en arrière-plan, arrêter le micro et le quiz, puis proposer de reprendre.
@@ -384,7 +385,7 @@ La version 1 est terminée quand :
 - [ ] `npm run dev`, `npm run build` et `npm test` passent sans erreur dans `app/`
 - [ ] Le déploiement GitHub Pages se fait automatiquement depuis `main`, application à la racine du site et POC sous `/poc/`
 - [ ] Le mode 1 propose les 7 niveaux, avec score, série et statistiques
-- [ ] Le mode 2 valide les notes des cases 0 à 12 (ou 0 à 5 si le scénario 6 n'a pas validé E5) sur Android avec guitare acoustique
+- [ ] Le mode 2 valide les notes des cases 0 à 12 sur Android avec guitare acoustique
 - [ ] L'accordeur couvre les quatre accordages et la référence A4 réglable
 - [ ] La progression survit à un rechargement, et l'export et l'import JSON fonctionnent
 - [ ] Les réglages sont persistants et modifient le comportement immédiatement
@@ -399,11 +400,11 @@ La version 1 est terminée quand :
 
 | Phase | Contenu | Livrable |
 |---|---|---|
-| 0 | Points à confirmer tranchés (fait le 26/10/2026) ; scénario 6 du POC à jouer avant la phase 4 | Spécification figée |
+| 0 | Points à confirmer tranchés (fait le 26/10/2026) ; scénario 6 du POC joué le 27/10/2026 | Spécification figée |
 | 1 | Mise en place dans `app/` : Vite, Svelte, TypeScript, lint, adaptation de `ci.yml` et `pages.yml`, copie des modules `audio/` et `music/` du POC avec leurs tests | Page d'accueil déployée, POC toujours en ligne sous `/poc/` |
 | 2 | Modèle de données, stockage, `music/manche.ts` testé | Tests unitaires verts |
 | 3 | Mode 1 : manche, quiz, score, statistiques ; niveau au choix jusqu'à la phase 6 | Mode 1 jouable |
-| 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé (après le scénario 6 du POC) | Mode 2 jouable sur Android |
+| 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé | Mode 2 jouable sur Android |
 | 5 | Accordeur complet, réglages (dont la notation des notes, déjà affichée et réglable dans le mode 1), export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
@@ -412,7 +413,7 @@ La version 1 est terminée quand :
 
 ## 13. Consignes pour Claude Code
 
-- Le mode 2 (phase 4) attend le scénario 6 du POC ; d'ici là, la limite de plage du mode 2 reste aux cases 0 à 5.
+- Le mode 2 (phase 4) couvre les cases 0 à 12 : le scénario 6 du POC a validé la plage jusqu'à E5.
 - Commencer par la phase 1 et la phase 2. Ne pas construire l'interface avant que les modules `music/` et `progression/` soient testés.
 - Reprendre le code audio du POC sans le modifier, sauf si une constante doit changer. Toute modification est notée dans le commit et justifiée par une mesure.
 - Ne pas modifier `poc-guitare/` : il reste l'outil de mesure (campagne guidée).

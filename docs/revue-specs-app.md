@@ -46,7 +46,7 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | I1 | Nombre de cases du manche | Cases 0 à 12 |
 | I2 | Contenu des niveaux | Cordes à vide ; 0–5 naturelles ; 0–5 toutes ; 0–7 ; 0–12 |
 | I7 | Emplacement de l'application dans le dépôt | `app/`, POC publié sous `/poc/` |
-| P2 | Mode 2 au-delà de la case 5 | Ouvert après le scénario 6 du POC (H2 jusqu'à E5), à jouer avant la phase 4 |
+| P2 | Mode 2 au-delà de la case 5 | Ouvert après le scénario 6 du POC (H2 jusqu'à E5), à jouer avant la phase 4. **Fait le 27/10/2026** : 42/42, le mode 2 couvre les cases 0 à 12 |
 | §4 | Interface | Svelte (sans SvelteKit) |
 
 ## Décisions du 27/10/2026

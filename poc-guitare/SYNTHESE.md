@@ -1,21 +1,21 @@
 # Synthèse du POC : détection de hauteur d'une guitare dans le navigateur
 
 **Question posée** : le mode 2 (jouer la note demandée) et l'accordeur sont-ils fiables avec le matériel visé ?
-**Réponse** : **Go**. La détection est précise, rapide et stable avec le micro intégré d'un téléphone Android, y compris en jeu naturel, et l'accordeur a été validé sur la guitare. Limites : une seule guitare (acoustique), un seul appareil, et une plage mesurée jusqu'à A4 ; le produit visant E5, le scénario 6 (cases 6 à 12) reste à jouer.
+**Réponse** : **Go**. La détection est précise, rapide et stable avec le micro intégré d'un téléphone Android, y compris en jeu naturel, et l'accordeur a été validé sur la guitare. La plage du produit, de E2 à E5, est validée (scénario 6). Limites : une seule guitare (acoustique) et un seul appareil.
 
 ## Conditions de test
 
-- **Sessions de référence** : campagne guidée du 26/10/2026 à 19:54 pour les scénarios 1 à 4 ([journal](resultats/journal-poc-guitare-20261026-1954.csv)), et campagne de 22:47 pour le scénario 5, refait avec l'affichage corde et case ([journal](resultats/journal-poc-guitare-20261026-2247.csv)).
+- **Sessions de référence** : campagne guidée du 26/10/2026 à 19:54 pour les scénarios 1 à 4 ([journal](resultats/journal-poc-guitare-20261026-1954.csv)), campagne de 22:47 pour le scénario 5, refait avec l'affichage corde et case ([journal](resultats/journal-poc-guitare-20261026-2247.csv)), et campagne du 27/10/2026 à 09:41 pour le scénario 6 ([journal](resultats/journal-poc-guitare-20261027-0941.csv)).
 - **Matériel** : guitare acoustique (la campagne demande de l'accorder sur un accordeur de référence avant de commencer), micro intégré d'un téléphone Android (noté « micro intégré portable » dans les journaux), traitements audio du navigateur demandés désactivés.
-- **Mesures** : 230 notes jouées (210 pour les scénarios 1 à 3, 20 pour le scénario 5) et un test de silence de 30 s. Les taux portent sur la première détection après l'attaque, c'est-à-dire ce que verra l'utilisateur en mode 2. Le détail est dans [resultats/README.md](resultats/README.md).
+- **Mesures** : 272 notes jouées (210 pour les scénarios 1 à 3, 20 pour le scénario 5, 42 pour le scénario 6) et un test de silence de 30 s. Les taux portent sur la première détection après l'attaque, c'est-à-dire ce que verra l'utilisateur en mode 2. Le détail est dans [resultats/README.md](resultats/README.md).
 
 ## Résultats par hypothèse
 
 | # | Critère | Mesure | État |
 |---|---|---|---|
 | H1 | Écart moyen < 5 cents sur cordes à vide | 3,0 cents ; dispersion de 0,3 à 1,3 cent par corde. Le reste est l'accordage de la guitare. | ✅ Validée |
-| H2 | ≥ 90 % de bonnes notes de E2 à E5 (scénarios 1, 3 et 6) | 144/150 (96 %) de E2 à A4, aucune erreur d'octave. A#4 à E5 : scénario 6 à jouer. | ✅ Validée jusqu'à A4 ; ⏳ E5 |
-| H3 | Latence < 300 ms après l'attaque | 209 sur 209 sous 300 ms ; médiane de 196 à 200 ms, maximum 283 ms | ✅ Validée |
+| H2 | ≥ 90 % de bonnes notes de E2 à E5 (scénarios 1, 3 et 6) | 186/192 (96,9 %) de E2 à E5, aucune erreur d'octave. Scénario 6 (F4 à E5) : 42/42. | ✅ Validée |
+| H3 | Latence < 300 ms après l'attaque | 269 sur 271 sous 300 ms ; médiane de 183 à 200 ms selon la session. Deux dépassements isolés dans les aigus (300 et 333 ms, corde 2, cases 9 et 10). | ✅ Validée |
 | H4 | 0 note sur 30 s de silence | 0 faux positif | ✅ Validée (un seul test) |
 | H5 | ≥ 80 % en conditions réelles (scénarios 2 et 5) | Bruit de fond : 59/60 (98 %). Jeu naturel : 20/20 (100 %), latence médiane 183 ms, maximum 217 ms. | ✅ Validée |
 
@@ -24,7 +24,7 @@
 Selon §8, **Go** : H1 à H4 sont validées avec le micro intégré du téléphone, et H5 aussi avec le même matériel. Sur 20 notes jouées naturellement, toutes justes, la borne basse de l'intervalle de confiance à 95 % est d'environ 84 %, au-dessus du seuil de 80 %.
 
 Points tranchés après la décision :
-1. **Plage (I1)** : le produit va jusqu'à E5. Le scénario 6 de la campagne (cases 6 à 12 des cordes 2 et 1, A#4 à E5) complète H2 ; il reste à jouer.
+1. **Plage (I1)** : le produit va jusqu'à E5. Le scénario 6 de la campagne (cases 6 à 12 des cordes 2 et 1, F4 à E5), joué le 27/10/2026, donne 42/42 : le mode 2 peut couvrir les cases 0 à 12.
 2. **Accordeur** : validé sur la guitare.
 3. **Guitare électrique** : non testée, hors du périmètre du POC. Le produit sera validé pour la guitare acoustique ; l'électrique reste un risque (moins de résonance de caisse, harmoniques plus marquées).
 
