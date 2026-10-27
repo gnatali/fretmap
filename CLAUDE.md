@@ -4,7 +4,7 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Application** : phases 1 et 2 faites (accueil ; `audio/`, `music/` ; `progression/` : modèle, stockage, statistiques). **Prochaine étape : phase 3** (mode 1 : manche, quiz, score, statistiques ; spec §5.1, §7, §12).
+- **Application** : phases 1 à 3 faites (accueil, mode 1 jouable avec niveau au choix, statistiques). **Prochaine étape : phase 4** (mode 2 ; spec §5.2, §10, §12), après le scénario 6 du POC.
 - **Avant la phase 4 (mode 2)** : jouer le scénario 6 du POC (cases 6 à 12, jusqu'à E5) puis compléter H2. Quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
 - **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
 - **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`) ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.
@@ -16,5 +16,5 @@ Valeurs validées, règles du mode 2 et modules à copier : spec §3, §5.2 et �
 - Tout en français : code, commentaires, docs, commits, échanges.
 - Modifier `CLAUDE.md` ou `.claude/` : suivre `.claude/rules/claude-md.md` (racine < 200 lignes, règles par chemin, skills).
 - Push direct sur `main` (branche par défaut), pas de PR sans demande. Chaque push lance la CI et le déploiement Pages (https://gnatali.github.io/fretmap/, source Pages = « GitHub Actions ») : vérifier les deux.
-- Commandes de l'application, dans `app/` : `npm run lint`, `npm run format:check`, `npm test`, `npm run build` (svelte-check + Vite), `npm run dev`. Code : voir `.claude/rules/app-code.md`.
+- Commandes de l'application, dans `app/` : `npm run lint`, `npm run format:check`, `npm test`, `npm run build` (svelte-check + Vite), `npm run test:e2e` (Playwright, après le build), `npm run dev`. Code : voir `.claude/rules/app-code.md`.
 - Commandes du POC, dans `poc-guitare/` : `npm test`, `npm run build` (tsc + Vite), `npm run dev:https` (téléphone ; via `@vitejs/plugin-basic-ssl`, Vite n'a pas d'option `--https`).

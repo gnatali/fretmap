@@ -273,6 +273,7 @@ fretmap/
     ├── src/
     │   ├── main.ts                  # Point d'entrée : monte App.svelte
     │   ├── App.svelte               # Routage simple entre écrans
+    │   ├── etat.svelte.ts           # État de l'application : progression chargée, réponses et réglages enregistrés
     │   ├── audio/                   # Copié du POC sans modification
     │   │   ├── micro.ts
     │   │   ├── pitch.ts             # ChaineDetection : attaque, lissage, stabilité, tolérance d'octave
@@ -287,6 +288,7 @@ fretmap/
     │   │   ├── statistiques.ts      # Mise à jour et pondération des tirages
     │   │   └── niveaux.ts           # Règles de passage de niveau
     │   ├── quiz/
+    │   │   ├── score.ts             # Score de session : bonnes réponses, séries
     │   │   ├── tirage.ts            # Choix de la question selon le niveau
     │   │   └── validation.ts        # Réponse du mode 1 ; mode 2 : règles de Campagne.traiterNote du POC
     │   ├── ui/
@@ -299,7 +301,7 @@ fretmap/
     │   │   │   ├── Statistiques.svelte
     │   │   │   └── Reglages.svelte
     │   │   └── composants/
-    │   │       ├── Manche.svelte    # Rendu du manche (SVG)
+    │   │       ├── Manche.svelte    # Manche : grille de boutons (clavier, lecteurs d'écran), pas un SVG
     │   │       ├── Aiguille.svelte
     │   │       ├── BarreNiveau.svelte
     │   │       └── …                # Boutons et autres éléments communs
@@ -381,7 +383,7 @@ La version 1 est terminée quand :
 | 0 | Points à confirmer tranchés (fait le 26/10/2026) ; scénario 6 du POC à jouer avant la phase 4 | Spécification figée |
 | 1 | Mise en place dans `app/` : Vite, Svelte, TypeScript, lint, adaptation de `ci.yml` et `pages.yml`, copie des modules `audio/` et `music/` du POC avec leurs tests | Page d'accueil déployée, POC toujours en ligne sous `/poc/` |
 | 2 | Modèle de données, stockage, `music/manche.ts` testé | Tests unitaires verts |
-| 3 | Mode 1 : manche, quiz, score, statistiques | Mode 1 jouable |
+| 3 | Mode 1 : manche, quiz, score, statistiques ; niveau au choix jusqu'à la phase 6 | Mode 1 jouable |
 | 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé (après le scénario 6 du POC) | Mode 2 jouable sur Android |
 | 5 | Accordeur complet, réglages, export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |

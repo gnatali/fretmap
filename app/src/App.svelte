@@ -1,13 +1,32 @@
 <script lang="ts">
-  import Accueil from './ui/ecrans/Accueil.svelte';
+  import { EtatApp } from './etat.svelte';
+  import type { Stockage } from './progression/stockage';
+  import Accueil, { type Destination } from './ui/ecrans/Accueil.svelte';
+  import Mode1 from './ui/ecrans/Mode1.svelte';
+  import Statistiques from './ui/ecrans/Statistiques.svelte';
 
-  // Routage simple entre écrans (spec §7) : seul l'accueil existe en phase 1.
-  type Ecran = 'accueil';
+  interface Props {
+    /** Stockage de la progression ; localStorage par défaut (injectable pour les tests). */
+    stockage?: Stockage | null;
+  }
+
+  let { stockage }: Props = $props();
+
+  // svelte-ignore state_referenced_locally
+  const etat = new EtatApp(stockage);
+
+  // Routage simple entre écrans (spec §7).
+  type Ecran = 'accueil' | Destination;
   let ecran = $state<Ecran>('accueil');
+  const accueil = () => (ecran = 'accueil');
 </script>
 
 <main>
-  {#if ecran === 'accueil'}
-    <Accueil />
+  {#if ecran === 'mode1'}
+    <Mode1 {etat} onQuitter={accueil} />
+  {:else if ecran === 'statistiques'}
+    <Statistiques {etat} onQuitter={accueil} />
+  {:else}
+    <Accueil niveau={etat.progression.niveauActuel} onAller={(d) => (ecran = d)} />
   {/if}
 </main>

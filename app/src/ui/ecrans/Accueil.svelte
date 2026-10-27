@@ -1,29 +1,47 @@
+<script lang="ts" module>
+  export type Destination = 'mode1' | 'statistiques';
+</script>
+
 <script lang="ts">
   import { TEXTES } from '../textes';
 
-  // Ordre de la spec §7 ; les écrans arrivent aux phases 3 à 5.
-  const entrees = [
-    TEXTES.entrees.mode1,
-    TEXTES.entrees.mode2,
-    TEXTES.entrees.accordeur,
-    TEXTES.entrees.statistiques,
-    TEXTES.entrees.reglages,
+  interface Props {
+    niveau: number;
+    onAller: (destination: Destination) => void;
+  }
+
+  let { niveau, onAller }: Props = $props();
+
+  // Ordre de la spec §7 ; les écrans sans destination arrivent aux phases 4 et 5.
+  const entrees: { texte: { titre: string; description: string }; destination?: Destination }[] = [
+    { texte: TEXTES.entrees.mode1, destination: 'mode1' },
+    { texte: TEXTES.entrees.mode2 },
+    { texte: TEXTES.entrees.accordeur },
+    { texte: TEXTES.entrees.statistiques, destination: 'statistiques' },
+    { texte: TEXTES.entrees.reglages },
   ];
 </script>
 
 <header>
   <h1>{TEXTES.titre}</h1>
   <p class="sous-titre">{TEXTES.sousTitre}</p>
+  <p class="niveau">{TEXTES.niveauActuel(niveau)}</p>
 </header>
 
 <nav aria-label="Écrans">
   <ul>
-    {#each entrees as entree (entree.titre)}
+    {#each entrees as { texte, destination } (texte.titre)}
       <li>
-        <button type="button" disabled>
-          <span class="titre">{entree.titre}</span>
-          <span class="description">{entree.description}</span>
-          <span class="etat">{TEXTES.bientot}</span>
+        <button
+          type="button"
+          disabled={!destination}
+          onclick={() => {
+            if (destination) onAller(destination);
+          }}
+        >
+          <span class="titre">{texte.titre}</span>
+          <span class="description">{texte.description}</span>
+          {#if !destination}<span class="etat">{TEXTES.bientot}</span>{/if}
         </button>
       </li>
     {/each}
@@ -43,6 +61,10 @@
   .sous-titre {
     margin: 0.25rem 0 0;
     color: var(--discret);
+  }
+  .niveau {
+    margin: 0.5rem 0 0;
+    font-weight: 600;
   }
   ul {
     list-style: none;
@@ -64,6 +86,11 @@
     background: var(--surface);
     border: 1px solid var(--cadre);
     border-radius: 10px;
+    cursor: pointer;
+  }
+  button:not(:disabled) {
+    border-color: var(--lien);
+    border-width: 2px;
   }
   button:disabled {
     cursor: not-allowed;

@@ -6,6 +6,15 @@
   --discret: #4f5b60;
   --cadre: #c9cfd1;
   --lien: #1f5f75;
+  --corde: #8a7a5c;
+  --frette: #b9b2a3;
+  --sillet: #5c5446;
+  --evidence: #e8f1f4;
+  --juste: #1e7a3c;
+  --faux: #b3261e;
+  --orange: #a65b00;
+  /* Texte sur les fonds --juste, --faux et --orange. */
+  --sur-couleur: #ffffff;
   color-scheme: light;
 }
 
@@ -17,6 +26,14 @@
     --discret: #aab6bb;
     --cadre: #3a4549;
     --lien: #8fcbe0;
+    --corde: #b3a27f;
+    --frette: #4a5458;
+    --sillet: #d6cdb8;
+    --evidence: #23343b;
+    --juste: #3fa95f;
+    --faux: #ef6a60;
+    --orange: #e0913a;
+    --sur-couleur: #14191b;
     color-scheme: dark;
   }
 }
@@ -44,4 +61,26 @@ main {
   max-width: 32rem;
   margin: 0 auto;
   padding: 1.5rem 1rem 2rem;
+}
+
+h1,
+h2 {
+  line-height: 1.2;
+}
+
+button.secondaire {
+  min-height: 44px;
+  padding: 0 1rem;
+  font: inherit;
+  color: var(--texte);
+  background: var(--surface);
+  border: 1px solid var(--cadre);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.alerte {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--faux);
+  border-radius: 8px;
 }
