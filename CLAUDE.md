@@ -5,7 +5,7 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
 - **Application** : phases 1 à 6 faites (mode 1, mode 2 au micro sur les cases 0 à 12, accordeur, statistiques, réglages, export et import JSON, 7 niveaux débloqués automatiquement et séparément par mode, tirage pondéré). Données : schéma version 2 (`progression/modele.ts`, migration dans `stockage.ts`). **Prochaine étape : phase 7** : essais sur Android avec la guitare (checklist manuelle, spec §10) et corrections.
-- **POC « Notes qui tombent »** (futur mode 3) : spec `docs/specs-poc-chute.md` (version 1). Phase 1 faite : `poc-chute/` (outillage et copies figées de `app/`, CI, Pages sous `/poc-chute/`). **Prochaine étape : phase 2** (logique `src/jeu/`, spec §13).
+- **POC « Notes qui tombent »** (futur mode 3) : spec `docs/specs-poc-chute.md` (version 1.1). Phases 1 et 2 faites : `poc-chute/` (outillage et copies figées de `app/`, CI, Pages sous `/poc-chute/`), logique du jeu dans `src/jeu/`. **Prochaine étape : phase 3** (écrans en portrait, animation, mode simulation, spec §13).
 - **Journaux du POC** : quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
 - **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
 - **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`), validée par le scénario 6 ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.

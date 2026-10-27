@@ -4,7 +4,7 @@ Jeu où les notes descendent le long des cordes du manche et se jouent à la gui
 
 En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/workflows/pages.yml`).
 
-État : phase 1 (squelette, copies de l'application, CI et Pages). Le jeu arrive aux phases 2 à 4 (spec §13).
+État : phases 1 (squelette, copies de l'application, CI et Pages) et 2 (logique du jeu dans `src/jeu/`, sans interface) faites. Les écrans arrivent en phase 3, le micro en phase 4 (spec §13).
 
 ## Commandes
 
@@ -34,4 +34,17 @@ Ces fichiers sont copiés **à l'identique** de `app/` au commit `34203e7` (phas
 | `tests/unit/` (tests de ces modules et `detection.ts`)                                                 | Vérifient que les copies fonctionnent dans ce dossier                    |
 | Configuration (`tsconfig.json`, `eslint.config.js`, `svelte.config.js`, Prettier, `package-lock.json`) | Même outillage et mêmes versions que l'application                       |
 
-Propres au POC : `src/App.svelte`, `src/ui/`, `playwright.config.ts`, `tests/e2e/` ; `src/jeu/` à partir de la phase 2.
+## Logique du jeu (`src/jeu/`)
+
+TypeScript pur, sans DOM ; le temps est passé en paramètre. Règles : spec §6.3 à §6.10, constantes : §7.
+
+| Module        | Rôle                                                                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `partie.ts`   | Déroulement d'une partie (`Partie`) : tirage pondéré, chute, validation au micro (`SuiviMode2`) ou simulée, série, points, vitesse, statistiques, fin à 30 notes, journal |
+| `chute.ts`    | File des notes à l'écran : progression commune, apparitions au tiers de la chute, notes ratées                                                                            |
+| `vitesse.ts`  | Durée de chute adaptative (accélère après 5 notes justes, ralentit après une erreur)                                                                                      |
+| `points.ts`   | Barème : timing, vitesse, difficulté, multiplicateur de série                                                                                                             |
+| `journal.ts`  | Format du journal exporté, mesure des images (HC1), nom du fichier                                                                                                        |
+| `stockage.ts` | `localStorage` (`fretmap-chute.v1`) : réglages, seuil, statistiques par position, 50 dernières parties                                                                    |
+
+Propres au POC aussi : `src/App.svelte`, `src/ui/`, `playwright.config.ts`, `tests/e2e/`, et les tests de `src/jeu/` dans `tests/unit/`.

@@ -7,7 +7,9 @@ paths:
 
 - Spec : `docs/specs-poc-chute.md` (règles §6, constantes §7, tests §12, phases §13).
 - Svelte 5 (runes : `$state`, `$derived`, `$props`), sans SvelteKit, comme `app/`. `App.svelte` choisit l'écran affiché.
-- `src/jeu/` : TypeScript pur, sans DOM et sans horloge propre ; le temps est passé en paramètre (pas de `performance.now()`), pour tester sans navigateur. C'est le code qui passera dans `app/src/` en cas de Go.
+- `src/jeu/` : TypeScript pur, sans DOM et sans horloge propre ; le temps est passé en paramètre (pas de `performance.now()`), sur l'horloge de l'écoute (`EtatDetection.tMs`), pour tester sans navigateur. Il ne dépend que de `music/`, `quiz/`, `progression/` et du type `EtatDetection` (`audio/pitch.ts`). C'est le code qui passera dans `app/src/` en cas de Go.
+- `Partie` (`jeu/partie.ts`) est le point d'entrée de l'interface : `avancer(t)` à chaque image, `traiterDetection(etat)` pour le micro, `jouerSimule()` pour le mode simulation, `journal()` en fin de partie ; les données passent par `jeu/stockage.ts`.
+- Tests de `jeu/` : `hasard = () => 0` rend le tirage déterministe (au niveau 2, E2 et F2 alternent) ; `etat()` de `tests/unit/detection.ts` fabrique les états de détection, `stockageMemoire()` de `tests/unit/memoire.ts` remplace localStorage.
 - Copies figées de `app/` (commit `34203e7`), listées dans `poc-chute/README.md` : `src/audio/`, `src/ecoute.svelte.ts`, `src/music/`, `src/quiz/`, `src/progression/`, `src/main.ts`, `src/styles.css`, et leurs tests dans `tests/unit/`. Ne pas les modifier, sauf sur mesure, en le notant dans le commit ; `diff` avec `app/` doit rester vide. Ne pas modifier `app/` ni `poc-guitare/` pour le POC.
 - Tous les textes de l'interface sont dans `src/ui/textes.ts`, en français.
 - Constantes réglables en majuscules, commentées avec leur valeur initiale et leur origine (§ de la spec, question Q de l'annexe A ou mesure).

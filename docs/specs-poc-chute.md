@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1** (27/10/2026) : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 1.1** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -96,7 +96,8 @@ poc-chute/
       vitesse.ts             durée de chute adaptative
       points.ts              barème
       partie.ts              déroulement d'une partie : note attendue, résultats, série, fin
-      journal.ts             format du journal, mesures d'images, stockage, export
+      journal.ts             format du journal, mesures d'images, export
+      stockage.ts            localStorage : réglages, seuil, statistiques par position, journal des parties
     ui/
       textes.ts              tous les textes de l'interface
       ecrans/                Depart.svelte, Partie.svelte, Fin.svelte
@@ -107,7 +108,7 @@ poc-chute/
 ```
 
 - Les copies sont **figées** et **identiques** à l'application (commit `34203e7`), code inutilisé compris : `diff` avec `app/` reste vide, ce qui facilite le retour dans l'application. Elles ne suivent pas les changements de l'application pendant le POC. Les tests unitaires de ces modules sont copiés avec eux. Liste dans `poc-chute/README.md`.
-- `jeu/` ne dépend que de `music/`, `quiz/` et `progression/`. Il reçoit le temps en paramètre (pas d'appel à `performance.now()`), pour être testé sans navigateur. C'est le dossier qui passera dans `app/src/` en cas de Go.
+- `jeu/` ne dépend que de `music/`, `quiz/` et `progression/` (et du type `EtatDetection` de `audio/pitch.ts`). Il reçoit le temps en paramètre (pas d'appel à `performance.now()`), pour être testé sans navigateur. C'est le dossier qui passera dans `app/src/` en cas de Go.
 
 ---
 
@@ -137,8 +138,8 @@ poc-chute/
 - Bouton « Arrêter » : met fin à la partie (enregistrée comme interrompue).
 
 ### 6.3 Chute et délai
-- **Progression** : chaque note a une progression `p` de 0 (apparition en haut) à 1 (ligne de jeu). À chaque image, `p` augmente de `dt / durée de chute actuelle`. La vitesse est **commune** à toutes les notes à l'écran : un changement de vitesse s'applique à toutes en même temps, et une note ne peut pas en dépasser une autre.
-- **Apparition** : la première note apparaît au début de la partie ; une nouvelle note apparaît quand la précédente a parcouru un tiers de la chute (`ESPACEMENT_APPARITION`). Il y a donc au plus 3 ou 4 notes à l'écran.
+- **Progression** : chaque note a une progression `p` de 0 (apparition en haut) à 1 (ligne de jeu). À chaque image, `p` augmente de `dt / durée de chute actuelle`. La vitesse est **commune** à toutes les notes à l'écran : un changement de vitesse s'applique à toutes en même temps, et une note ne peut pas en dépasser une autre. Une image de plus de 100 ms (`DT_MAX_MS`, onglet en arrière-plan) compte pour 100 ms : les notes ne sautent pas toutes à la ligne d'un coup.
+- **Apparition** : la première note apparaît au début de la partie ; une nouvelle note apparaît quand la précédente a parcouru un tiers de la chute (`ESPACEMENT_APPARITION`), ou tout de suite si l'écran est vide (le joueur a joué toutes les notes) : le jeu suit son rythme, sans temps mort. Il y a donc au plus 3 ou 4 notes à l'écran.
 - **File, dans l'ordre** (Q7) : seule la note la plus basse est **attendue**. Quand elle disparaît (jouée, détruite ou ratée), la suivante devient attendue.
 - **Délai** (Q9) : une note peut être jouée dès qu'elle est attendue et jusqu'à ce qu'elle touche la ligne. Il n'y a pas de fenêtre de rythme.
 - **Qualité du timing** : selon la progression au moment de la validation : Parfait si `p ≤ 1/3`, Bien si `p ≤ 2/3`, Juste au-delà.
@@ -225,7 +226,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
       "seuilSilenceDbfs": -52.3,
       "traitementsActifs": [],
       "images": { "nombre": 5400, "medianeMs": 16.7, "p95Ms": 18.2, "partAuDelaDe33Ms": 0.004 },
-      "resume": { "score": 8450, "justes": 26, "fausses": 2, "ratees": 2, "meilleureSerie": 14, "dureeFinaleMs": 3900, "dureeMinMs": 3500 },
+      "resume": { "score": 8450, "justes": 26, "fausses": 2, "ratees": 2, "meilleureSerie": 14, "dureeFinaleMs": 3900, "dureeMinMs": 3500, "tempsReponseMedianMs": 1850 },
       "notes": [
         {
           "index": 1,
@@ -251,7 +252,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
 }
 ```
 
-- `resultat` : `juste`, `fausse` ou `ratee`. `tAttaqueMs` : dernière attaque entendue pendant que la note était attendue (null si aucune). `progression` et `dureeChuteMs` : au moment du résultat. `evenements` : `ancienneNote` et `nonReconnue`, qui ne comptent pas.
+- `resultat` : `juste`, `fausse` ou `ratee`. `tAttaqueMs` : dernière attaque entendue pendant que la note était attendue (null si aucune). `progression` et `dureeChuteMs` : au moment du résultat. `evenements` : `ancienneNote` et `nonReconnue`, qui ne comptent pas. `tDetectionMs` et `detectee` sont null pour une note ratée, `timing` pour toute note qui n'est pas juste. `tempsReponseMedianMs` : médiane des temps de réponse des notes justes (de l'instant où la note est attendue à la détection).
 - `images` : durées entre deux `requestAnimationFrame` pendant la partie (médiane, 95e centile, part au-delà de 33 ms). Le micro tourne en même temps : c'est la mesure de HC1.
 
 ---
@@ -274,9 +275,11 @@ Dans `src/jeu/`, nommées en majuscules et commentées avec leur valeur initiale
 | `BONUS_TIMING` | 1,5 ; 1,2 ; 1 | Q13, proposition |
 | `DUREE_REFERENCE_VITESSE_MS` | 5000 | Q13, proposition |
 | `BONUS_ALTEREE`, `BONUS_CASES_HAUTES` | 0,5 ; 0,5 (cases 7 à 12) | Q13, proposition |
+| `CASE_HAUTE_MIN` | 7 | Q13, proposition |
 | `PALIER_SERIE`, `MULTIPLICATEUR_MAX` | 10, 4 | Q13, proposition |
 | `DUREE_RAPPEL_CASE_MS` | 1500 | Q8, proposition |
 | `PARTIES_GARDEES` | 50 | proposition |
+| `DT_MAX_MS` | 100 | proposition (version 1.1) |
 
 ---
 
