@@ -12,6 +12,24 @@ function listeCases(cases: readonly number[]): string {
   return `aux cases ${cases.slice(0, -1).join(', ')} et ${cases.at(-1)}`;
 }
 
+/** Où se trouve une note : « Fa (F) est à la case 1 », « Mi (E) est la corde 6 ou la corde 1, à vide ». */
+function emplacement(
+  nom: string,
+  positions: readonly { corde: number; case: number }[],
+  cordeDemandee: boolean,
+): string {
+  return cordeDemandee
+    ? `${nom} est ${listeCases(positions.map((p) => p.case))}`
+    : `${nom} est ${listeCordes(positions.map((p) => p.corde))}, à vide`;
+}
+
+/** Écart en cents signé : « +3 cents », « −12 cents », « 0 cent ». */
+function cents(valeur: number): string {
+  const arrondi = Math.round(valeur);
+  if (arrondi === 0) return '0 cent';
+  return `${arrondi > 0 ? '+' : '−'}${Math.abs(arrondi)} cents`;
+}
+
 /** « Corde 5, case 3 », « Corde 6, à vide ». */
 function position(corde: number, numeroCase: number): string {
   return numeroCase === 0 ? `Corde ${corde}, à vide` : `Corde ${corde}, case ${numeroCase}`;
@@ -33,22 +51,68 @@ export const TEXTES = {
   arreter: 'Arrêter',
   retour: 'Retour',
   sauvegardeImpossible: 'Progression non enregistrée : le stockage du navigateur est plein ou indisponible.',
-  mode1: {
-    titre: 'Mode 1',
+  quiz: {
     niveau: 'Niveau',
     nomNiveau: (niveau: number, description: string) => `${niveau} · ${description}`,
     notation: 'Notation',
+    score: (bonnes: number, questions: number) => `${bonnes} / ${questions}`,
+    pourcentage: (p: number | null) => (p === null ? '–' : `${p} %`),
+    serie: (serie: number, meilleure: number) => `Série ${serie} (meilleure : ${meilleure})`,
+  },
+  mode1: {
+    titre: 'Mode 1',
     afficherNotes: 'Afficher les notes',
     question: 'Trouvez',
     surLaCorde: 'sur la corde',
     juste: 'Juste',
     faux: (nom: string, positions: readonly { corde: number; case: number }[], cordeDemandee: boolean) =>
-      cordeDemandee
-        ? `Faux : ${nom} est ${listeCases(positions.map((p) => p.case))}`
-        : `Faux : ${nom} est ${listeCordes(positions.map((p) => p.corde))}, à vide`,
-    score: (bonnes: number, questions: number) => `${bonnes} / ${questions}`,
-    pourcentage: (p: number | null) => (p === null ? '–' : `${p} %`),
-    serie: (serie: number, meilleure: number) => `Série ${serie} (meilleure : ${meilleure})`,
+      `Faux : ${emplacement(nom, positions, cordeDemandee)}`,
+  },
+  mode2: {
+    titre: 'Mode 2',
+    afficherCase: 'Afficher la case',
+    question: 'Jouez',
+    surLaCorde: 'sur la corde',
+    /** Niveau 1 : la corde n'est pas donnée. */
+    aVide: 'à vide',
+    caseDemandee: (numeroCase: number) => (numeroCase === 0 ? 'à vide' : `case ${numeroCase}`),
+    consigne: 'Étouffez la corde précédente avant de jouer.',
+    juste: (note: string, ecart: number) => `Juste : ${note}, ${cents(ecart)}`,
+    faux: (note: string) => `Faux : vous avez joué ${note}`,
+    ancienneNote: (note: string) => `${note} : la note précédente sonne encore. Étouffez la corde, puis rejouez.`,
+    nonReconnue: 'Note non reconnue, rejouez',
+    jouez: 'Jouez la note…',
+    rappel: (
+      nom: string,
+      positions: readonly { corde: number; case: number }[],
+      cordeDemandee: boolean,
+      corde: number,
+    ) => `Rappel : ${cordeDemandee ? `sur la corde ${corde}, ` : ''}${emplacement(nom, positions, cordeDemandee)}`,
+    enDirect: 'Note entendue',
+    aucuneNote: '–',
+    frequence: (hz: number) => `${hz.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} Hz`,
+    cents,
+    niveauSonore: 'Niveau sonore',
+    historique: 'Dernières réponses',
+    reponse: (juste: boolean, jouee: string, demandee: string) =>
+      juste ? `${jouee} (juste)` : `${jouee} au lieu de ${demandee}`,
+  },
+  micro: {
+    explication:
+      'Le mode 2 écoute votre guitare avec le micro de l’appareil. Le navigateur va demander l’autorisation ; ' +
+      'le son n’est ni enregistré ni envoyé. Au démarrage, ne jouez pas pendant 2 s : mesure du bruit ambiant.',
+    demarrer: 'Démarrer le micro',
+    couper: 'Couper le micro',
+    demarrage: 'Demande d’accès au micro…',
+    calibrage: 'Ne jouez pas : mesure du bruit ambiant (2 s)…',
+    interrompu: 'Micro coupé : l’application est passée en arrière-plan. Démarrez le micro pour reprendre.',
+    traitements: (noms: readonly string[]) =>
+      `Le navigateur a laissé actif : ${noms.join(', ')}. La détection peut être moins fiable.`,
+    nomsTraitements: {
+      echoCancellation: 'l’annulation d’écho',
+      noiseSuppression: 'la réduction de bruit',
+      autoGainControl: 'le gain automatique',
+    },
   },
   niveaux: {
     1: 'Cordes à vide',
@@ -73,8 +137,8 @@ export const TEXTES = {
   },
   statistiques: {
     titre: 'Statistiques',
-    mode1: 'Mode 1 : réussite par position',
-    aucune: 'Aucune réponse enregistrée pour l’instant : jouez au mode 1.',
+    mode: { 1: 'Mode 1 : réussite par position', 2: 'Mode 2 : réussite par position demandée' },
+    aucune: (mode: number) => `Aucune réponse enregistrée pour l’instant : jouez au mode ${mode}.`,
     tentatives: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,
     reussite: (p: number) => `${p} % de réussite`,
     tempsMoyen: (ms: number) => `temps moyen ${(ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s`,

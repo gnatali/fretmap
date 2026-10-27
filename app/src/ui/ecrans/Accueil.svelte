@@ -1,5 +1,5 @@
 <script lang="ts" module>
-  export type Destination = 'mode1' | 'statistiques';
+  export type Destination = 'mode1' | 'mode2' | 'statistiques';
 </script>
 
 <script lang="ts">
@@ -12,10 +12,10 @@
 
   let { niveau, onAller }: Props = $props();
 
-  // Ordre de la spec §7 ; les écrans sans destination arrivent aux phases 4 et 5.
+  // Ordre de la spec §7 ; les écrans sans destination arrivent en phase 5.
   const entrees: { texte: { titre: string; description: string }; destination?: Destination }[] = [
     { texte: TEXTES.entrees.mode1, destination: 'mode1' },
-    { texte: TEXTES.entrees.mode2 },
+    { texte: TEXTES.entrees.mode2, destination: 'mode2' },
     { texte: TEXTES.entrees.accordeur },
     { texte: TEXTES.entrees.statistiques, destination: 'statistiques' },
     { texte: TEXTES.entrees.reglages },

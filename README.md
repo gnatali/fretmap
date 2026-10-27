@@ -11,7 +11,7 @@ Le projet commence par un POC qui vérifie qu'un navigateur peut détecter de fa
 | [`docs/specs-poc-manche-guitare.md`](docs/specs-poc-manche-guitare.md) | Spécifications du POC |
 | [`docs/revue-specs.md`](docs/revue-specs.md) | Revue de cohérence des spécifications |
 | [`poc-guitare/SYNTHESE.md`](poc-guitare/SYNTHESE.md) | Synthèse du POC : résultats par hypothèse et décision |
-| [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2.4) |
+| [`docs/specs-app-apprentissage-manche.md`](docs/specs-app-apprentissage-manche.md) | Spécifications de l'application (version 2.5) |
 | [`docs/revue-specs-app.md`](docs/revue-specs-app.md) | Revue des spécifications de l'application au regard du POC, décisions |
 
 ## Démo en ligne
@@ -46,4 +46,6 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Phase 2 : modèle de données, stockage `localStorage` (migration, export et import JSON), `music/manche.ts`
 - [x] Phase 3 : mode 1 jouable (manche, quiz, score, niveau au choix), écran Statistiques, tests de bout en bout
 - [x] Mode 1 : sept niveaux, notation des notes (« Mi (E) » par défaut, française ou anglo-saxonne)
-- [ ] Phases 4 à 7 (spec §12)
+- [x] Phase 4 : mode 2 (micro, calibrage, règles de validation du POC, indicateur en direct), statistiques par mode, test de bout en bout avec un micro simulé
+- [ ] Mode 2 essayé sur Android avec la guitare (checklist manuelle, spec §10)
+- [ ] Phases 5 à 7 (spec §12)

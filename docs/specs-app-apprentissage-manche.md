@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.4** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), puis plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.5** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), puis comptage des notes fausses du mode 2 (version 2.5). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -123,13 +123,13 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Ce que le micro peut vérifier** : la hauteur jouée, donc le nom de la note, et l'octave si l'option « octave stricte » est active. Il ne peut pas vérifier la corde : une même note se joue à plusieurs endroits (B4 = corde 2 case 12 = corde 1 case 7). La corde affichée est une consigne ; les statistiques sont attribuées à la position demandée.
 
 **Déroulement**
-1. Affichage de la question : la note et la corde ; l'utilisateur cherche la case. L'option « afficher la case » (aide) montre la position complète.
+1. Affichage de la question : la note et la corde ; l'utilisateur cherche la case. L'option « afficher la case » (aide) montre la position complète. Comme en mode 1, le niveau, la notation et cette option se choisissent au-dessus de la question ; l'écran Réglages les reprend en phase 5.
 2. Calibrage au démarrage du micro : 2 s de mesure du bruit ambiant, avec la consigne « ne jouez pas ».
 3. L'utilisateur joue la note. Consigne affichée : étouffer la corde précédente avant de jouer.
 4. Seule compte la **première note stable après une attaque** (stable 100 ms sur le même demi-ton). Les changements de note pendant la résonance, sans nouvelle attaque, sont ignorés.
 5. Si cette première note est celle de la question précédente (corde précédente qui sonne encore), elle est ignorée une fois ; ensuite, elle compte comme une erreur.
 6. Validation : écran vert avec la note détectée et l'écart en cents. Passage à la note suivante après 1 seconde.
-7. Si la note est fausse : affichage de la note jouée, pas de pénalité immédiate. Trois erreurs consécutives sur la même question déclenchent un rappel de la position sur le manche.
+7. Si la note est fausse : affichage de la note jouée. Elle compte comme une réponse fausse (score, série, statistiques de la position demandée) et la question reste posée jusqu'à la bonne note, qui compte comme une réponse juste. Trois erreurs consécutives sur la même question déclenchent un rappel de la position sur le manche.
 8. Une attaque sans note stable au bout de 1,5 s affiche « Note non reconnue, rejouez » et ne compte pas comme une erreur.
 
 **Tolérance**

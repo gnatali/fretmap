@@ -3,6 +3,7 @@
   import type { Stockage } from './progression/stockage';
   import Accueil, { type Destination } from './ui/ecrans/Accueil.svelte';
   import Mode1 from './ui/ecrans/Mode1.svelte';
+  import Mode2 from './ui/ecrans/Mode2.svelte';
   import Statistiques from './ui/ecrans/Statistiques.svelte';
 
   interface Props {
@@ -24,6 +25,8 @@
 <main>
   {#if ecran === 'mode1'}
     <Mode1 {etat} onQuitter={accueil} />
+  {:else if ecran === 'mode2'}
+    <Mode2 {etat} onQuitter={accueil} />
   {:else if ecran === 'statistiques'}
     <Statistiques {etat} onQuitter={accueil} />
   {:else}

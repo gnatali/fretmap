@@ -68,6 +68,36 @@ h2 {
   line-height: 1.2;
 }
 
+/* En-tête d'écran : titre à gauche, bouton de sortie à droite. */
+.barre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.barre h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+button.principal {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--sur-couleur);
+  background: var(--lien);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button.principal:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
 button.secondaire {
   min-height: 44px;
   padding: 0 1rem;

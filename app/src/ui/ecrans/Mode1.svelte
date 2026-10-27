@@ -2,13 +2,15 @@
   import { onDestroy } from 'svelte';
   import type { EtatApp } from '../../etat.svelte';
   import type { Position } from '../../music/manche';
-  import { NOTATIONS, nomAffiche, type Notation } from '../../music/notation';
+  import { nomAffiche } from '../../music/notation';
   import type { Niveau } from '../../progression/modele';
-  import { NIVEAUX, contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
-  import { SCORE_INITIAL, noter, pourcentage } from '../../quiz/score';
+  import { contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
+  import { SCORE_INITIAL, noter } from '../../quiz/score';
   import { tirerQuestion, type Question } from '../../quiz/tirage';
   import { verifierMode1 } from '../../quiz/validation';
   import Manche, { type Marque } from '../composants/Manche.svelte';
+  import ReglagesQuiz from '../composants/ReglagesQuiz.svelte';
+  import ScoreSession from '../composants/ScoreSession.svelte';
   import { TEXTES } from '../textes';
 
   /** Délai avant la question suivante (spec §5.1). */
@@ -80,24 +82,16 @@
   <button type="button" class="secondaire" onclick={onQuitter}>{TEXTES.arreter}</button>
 </header>
 
-<div class="reglages">
+<ReglagesQuiz
+  {niveau}
+  onNiveau={(n) => {
+    niveau = n;
+    suivante();
+  }}
+  {notation}
+  onNotation={(n) => etat.definirReglage('notation', n)}
+>
   <label>
-    {TEXTES.mode1.niveau}
-    <select bind:value={niveau} onchange={() => suivante()}>
-      {#each NIVEAUX as n (n.niveau)}
-        <option value={n.niveau}>{TEXTES.mode1.nomNiveau(n.niveau, TEXTES.niveaux[n.niveau]!)}</option>
-      {/each}
-    </select>
-  </label>
-  <label>
-    {TEXTES.mode1.notation}
-    <select value={notation} onchange={(e) => etat.definirReglage('notation', e.currentTarget.value as Notation)}>
-      {#each NOTATIONS as n (n)}
-        <option value={n}>{TEXTES.notations[n]}</option>
-      {/each}
-    </select>
-  </label>
-  <label class="case-a-cocher">
     <input
       type="checkbox"
       checked={etat.progression.reglages.afficherNotes}
@@ -105,7 +99,7 @@
     />
     {TEXTES.mode1.afficherNotes}
   </label>
-</div>
+</ReglagesQuiz>
 
 <p class="question" aria-live="polite">
   {TEXTES.mode1.question} <strong class="nom">{nomAffiche(question.nom, notation)}</strong>
@@ -125,50 +119,11 @@
   onToucher={toucher}
 />
 
-<p class="score">
-  <span>{TEXTES.mode1.score(score.bonnes, score.questions)}</span>
-  <span>{TEXTES.mode1.pourcentage(pourcentage(score))}</span>
-  <span>{TEXTES.mode1.serie(score.serie, score.meilleureSerie)}</span>
-</p>
+<ScoreSession {score} />
 
 {#if !etat.sauvegardeOk}<p class="alerte">{TEXTES.sauvegardeImpossible}</p>{/if}
 
 <style>
-  .barre {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  .reglages {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    margin: 0.75rem 0;
-  }
-  label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
-  select {
-    min-height: 44px;
-    max-width: 100%;
-    font: inherit;
-    color: var(--texte);
-    background: var(--surface);
-    border: 1px solid var(--cadre);
-    border-radius: 8px;
-  }
-  .case-a-cocher input {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
   .question {
     margin: 0.5rem 0 0;
     font-size: 1.25rem;
@@ -186,12 +141,5 @@
   }
   .retour.faux {
     color: var(--faux);
-  }
-  .score {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1rem;
-    margin-top: 1rem;
-    color: var(--discret);
   }
 </style>

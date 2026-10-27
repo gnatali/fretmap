@@ -58,3 +58,4 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | N3 | Niveaux | Sept : cordes à vide ; 0–5, 0–7 et 0–12, chacun en notes naturelles puis toutes les notes |
 | N4 | Conditions de passage | Niveaux 1 et 2 : 80 % sur 20 questions ; 3 à 6 : 80 % sur 30 ; 7 : mode libre |
 | N5 | Notation avant l'écran Réglages | Implémentée dès la phase 3, avec un choix provisoire dans le mode 1 |
+| N6 | Mode 2, note fausse | Chaque note fausse compte comme une réponse fausse (score, série, statistiques) ; la question reste posée jusqu'à la bonne note |

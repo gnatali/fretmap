@@ -72,7 +72,7 @@ describe('mode 1', () => {
 
   it('change de niveau', async () => {
     demarrer();
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.niveau }), { target: { value: '7' } });
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.niveau }), { target: { value: '7' } });
     expect(screen.getAllByRole('button', { name: /^Corde 1, case/ })).toHaveLength(12);
     // Au-delà du niveau 1, la question indique la corde, mise en évidence.
     expect(question()).toBe('Trouvez Mi (E) sur la corde 6');
@@ -81,13 +81,13 @@ describe('mode 1', () => {
 
   it('change de notation et enregistre le réglage', async () => {
     const { etat, stockage } = demarrer();
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.notation }), {
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.notation }), {
       target: { value: 'anglo-saxonne' },
     });
     expect(question()).toBe('Trouvez E');
     expect(etat.progression.reglages.notation).toBe('anglo-saxonne');
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"notation":"anglo-saxonne"');
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.mode1.notation }), {
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.notation }), {
       target: { value: 'francaise' },
     });
     expect(question()).toBe('Trouvez Mi');
