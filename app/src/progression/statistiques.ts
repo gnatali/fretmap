@@ -1,6 +1,26 @@
-// Statistiques par position : mise à jour à chaque réponse (spec §5.1, §6). La pondération des tirages vient en phase 6.
+// Statistiques par position : mise à jour à chaque réponse et poids des tirages (spec §5.1, §6).
 import type { Position } from '../music/manche';
 import type { Mode, Progression, Statistique } from './modele';
+
+/**
+ * Poids ajouté par le taux d'erreur dans le tirage pondéré. Le taux est lissé, (erreurs + 1) / (tentatives + 2) :
+ * une position jamais jouée pèse 1 + 3 × 0,5 = 2,5 ; toujours réussie, son poids tend vers 1 ; toujours manquée,
+ * vers 4. Une position mal connue revient donc jusqu'à 4 fois plus souvent qu'une position maîtrisée.
+ */
+export const POIDS_ERREUR = 3;
+
+/** Poids d'une position dans le tirage, d'après sa statistique (absente : jamais jouée). */
+export function poidsPosition(statistique?: Pick<Statistique, 'tentatives' | 'reussites'>): number {
+  const tentatives = statistique?.tentatives ?? 0;
+  const erreurs = tentatives - (statistique?.reussites ?? 0);
+  return 1 + (POIDS_ERREUR * (erreurs + 1)) / (tentatives + 2);
+}
+
+/** Fonction de poids des positions pour un mode, d'après les statistiques de ce mode. */
+export function poidsDuMode(statistiques: readonly Statistique[], mode: Mode): (position: Position) => number {
+  const parPosition = new Map(statistiques.filter((s) => s.mode === mode).map((s) => [`${s.corde}-${s.case}`, s]));
+  return (p) => poidsPosition(parPosition.get(`${p.corde}-${p.case}`));
+}
 
 export interface Reponse {
   mode: Mode;

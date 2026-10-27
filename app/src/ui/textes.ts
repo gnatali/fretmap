@@ -45,7 +45,7 @@ export const TEXTES = {
   titre: 'fretmap',
   sousTitre: 'Apprendre les notes du manche de guitare',
   lienPoc: 'Essayer la détection de notes (POC)',
-  niveauActuel: (niveau: number) => `Niveau actuel : ${niveau}`,
+  niveauxAtteints: (mode1: number, mode2: number) => `Niveau atteint : ${mode1} en mode 1, ${mode2} en mode 2`,
   entrees: {
     mode1: { titre: 'Mode 1', description: 'Trouver la note sur le manche, sans guitare' },
     mode2: { titre: 'Mode 2', description: 'Jouer la note demandée sur sa guitare' },
@@ -58,7 +58,14 @@ export const TEXTES = {
   sauvegardeImpossible: 'Progression non enregistrée : le stockage du navigateur est plein ou indisponible.',
   quiz: {
     niveau: 'Niveau',
-    nomNiveau: (niveau: number, description: string) => `${niveau} · ${description}`,
+    nomNiveau: (niveau: number, description: string, verrouille = false) =>
+      `${niveau} · ${description}${verrouille ? ' (verrouillé)' : ''}`,
+    versNiveau: (suivant: number, taux: number, requises: number, reussites: number, reponses: number) =>
+      `Niveau ${suivant} débloqué à ${taux} % de bonnes réponses sur les ${requises} dernières` +
+      (reponses ? ` : ${reussites} sur ${reponses} pour l’instant.` : '.'),
+    dernierNiveau: 'Dernier niveau : entraînement libre.',
+    entrainement: (atteint: number) => `Entraînement : seules les réponses au niveau ${atteint} font progresser.`,
+    debloque: (niveau: number, description: string) => `Bravo, niveau ${niveau} débloqué : ${description}.`,
     score: (bonnes: number, questions: number) => `${bonnes} / ${questions}`,
     pourcentage: (p: number | null) => (p === null ? '–' : `${p} %`),
     serie: (serie: number, meilleure: number) => `Série ${serie} (meilleure : ${meilleure})`,
@@ -197,6 +204,7 @@ export const TEXTES = {
     titre: 'Statistiques',
     mode: { 1: 'Mode 1 : réussite par position', 2: 'Mode 2 : réussite par position demandée' },
     aucune: (mode: number) => `Aucune réponse enregistrée pour l’instant : jouez au mode ${mode}.`,
+    niveauAtteint: (niveau: number, description: string) => `Niveau atteint : ${niveau} (${description}).`,
     tentatives: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,
     reussite: (p: number) => `${p} % de réussite`,
     tempsMoyen: (ms: number) => `temps moyen ${(ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s`,

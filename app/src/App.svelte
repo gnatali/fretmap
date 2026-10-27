@@ -36,6 +36,9 @@
   {:else if ecran === 'reglages'}
     <Reglages {etat} onQuitter={accueil} />
   {:else}
-    <Accueil niveau={etat.progression.niveauActuel} onAller={(d) => (ecran = d)} />
+    <Accueil
+      niveaux={{ 1: etat.progression.avancement[1].niveauAtteint, 2: etat.progression.avancement[2].niveauAtteint }}
+      onAller={(d) => (ecran = d)}
+    />
   {/if}
 </main>

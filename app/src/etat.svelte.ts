@@ -1,5 +1,6 @@
 // État de l'application : relie l'interface au stockage. Aucune règle métier ici (voir progression/ et quiz/).
-import { progressionInitiale, type Progression, type Reglages } from './progression/modele';
+import { progressionInitiale, type Niveau, type Progression, type Reglages } from './progression/modele';
+import { avancerNiveau } from './progression/niveaux';
 import { enregistrerReponse, type Reponse } from './progression/statistiques';
 import { charger, sauver, stockageLocal, type EtatChargement, type Stockage } from './progression/stockage';
 
@@ -15,9 +16,16 @@ export class EtatApp {
     this.chargement = lu.etat;
   }
 
-  repondre(reponse: Reponse): void {
-    this.progression = enregistrerReponse(this.progression, reponse);
+  /**
+   * Enregistre une réponse donnée au niveau `niveau` : statistique de la position et avancement du mode.
+   * @returns le niveau débloqué par cette réponse, ou null.
+   */
+  repondre(reponse: Reponse, niveau: Niveau): Niveau | null {
+    const { avancement, debloque } = avancerNiveau(this.progression.avancement[reponse.mode], niveau, reponse.juste);
+    const progression = enregistrerReponse(this.progression, reponse);
+    this.progression = { ...progression, avancement: { ...progression.avancement, [reponse.mode]: avancement } };
     this.sauver();
+    return debloque;
   }
 
   definirReglage<C extends keyof Reglages>(cle: C, valeur: Reglages[C]): void {

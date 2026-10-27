@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.6** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), puis précisions de la phase 5 sur les réglages (version 2.6). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 2.7** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), précisions de la phase 5 sur les réglages (version 2.6), puis niveaux par mode, passage sur les dernières réponses et tirage pondéré (phase 6, version 2.7). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -28,7 +28,7 @@ L'objectif pédagogique est la mémorisation des notes case par case, pas seulem
 - Mode 1 : manche virtuel (cases 0 à 12), quiz, score, série de bonnes réponses
 - Mode 2 : détection de la note jouée et validation, cases 0 à 12 (E2 à E5), plage validée par le scénario 6 du POC
 - Accordeur (accordages standard, drop D, demi-ton plus bas, DADGAD)
-- Niveaux de difficulté (voir 5.4), communs aux deux modes
+- Niveaux de difficulté (voir 5.4), les mêmes dans les deux modes, avec un avancement séparé par mode
 - Progression sauvegardée localement (`localStorage`)
 - Interface en français, responsive, utilisable au pouce sur téléphone
 - Déploiement statique sur GitHub Pages en HTTPS
@@ -101,7 +101,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Manche**
 - Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12.
 - Affichage des notes sur les cases, masquable (une option par niveau).
-- Au-dessus du manche : choix du niveau (jusqu'à la phase 6) et de l'affichage des notes, réglage enregistré et aussi présent dans l'écran Réglages. La notation des notes (5.4) se choisit dans l'écran Réglages.
+- Au-dessus du manche : choix du niveau parmi ceux débloqués dans le mode (5.4), avec l'avancement vers le niveau suivant, et affichage des notes, réglage enregistré et aussi présent dans l'écran Réglages. La notation des notes (5.4) se choisit dans l'écran Réglages.
 - Cordes à vide visibles à gauche, cases cliquables au pouce (zone minimale de 44 px de haut).
 - Orientation : affichage en portrait (manche vertical) par défaut, en paysage possible.
 
@@ -116,7 +116,7 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Statistiques par note**
 - Pour chaque mode et chaque couple (corde, case) : nombre de tentatives, nombre de réussites, temps de réponse moyen.
 - Mode 1 : une réponse juste est comptée sur la position touchée (seule connue : corde 1 pour E au niveau 1, ou case 12) ; une réponse fausse, sur la position tirée.
-- Les notes les moins maîtrisées reviennent plus souvent (tirage pondéré).
+- Les notes les moins maîtrisées reviennent plus souvent (tirage pondéré, statistiques du mode joué) : poids d'une position = 1 + 3 × (erreurs + 1) / (tentatives + 2). Une position jamais jouée pèse 2,5 ; toujours réussie, son poids tend vers 1 ; toujours manquée, vers 4. Au niveau 1, le poids d'une note est la moyenne de ses cordes à vide.
 
 ### 5.2 Mode 2 : jouer la note
 
@@ -160,17 +160,21 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 
 ### 5.4 Niveaux et réglages
 
-**Niveaux** (progression linéaire, déverrouillage automatique, communs aux deux modes)
+**Niveaux** (progression linéaire, déverrouillage automatique ; mêmes niveaux dans les deux modes, avancement séparé par mode)
 
 | Niveau | Contenu | Condition de passage |
 |---|---|---|
-| 1 | Cordes à vide (E, A, D, G, B, E) ; la question ne donne pas la corde | 80 % de réussite sur 20 questions |
-| 2 | Cases 0 à 5, notes naturelles | 80 % sur 20 questions |
-| 3 | Cases 0 à 5, toutes les notes | 80 % sur 30 questions |
-| 4 | Cases 0 à 7, notes naturelles | 80 % sur 30 questions |
-| 5 | Cases 0 à 7, toutes les notes | 80 % sur 30 questions |
-| 6 | Cases 0 à 12, notes naturelles | 80 % sur 30 questions |
+| 1 | Cordes à vide (E, A, D, G, B, E) ; la question ne donne pas la corde | 80 % de réussite sur les 20 dernières réponses |
+| 2 | Cases 0 à 5, notes naturelles | 80 % sur les 20 dernières réponses |
+| 3 | Cases 0 à 5, toutes les notes | 80 % sur les 30 dernières réponses |
+| 4 | Cases 0 à 7, notes naturelles | 80 % sur les 30 dernières réponses |
+| 5 | Cases 0 à 7, toutes les notes | 80 % sur les 30 dernières réponses |
+| 6 | Cases 0 à 12, notes naturelles | 80 % sur les 30 dernières réponses |
 | 7 | Cases 0 à 12, toutes les notes (manche complet) | Pas de passage, mode libre |
+
+- Les deux modes sont indépendants : chacun a son niveau atteint et ses dernières réponses.
+- Seules comptent les réponses données au niveau atteint du mode. Dès que les 20 (ou 30) dernières atteignent 80 % de réussite, le niveau suivant est débloqué, annoncé, et commence à la question suivante ; le décompte repart de zéro.
+- Le menu « Niveau » propose les niveaux débloqués ; les suivants sont visibles mais verrouillés. Un niveau inférieur sert d'entraînement : ses réponses ne font pas progresser.
 
 En mode 2, un niveau dont les positions dépassent la plage validée (5.2) est limité à cette plage.
 
@@ -228,10 +232,14 @@ interface Reglages {
   notation: 'anglo-saxonne' | 'francaise' | 'les-deux';  // affichage seulement ; 'les-deux' par défaut
 }
 
+interface AvancementMode {
+  niveauAtteint: 1 | 2 | 3 | 4 | 5 | 6 | 7;  // plus haut niveau débloqué
+  dernieresReponses: boolean[];               // au niveau atteint, 20 ou 30 au plus (5.4)
+}
+
 interface Progression {
-  version: 1;
-  niveauActuel: 1 | 2 | 3 | 4 | 5 | 6 | 7;
-  scoreParNiveau: Record<number, { questions: number; reussites: number }>;
+  version: 2;
+  avancement: Record<1 | 2, AvancementMode>;  // un avancement par mode
   statistiques: Statistique[];
   reglages: Reglages;
 }
@@ -239,7 +247,7 @@ interface Progression {
 
 Règles :
 - Les statistiques sont mises à jour à chaque réponse, dans le mode concerné. Une attaque « non reconnue » (5.2) n'est pas une réponse.
-- Une migration est prévue dès la v1 (fonction `migrer(progression)`), même vide.
+- Une migration est prévue dès la v1 (fonction `migrer(progression)`). Version 2 : la version 1 (`niveauActuel` commun aux deux modes, `scoreParNiveau` jamais rempli) est convertie ; son niveau devient le niveau atteint des deux modes.
 - Un export JSON et un import JSON permettent de sauvegarder la progression manuellement.
 - Un réglage ajouté sans changer le sens des autres ne change pas la version du schéma : `migrer` complète les réglages absents avec leur valeur par défaut (cas de `notation`).
 
@@ -248,7 +256,7 @@ Règles :
 ## 7. Interface et parcours
 
 **Écrans**
-1. **Accueil** : boutons Mode 1, Mode 2, Accordeur, Statistiques, Réglages. Affichage du niveau actuel.
+1. **Accueil** : boutons Mode 1, Mode 2, Accordeur, Statistiques, Réglages. Affichage du niveau atteint dans chaque mode.
 2. **Mode 1** : manche, question, score, bouton « Arrêter ».
 3. **Mode 2** : question, indicateur en direct, historique des dernières réponses, bouton « Arrêter ».
 4. **Accordeur** : aiguille, sélection de corde, accordage, A4.
@@ -362,7 +370,7 @@ Les règles de validation du mode 2 (première note stable après une attaque, n
 - `notation.ts` : les 12 noms dans les trois notations, avec et sans octave, format « les deux ».
 - `validation.ts` : mode 1 (juste, fausse, case équivalente sur la même corde) ; mode 2 (dans la tolérance, hors tolérance, octave stricte et non stricte, première note après l'attaque, changement sans attaque ignoré, note précédente ignorée une fois, non-détection).
 - `niveaux.ts` : passage de niveau au seuil, pas de passage en dessous, niveau 7 sans fin, limite de plage du mode 2.
-- `stockage.ts` : sauvegarde, lecture, migration (dont un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
+- `stockage.ts` : sauvegarde, lecture, migration (dont la version 1 et un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
 
 **End-to-end (Playwright)**
 - Mode 1 : une question complète, bonne réponse et mauvaise réponse.

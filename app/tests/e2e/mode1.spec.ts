@@ -36,11 +36,20 @@ test('mode 1 : une bonne réponse, une mauvaise, puis les statistiques après re
   await expect(page.getByRole('cell', { name: `Corde ${corde}, à vide : 100 %` })).toBeVisible();
 });
 
-test('accueil : pas de défilement horizontal sur téléphone', async ({ page }) => {
-  await page.goto('/');
-  for (const nom of [/^Mode 1/, /^Mode 2/, /^Accordeur/, /^Statistiques/, /^Réglages/]) {
-    await page.getByRole('button', { name: nom }).click();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await page.getByRole('button', { name: /^(Arrêter|Retour)$/ }).click();
+test('aucun écran ne défile horizontalement, même sur un petit téléphone (360 px)', async ({ page }) => {
+  for (const largeur of [412, 360]) {
+    await page.setViewportSize({ width: largeur, height: 800 });
+    await page.goto('/');
+    for (const nom of [/^Mode 1/, /^Mode 2/, /^Accordeur/, /^Statistiques/, /^Réglages/]) {
+      await page.getByRole('button', { name: nom }).click();
+      // Aucun élément ne dépasse le bord droit (une liste trop large peut déborder sans faire défiler la page).
+      const debordants = await page.evaluate(() =>
+        [...document.querySelectorAll('main *')]
+          .filter((e) => e.getBoundingClientRect().right > window.innerWidth + 1)
+          .map((e) => e.outerHTML.slice(0, 60)),
+      );
+      expect(debordants, `${nom} à ${largeur} px`).toEqual([]);
+      await page.getByRole('button', { name: /^(Arrêter|Retour)$/ }).click();
+    }
   }
 });

@@ -3,14 +3,16 @@
 </script>
 
 <script lang="ts">
+  import type { Mode, Niveau } from '../../progression/modele';
   import { TEXTES } from '../textes';
 
   interface Props {
-    niveau: number;
+    /** Niveau atteint dans chaque mode. */
+    niveaux: Record<Mode, Niveau>;
     onAller: (destination: Destination) => void;
   }
 
-  let { niveau, onAller }: Props = $props();
+  let { niveaux, onAller }: Props = $props();
 
   // Ordre de la spec §7.
   const entrees: Destination[] = ['mode1', 'mode2', 'accordeur', 'statistiques', 'reglages'];
@@ -19,7 +21,7 @@
 <header>
   <h1>{TEXTES.titre}</h1>
   <p class="sous-titre">{TEXTES.sousTitre}</p>
-  <p class="niveau">{TEXTES.niveauActuel(niveau)}</p>
+  <p class="niveau">{TEXTES.niveauxAtteints(niveaux[1], niveaux[2])}</p>
 </header>
 
 <nav aria-label="Écrans">

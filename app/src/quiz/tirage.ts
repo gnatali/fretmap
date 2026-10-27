@@ -1,4 +1,4 @@
-// Choix de la question (spec §5.1). Tirage uniforme ; la pondération par les statistiques arrive en phase 6.
+// Choix de la question (spec §5.1) : tirage pondéré, les positions les moins maîtrisées reviennent plus souvent.
 import { casesDeLaNote, noteDePosition, type Position } from '../music/manche';
 import type { NomNote } from '../music/notes';
 
@@ -17,12 +17,21 @@ export interface OptionsTirage {
   /** Dernière case du niveau : borne les cases acceptées. */
   caseMax: number;
   cordeDemandee: boolean;
+  /** Poids de chaque position (progression/statistiques.ts, poidsDuMode) ; tirage uniforme sans poids. */
+  poids?: (position: Position) => number;
 }
 
 const memePosition = (a: Position, b: Position) => a.corde === b.corde && a.case === b.case;
 
-function choisir<T>(liste: readonly T[], hasard: () => number): T {
-  return liste[Math.min(liste.length - 1, Math.floor(hasard() * liste.length))]!;
+/** Élément tiré avec une probabilité proportionnelle à son poids. */
+function choisir<T>(liste: readonly T[], hasard: () => number, poids: (element: T) => number): T {
+  const poidsListe = liste.map(poids);
+  let reste = hasard() * poidsListe.reduce((s, p) => s + p, 0);
+  for (let i = 0; i < liste.length; i++) {
+    reste -= poidsListe[i]!;
+    if (reste < 0) return liste[i]!;
+  }
+  return liste[liste.length - 1]!;
 }
 
 /**
@@ -37,14 +46,14 @@ export function tirerQuestion(
   precedente?: Question,
 ): Question {
   if (candidates.length === 0) throw new Error('Aucune position à tirer');
-  const { caseMax, cordeDemandee } = options;
+  const { caseMax, cordeDemandee, poids = () => 1 } = options;
 
   if (cordeDemandee) {
     const choix =
       precedente && candidates.length > 1
         ? candidates.filter((p) => !memePosition(p, precedente.position))
         : candidates;
-    const position = choisir(choix, hasard);
+    const position = choisir(choix, hasard, poids);
     const nom = noteDePosition(position).nom;
     const positionsCorrectes = casesDeLaNote(nom, position.corde, undefined, caseMax).map((k) => ({
       corde: position.corde,
@@ -53,8 +62,18 @@ export function tirerQuestion(
     return { position, nom, cordeDemandee, positionsCorrectes };
   }
 
+  // Poids d'un nom : moyenne de ses positions, pour que E (cordes 6 et 1) ne pèse pas double.
+  const positionsDuNom = (n: NomNote) => candidates.filter((p) => noteDePosition(p).nom === n);
+  const poidsNom = (n: NomNote) => {
+    const liste = positionsDuNom(n);
+    return liste.reduce((s, p) => s + poids(p), 0) / liste.length;
+  };
   const noms = [...new Set(candidates.map((p) => noteDePosition(p).nom))];
-  const nom = choisir(precedente && noms.length > 1 ? noms.filter((n) => n !== precedente.nom) : noms, hasard);
-  const positionsCorrectes = candidates.filter((p) => noteDePosition(p).nom === nom);
+  const nom = choisir(
+    precedente && noms.length > 1 ? noms.filter((n) => n !== precedente.nom) : noms,
+    hasard,
+    poidsNom,
+  );
+  const positionsCorrectes = positionsDuNom(nom);
   return { position: positionsCorrectes[0]!, nom, cordeDemandee, positionsCorrectes };
 }

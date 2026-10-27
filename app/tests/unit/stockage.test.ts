@@ -15,8 +15,10 @@ import { stockageMemoire } from './memoire';
 
 const exemple = (): Progression => ({
   ...progressionInitiale(),
-  niveauActuel: 3,
-  scoreParNiveau: { 1: { questions: 20, reussites: 18 }, 2: { questions: 20, reussites: 17 } },
+  avancement: {
+    1: { niveauAtteint: 3, dernieresReponses: [true, false, true] },
+    2: { niveauAtteint: 1, dernieresReponses: [] },
+  },
   statistiques: [
     {
       mode: 1,
@@ -70,7 +72,7 @@ describe('charger et sauver', () => {
   });
 
   it('traite une version inconnue comme illisible', () => {
-    const s = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ ...exemple(), version: 2 }) });
+    const s = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ ...exemple(), version: 3 }) });
     expect(charger(s).etat).toBe('corrompu');
     expect(s.donnees[CLE_ILLISIBLE]).toBeDefined();
   });
@@ -88,33 +90,53 @@ describe('charger et sauver', () => {
 
 describe('migrer', () => {
   it('complète les réglages manquants et borne A4', () => {
-    const p = migrer({ version: 1, reglages: { tolerance: 20, a4: 500, octaveStricte: 'oui' } });
+    const p = migrer({ version: 2, reglages: { tolerance: 20, a4: 500, octaveStricte: 'oui' } });
     expect(p?.reglages).toEqual({ ...REGLAGES_DEFAUT, tolerance: 20, a4: 450 });
-    expect(p?.niveauActuel).toBe(1);
+    expect(p?.avancement).toEqual(progressionInitiale().avancement);
     expect(p?.statistiques).toEqual([]);
   });
 
   it('notation absente ou invalide : « les deux » ; une notation connue est gardée', () => {
-    expect(migrer({ version: 1, reglages: {} })?.reglages.notation).toBe('les-deux');
-    expect(migrer({ version: 1, reglages: { notation: 'allemande' } })?.reglages.notation).toBe('les-deux');
-    expect(migrer({ version: 1, reglages: { notation: 'anglo-saxonne' } })?.reglages.notation).toBe('anglo-saxonne');
+    expect(migrer({ version: 2, reglages: {} })?.reglages.notation).toBe('les-deux');
+    expect(migrer({ version: 2, reglages: { notation: 'allemande' } })?.reglages.notation).toBe('les-deux');
+    expect(migrer({ version: 2, reglages: { notation: 'anglo-saxonne' } })?.reglages.notation).toBe('anglo-saxonne');
   });
 
-  it('écarte les statistiques, scores et niveaux invalides', () => {
+  it('version 1 : le niveau commun devient le niveau atteint des deux modes, réglages et statistiques gardés', () => {
+    const { statistiques, reglages } = exemple();
+    const v1 = { version: 1, niveauActuel: 3, scoreParNiveau: {}, statistiques, reglages };
+    expect(migrer(v1)).toEqual({
+      version: 2,
+      avancement: {
+        1: { niveauAtteint: 3, dernieresReponses: [] },
+        2: { niveauAtteint: 3, dernieresReponses: [] },
+      },
+      statistiques,
+      reglages,
+    });
+    expect(migrer({ ...v1, niveauActuel: 9 })?.avancement[1].niveauAtteint).toBe(1);
+  });
+
+  it('écarte les statistiques et avancements invalides, et borne les dernières réponses', () => {
     const valide = exemple().statistiques[0]!;
     const p = migrer({
       ...exemple(),
-      niveauActuel: 9,
-      scoreParNiveau: {
-        1: { questions: 5, reussites: 6 },
-        3: { questions: 10, reussites: 7 },
-        8: { questions: 1, reussites: 1 },
+      avancement: {
+        1: { niveauAtteint: 2, dernieresReponses: [...Array<boolean>(25).fill(true), 'x', false] },
+        2: { niveauAtteint: 9, dernieresReponses: [true] },
       },
       statistiques: [valide, { ...valide, case: 13 }, { ...valide, corde: 0 }, { ...valide, reussites: 9 }, null, 'x'],
     });
-    expect(p?.niveauActuel).toBe(1);
-    expect(p?.scoreParNiveau).toEqual({ 3: { questions: 10, reussites: 7 } });
+    // Niveau 2 : 20 réponses regardées ; les valeurs qui ne sont pas des booléens sont écartées.
+    expect(p?.avancement[1]).toEqual({
+      niveauAtteint: 2,
+      dernieresReponses: [...Array<boolean>(19).fill(true), false],
+    });
+    expect(p?.avancement[2]).toEqual({ niveauAtteint: 1, dernieresReponses: [] });
     expect(p?.statistiques).toEqual([valide]);
+    expect(
+      migrer({ ...exemple(), avancement: { 1: { niveauAtteint: 7, dernieresReponses: [true] } } })?.avancement,
+    ).toEqual({ 1: { niveauAtteint: 7, dernieresReponses: [] }, 2: { niveauAtteint: 1, dernieresReponses: [] } });
   });
 
   it('refuse ce qui n’est pas une progression', () => {

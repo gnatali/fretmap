@@ -4,8 +4,13 @@ import type { NumeroCorde } from '../music/manche';
 import type { Notation } from '../music/notation';
 import { A4_DEFAUT_HZ } from '../music/notes';
 
-/** Version du schéma enregistré ; toute évolution passe par `migrer` (progression/stockage.ts). */
-export const VERSION_SCHEMA = 1;
+/**
+ * Version du schéma enregistré ; toute évolution passe par `migrer` (progression/stockage.ts).
+ * Version 2 : avancement dans les niveaux par mode (les deux modes sont indépendants), à la place de
+ * `niveauActuel` et `scoreParNiveau`.
+ */
+export const VERSION_SCHEMA = 2;
+export const MODES: readonly Mode[] = [1, 2];
 
 export type Mode = 1 | 2;
 export type Niveau = 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -42,15 +47,17 @@ export interface Reglages {
   notation: Notation;
 }
 
-export interface ScoreNiveau {
-  questions: number;
-  reussites: number;
+/** Avancement dans les niveaux d'un mode (spec §5.4). */
+export interface AvancementMode {
+  /** Plus haut niveau débloqué. */
+  niveauAtteint: Niveau;
+  /** Résultats des dernières réponses données au niveau atteint, de la plus ancienne à la plus récente. */
+  dernieresReponses: boolean[];
 }
 
 export interface Progression {
   version: typeof VERSION_SCHEMA;
-  niveauActuel: Niveau;
-  scoreParNiveau: Partial<Record<Niveau, ScoreNiveau>>;
+  avancement: Record<Mode, AvancementMode>;
   statistiques: Statistique[];
   reglages: Reglages;
 }
@@ -69,11 +76,14 @@ export const REGLAGES_DEFAUT: Readonly<Reglages> = {
   notation: 'les-deux',
 };
 
+export function avancementInitial(niveauAtteint: Niveau = 1): AvancementMode {
+  return { niveauAtteint, dernieresReponses: [] };
+}
+
 export function progressionInitiale(): Progression {
   return {
     version: VERSION_SCHEMA,
-    niveauActuel: 1,
-    scoreParNiveau: {},
+    avancement: { 1: avancementInitial(), 2: avancementInitial() },
     statistiques: [],
     reglages: { ...REGLAGES_DEFAUT },
   };

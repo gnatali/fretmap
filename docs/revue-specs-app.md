@@ -63,3 +63,7 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | N8 | Choix provisoires des modes (phase 5) | La notation passe dans l'écran Réglages ; « afficher les notes » et « afficher la case » restent aussi au-dessus de la question |
 | N9 | Retour sonore | Un seul réglage : bip quand la note du mode 2 ou la corde de l'accordeur est juste |
 | N10 | Réinitialiser la progression | Efface niveau, scores et statistiques, garde les réglages ; l'import demande aussi une confirmation |
+| N11 | Passage de niveau | 80 % sur les 20 (ou 30) dernières réponses au niveau atteint ; une mauvaise série ancienne ne pénalise plus |
+| N12 | Choix du niveau après la phase 6 | Niveaux débloqués seulement ; les niveaux inférieurs servent d'entraînement et ne font pas progresser |
+| N13 | Modes 1 et 2 | Indépendants : niveau atteint et décompte séparés par mode (schéma de données version 2) |
+| N14 | Tirage pondéré | Poids = 1 + 3 × taux d'erreur lissé, (erreurs + 1) / (tentatives + 2), par position et par mode |

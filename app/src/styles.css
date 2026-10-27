@@ -68,6 +68,12 @@ h2 {
   line-height: 1.2;
 }
 
+/* Focus clavier toujours visible (spec §7, accessibilité) ; les cases du manche ont le leur. */
+:where(button, select, input, a):focus-visible {
+  outline: 3px solid var(--lien);
+  outline-offset: 2px;
+}
+
 /* En-tête d'écran : titre à gauche, bouton de sortie à droite. */
 .barre {
   display: flex;
@@ -107,6 +113,15 @@ button.secondaire {
   border: 1px solid var(--cadre);
   border-radius: 8px;
   cursor: pointer;
+}
+
+/* Niveau débloqué pendant le jeu (modes 1 et 2). */
+.annonce {
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--juste);
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .alerte {

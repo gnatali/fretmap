@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { progressionInitiale } from '../../src/progression/modele';
-import { enregistrerReponse, type Reponse } from '../../src/progression/statistiques';
+import { enregistrerReponse, poidsDuMode, poidsPosition, type Reponse } from '../../src/progression/statistiques';
 
 const reponse = (r: Partial<Reponse> = {}): Reponse => ({
   mode: 1,
@@ -52,5 +52,24 @@ describe('enregistrerReponse', () => {
     const copie = structuredClone(origine);
     enregistrerReponse(origine, reponse({ juste: false }));
     expect(origine).toEqual(copie);
+  });
+});
+
+describe('poids du tirage', () => {
+  it('jamais jouée : 2,5 ; toujours réussie : vers 1 ; toujours manquée : vers 4', () => {
+    expect(poidsPosition()).toBe(2.5);
+    expect(poidsPosition({ tentatives: 10, reussites: 10 })).toBe(1.25);
+    expect(poidsPosition({ tentatives: 10, reussites: 0 })).toBe(3.75);
+    expect(poidsPosition({ tentatives: 2, reussites: 1 })).toBe(2.5);
+  });
+
+  it('se calcule par mode, à partir des statistiques de ce mode', () => {
+    let p = progressionInitiale();
+    for (let i = 0; i < 10; i++) p = enregistrerReponse(p, reponse({ juste: true }));
+    p = enregistrerReponse(p, reponse({ mode: 2, juste: false }));
+    const position = { corde: 6, case: 3 } as const;
+    expect(poidsDuMode(p.statistiques, 1)(position)).toBeCloseTo(1 + 3 / 12);
+    expect(poidsDuMode(p.statistiques, 2)(position)).toBeCloseTo(1 + 3 * (2 / 3));
+    expect(poidsDuMode(p.statistiques, 1)({ corde: 1, case: 0 })).toBe(2.5);
   });
 });

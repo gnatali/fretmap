@@ -2,7 +2,8 @@
   import type { EtatApp } from '../../etat.svelte';
   import { CASE_MAX, NUMEROS_CORDES, noteDePosition } from '../../music/manche';
   import { nomAffiche } from '../../music/notation';
-  import type { Mode, Statistique } from '../../progression/modele';
+  import { MODES, type Mode, type Statistique } from '../../progression/modele';
+  import { TAUX_PASSAGE, etatPassage } from '../../progression/niveaux';
   import { TEXTES } from '../textes';
 
   interface Props {
@@ -11,8 +12,6 @@
   }
 
   let { etat, onQuitter }: Props = $props();
-
-  const MODES: readonly Mode[] = [1, 2];
 
   /** Totaux et statistiques par position d'un mode. */
   function resume(statistiques: readonly Statistique[], mode: Mode) {
@@ -44,8 +43,22 @@
 </header>
 
 {#each resumes as { mode, parPosition, tentatives, reussites, tempsMoyen } (mode)}
+  {@const avancement = etat.progression.avancement[mode]}
+  {@const passage = etatPassage(avancement)}
   <section aria-labelledby="stats-mode-{mode}">
     <h2 id="stats-mode-{mode}">{TEXTES.statistiques.mode[mode]}</h2>
+    <p class="avancement">
+      {TEXTES.statistiques.niveauAtteint(avancement.niveauAtteint, TEXTES.niveaux[avancement.niveauAtteint]!)}
+      {passage
+        ? TEXTES.quiz.versNiveau(
+            avancement.niveauAtteint + 1,
+            Math.round(TAUX_PASSAGE * 100),
+            passage.requises,
+            passage.reussites,
+            passage.reponses,
+          )
+        : TEXTES.quiz.dernierNiveau}
+    </p>
     {#if tentatives === 0}
       <p>{TEXTES.statistiques.aucune(mode)}</p>
     {:else}
@@ -90,6 +103,9 @@
   h2 {
     font-size: 1.125rem;
     margin: 1rem 0 0.25rem;
+  }
+  .avancement {
+    margin: 0 0 0.5rem;
   }
   .totaux {
     margin: 0 0 0.75rem;

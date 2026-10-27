@@ -6,6 +6,7 @@ import type { SessionMicro } from '../../src/audio/micro';
 import { DUREE_CALIBRAGE_MS } from '../../src/audio/niveau';
 import { Ecoute } from '../../src/ecoute.svelte';
 import { EtatApp } from '../../src/etat.svelte';
+import { avancementInitial } from '../../src/progression/modele';
 import { DELAI_NON_DETECTION_MS } from '../../src/quiz/validation';
 import Mode2 from '../../src/ui/ecrans/Mode2.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -120,7 +121,12 @@ describe('mode 2', () => {
 
   it('affiche la case demandée en option', async () => {
     const { app } = await demarrer();
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.niveau }), { target: { value: '3' } });
+    // Niveau 3 débloqué en mode 2 seulement : les modes sont indépendants.
+    app.remplacer({ ...app.progression, avancement: { ...app.progression.avancement, 2: avancementInitial(3) } });
+    await tick();
+    const choix = screen.getByRole<HTMLSelectElement>('combobox', { name: TEXTES.quiz.niveau });
+    expect(screen.getAllByRole<HTMLOptionElement>('option').filter((o) => !o.disabled)).toHaveLength(3);
+    await fireEvent.change(choix, { target: { value: '3' } });
     expect(question()).toBe('Jouez Mi (E) sur la corde 6');
     await fireEvent.click(screen.getByRole('checkbox', { name: TEXTES.mode2.afficherCase }));
     expect(app.progression.reglages.afficherCaseMode2).toBe(true);

@@ -5,6 +5,7 @@
   import { nomAffiche } from '../../music/notation';
   import type { Niveau } from '../../progression/modele';
   import { contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
+  import { poidsDuMode } from '../../progression/statistiques';
   import { SCORE_INITIAL, noter } from '../../quiz/score';
   import { tirerQuestion, type Question } from '../../quiz/tirage';
   import { verifierMode1 } from '../../quiz/validation';
@@ -25,20 +26,23 @@
 
   let { etat, onQuitter, hasard = Math.random }: Props = $props();
 
-  // Niveau au choix jusqu'à la phase 6 (déverrouillage automatique).
+  // On joue au niveau atteint dans ce mode, ou à un niveau inférieur pour s'entraîner.
   // svelte-ignore state_referenced_locally
-  let niveau = $state<Niveau>(etat.progression.niveauActuel);
+  let niveau = $state<Niveau>(etat.progression.avancement[1].niveauAtteint);
   const caseMax = $derived(contenuNiveau(niveau).caseMax);
   let question = $state<Question>(nouvelleQuestion());
   let debut = performance.now();
   let score = $state({ ...SCORE_INITIAL });
   let marques = $state<Record<string, Marque>>({});
   let retour = $state<{ juste: boolean; texte: string } | null>(null);
+  /** Message du dernier niveau débloqué pendant la session. */
+  let annonce = $state<string | null>(null);
   let minuteur: ReturnType<typeof setTimeout> | undefined;
   const notation = $derived(etat.progression.reglages.notation);
 
   function nouvelleQuestion(precedente?: Question): Question {
-    return tirerQuestion(positionsDuNiveau(niveau), contenuNiveau(niveau), hasard, precedente);
+    const poids = poidsDuMode(etat.progression.statistiques, 1);
+    return tirerQuestion(positionsDuNiveau(niveau), { ...contenuNiveau(niveau), poids }, hasard, precedente);
   }
 
   /** Nouvelle question ; sans reposer la précédente quand on reste au même niveau. */
@@ -69,9 +73,21 @@
     };
     score = noter(score, juste);
     // Juste : la position touchée est connue (E sur la corde 1, ou la case 12) ; faux : la position tirée.
-    etat.repondre({ mode: 1, position: juste ? touchee : question.position, juste, tempsMs, date: new Date() });
+    const reponse = {
+      mode: 1 as const,
+      position: juste ? touchee : question.position,
+      juste,
+      tempsMs,
+      date: new Date(),
+    };
+    const debloque = etat.repondre(reponse, niveau);
+    if (debloque) annonce = TEXTES.quiz.debloque(debloque, TEXTES.niveaux[debloque]!);
     const precedente = question;
-    minuteur = setTimeout(() => suivante(precedente), DELAI_SUIVANTE_MS);
+    minuteur = setTimeout(() => {
+      // Le nouveau niveau commence à la question suivante, après l'affichage de la réponse.
+      if (debloque) niveau = debloque;
+      suivante(precedente);
+    }, DELAI_SUIVANTE_MS);
   }
 
   onDestroy(() => clearTimeout(minuteur));
@@ -82,10 +98,14 @@
   <button type="button" class="secondaire" onclick={onQuitter}>{TEXTES.arreter}</button>
 </header>
 
+{#if annonce}<p class="annonce" aria-live="polite">{annonce}</p>{/if}
+
 <ReglagesQuiz
   {niveau}
+  avancement={etat.progression.avancement[1]}
   onNiveau={(n) => {
     niveau = n;
+    annonce = null;
     suivante();
   }}
 >

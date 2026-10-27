@@ -6,7 +6,7 @@ import type { SessionMicro } from '../../src/audio/micro';
 import { DUREE_CALIBRAGE_MS } from '../../src/audio/niveau';
 import { Ecoute } from '../../src/ecoute.svelte';
 import { EtatApp } from '../../src/etat.svelte';
-import { progressionInitiale } from '../../src/progression/modele';
+import { avancementInitial, progressionInitiale } from '../../src/progression/modele';
 import { CLE_STOCKAGE, exporterJson } from '../../src/progression/stockage';
 import Reglages from '../../src/ui/ecrans/Reglages.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -101,18 +101,18 @@ describe('réglages', () => {
     await fireEvent.change(champ, { target: { files: [new File(['bonjour'], 'autre.json')] } });
     await waitFor(() => expect(screen.getByRole('alert').textContent).toBe(TEXTES.reglages.importInvalide));
 
-    const fichier = { ...progressionInitiale(), niveauActuel: 3 as const };
+    const fichier = { ...progressionInitiale(), avancement: { 1: avancementInitial(3), 2: avancementInitial(2) } };
     await fireEvent.change(champ, { target: { files: [new File([exporterJson(fichier)], 'p.json')] } });
     await waitFor(() => expect(screen.getByText(TEXTES.reglages.confirmerImport)).toBeTruthy());
-    expect(app.progression.niveauActuel).toBe(1);
+    expect(app.progression.avancement[1].niveauAtteint).toBe(1);
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.reglages.remplacer }));
-    expect(app.progression.niveauActuel).toBe(3);
+    expect(app.progression.avancement).toEqual(fichier.avancement);
     expect(screen.getByText(TEXTES.reglages.importFait)).toBeTruthy();
   });
 
   it('réinitialise la progression après confirmation, en gardant les réglages', async () => {
     const { app } = afficher();
-    app.repondre({ mode: 1, position: { corde: 6, case: 0 }, juste: true, tempsMs: 900, date: new Date() });
+    app.repondre({ mode: 1, position: { corde: 6, case: 0 }, juste: true, tempsMs: 900, date: new Date() }, 1);
     app.definirReglage('notation', 'anglo-saxonne');
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.reglages.reinitialiser }));
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.reglages.annuler }));

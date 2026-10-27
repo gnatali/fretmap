@@ -4,7 +4,7 @@ Site d'apprentissage des notes du manche de guitare : mode 1 sans guitare (manch
 
 ## État
 - **POC terminé, décision Go** : `poc-guitare/SYNTHESE.md` (conclusions), `poc-guitare/resultats/README.md` (mesures).
-- **Application** : phases 1 à 5 faites (accueil, mode 1 avec 7 niveaux au choix, mode 2 au micro sur les cases 0 à 12, accordeur, statistiques par mode, réglages, export et import JSON). **Prochaine étape : phase 6** (passage de niveau, pondération des tirages, finitions, accessibilité ; spec §5.1, §5.4, §12). Le mode 2 et l'accordeur restent à valider sur Android avec la guitare (checklist manuelle, spec §10).
+- **Application** : phases 1 à 6 faites (mode 1, mode 2 au micro sur les cases 0 à 12, accordeur, statistiques, réglages, export et import JSON, 7 niveaux débloqués automatiquement et séparément par mode, tirage pondéré). Données : schéma version 2 (`progression/modele.ts`, migration dans `stockage.ts`). **Prochaine étape : phase 7** : essais sur Android avec la guitare (checklist manuelle, spec §10) et corrections.
 - **Journaux du POC** : quand l'utilisateur envoie un journal, suivre le skill `analyser-journal`.
 - **Décisions de l'application** : section « Décisions » de `docs/revue-specs-app.md`.
 - **Décisions du POC** : plage jusqu'à E5 (point I1 de `docs/revue-specs.md`), validée par le scénario 6 ; matériel validé = micro intégré d'un téléphone Android ; accordeur validé ; guitare électrique hors périmètre ; ordinateurs et iPhone non testés. Autres points : `docs/revue-specs.md`, issue #1.

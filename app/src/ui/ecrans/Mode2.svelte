@@ -7,6 +7,7 @@
   import type { NoteDetectee } from '../../music/notes';
   import type { Niveau } from '../../progression/modele';
   import { caseMaxDuNiveau, contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
+  import { poidsDuMode } from '../../progression/statistiques';
   import { SCORE_INITIAL, noter } from '../../quiz/score';
   import { tirerQuestion, type Question } from '../../quiz/tirage';
   import { SuiviMode2, type EvenementMode2 } from '../../quiz/validation';
@@ -40,9 +41,9 @@
     ecouteFournie ?? new Ecoute(etat.progression.reglages, (seuil) => etat.definirReglage('seuilSilenceDb', seuil));
   const suivi = new SuiviMode2();
 
-  // Niveau au choix jusqu'à la phase 6, comme le mode 1.
+  // Comme en mode 1 : niveau atteint dans ce mode, ou niveau inférieur pour s'entraîner.
   // svelte-ignore state_referenced_locally
-  let niveau = $state<Niveau>(etat.progression.niveauActuel);
+  let niveau = $state<Niveau>(etat.progression.avancement[2].niveauAtteint);
   const premiere = nouvelleQuestion();
   suivi.poser(premiere);
   let question = $state<Question>(premiere);
@@ -52,6 +53,8 @@
   let historique = $state<{ id: number; juste: boolean; texte: string }[]>([]);
   let entendue = $state.raw<NoteDetectee | null>(null);
   let silenceProlonge = $state(false);
+  /** Message du dernier niveau débloqué pendant la session. */
+  let annonce = $state<string | null>(null);
   /** Après une note juste, le temps d'afficher le retour : les détections sont ignorées. */
   let enAttente = false;
   let numeroReponse = 0;
@@ -62,7 +65,8 @@
   const libelle = (note: NoteDetectee) => nomAffiche(note.nom, notation, note.octave);
 
   function nouvelleQuestion(precedente?: Question): Question {
-    return tirerQuestion(positionsDuNiveau(niveau, 2), contenuNiveau(niveau), hasard, precedente);
+    const poids = poidsDuMode(etat.progression.statistiques, 2);
+    return tirerQuestion(positionsDuNiveau(niveau, 2), { ...contenuNiveau(niveau), poids }, hasard, precedente);
   }
 
   /** Nouvelle question ; la précédente sert à ne pas la reposer et à ignorer sa note encore sonore. */
@@ -100,7 +104,8 @@
     const { juste, note, tempsMs } = evenement;
     score = noter(score, juste);
     // Le micro ne vérifie pas la corde : la réponse est comptée sur la position demandée (spec §5.2).
-    etat.repondre({ mode: 2, position: question.position, juste, tempsMs, date: new Date() });
+    const debloque = etat.repondre({ mode: 2, position: question.position, juste, tempsMs, date: new Date() }, niveau);
+    if (debloque) annonce = TEXTES.quiz.debloque(debloque, TEXTES.niveaux[debloque]!);
     historique = [
       {
         id: ++numeroReponse,
@@ -112,12 +117,18 @@
     if (juste) {
       retour = { type: 'juste', texte: TEXTES.mode2.juste(libelle(note), note.centsExacts) };
       if (reglages.retourSonore) ecoute.bip();
-      enAttente = true;
-      const precedente = question;
-      minuteur = setTimeout(() => suivante(precedente), DELAI_SUIVANTE_MS);
     } else {
       retour = { type: 'faux', texte: TEXTES.mode2.faux(libelle(note)) };
       erreursConsecutives++;
+    }
+    // Question suivante après une note juste, ou quand le niveau suivant vient d'être débloqué : il commence alors.
+    if (juste || debloque) {
+      enAttente = true;
+      const precedente = question;
+      minuteur = setTimeout(() => {
+        if (debloque) niveau = debloque;
+        suivante(precedente);
+      }, DELAI_SUIVANTE_MS);
     }
   }
 
@@ -133,10 +144,14 @@
   <button type="button" class="secondaire" onclick={onQuitter}>{TEXTES.arreter}</button>
 </header>
 
+{#if annonce}<p class="annonce" aria-live="polite">{annonce}</p>{/if}
+
 <ReglagesQuiz
   {niveau}
+  avancement={etat.progression.avancement[2]}
   onNiveau={(n) => {
     niveau = n;
+    annonce = null;
     suivante();
   }}
 >

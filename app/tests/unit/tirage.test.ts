@@ -60,3 +60,24 @@ describe('tirerQuestion sans la corde (niveau 1)', () => {
     }
   });
 });
+
+describe('tirage pondéré', () => {
+  it('tire chaque position en proportion de son poids', () => {
+    const deux = [
+      { corde: 6, case: 1 },
+      { corde: 6, case: 2 },
+    ] as const;
+    // Poids 1 et 3 : la première occupe le premier quart du tirage.
+    const options = { ...contenuNiveau(7), poids: (p: { case: number }) => (p.case === 1 ? 1 : 3) };
+    expect(tirerQuestion(deux, options, () => 0.24).position).toEqual(deux[0]);
+    expect(tirerQuestion(deux, options, () => 0.26).position).toEqual(deux[1]);
+  });
+
+  it('niveau 1 : le poids d’une note est la moyenne de ses cordes à vide', () => {
+    // E (cordes 6 et 1) pèse 2 en moyenne, les autres notes 1 : E occupe 2/6 du tirage.
+    const poids = (p: { corde: number }) => (p.corde === 6 ? 3 : 1);
+    const options = { ...contenuNiveau(1), poids };
+    expect(tirerQuestion(positionsDuNiveau(1), options, () => 0.32).nom).toBe('E');
+    expect(tirerQuestion(positionsDuNiveau(1), options, () => 0.34).nom).toBe('A');
+  });
+});

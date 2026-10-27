@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EtatApp } from '../../src/etat.svelte';
+import { avancementInitial, type AvancementMode } from '../../src/progression/modele';
 import { CLE_STOCKAGE } from '../../src/progression/stockage';
 import Mode1 from '../../src/ui/ecrans/Mode1.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -12,9 +13,11 @@ describe('mode 1', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  function demarrer() {
+  /** Mode 1 avec l'avancement donné (par défaut : niveau 1, aucune réponse). */
+  function demarrer(avancement: AvancementMode = avancementInitial()) {
     const stockage = stockageMemoire();
     const etat = new EtatApp(stockage);
+    etat.remplacer({ ...etat.progression, avancement: { 1: avancement, 2: avancementInitial() } });
     // Hasard nul : niveau 1, première question = E (corde 6 ou corde 1, à vide).
     render(Mode1, { etat, onQuitter: () => {}, hasard: () => 0 });
     return { stockage, etat };
@@ -71,13 +74,36 @@ describe('mode 1', () => {
     expect(etat.progression.statistiques[0]?.tentatives).toBe(1);
   });
 
-  it('change de niveau', async () => {
-    demarrer();
-    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.niveau }), { target: { value: '7' } });
+  it('commence au niveau atteint et permet de revenir à un niveau inférieur pour s’entraîner', async () => {
+    demarrer(avancementInitial(7));
     expect(screen.getAllByRole('button', { name: /^Corde 1, case/ })).toHaveLength(12);
     // Au-delà du niveau 1, la question indique la corde, mise en évidence.
     expect(question()).toBe('Trouvez Mi (E) sur la corde 6');
     expect(document.querySelectorAll('.case.evidence')).toHaveLength(13);
+    expect(screen.getByText(TEXTES.quiz.dernierNiveau)).toBeTruthy();
+    await fireEvent.change(screen.getByRole('combobox', { name: TEXTES.quiz.niveau }), { target: { value: '1' } });
+    expect(question()).toBe('Trouvez Mi (E)');
+    expect(screen.getByText(TEXTES.quiz.entrainement(7))).toBeTruthy();
+  });
+
+  it('verrouille les niveaux pas encore débloqués et montre où en est le passage', () => {
+    demarrer();
+    const options = screen.getAllByRole<HTMLOptionElement>('option');
+    expect(options.map((o) => o.disabled)).toEqual([false, true, true, true, true, true, true]);
+    expect(options[1]!.textContent?.trim()).toBe(TEXTES.quiz.nomNiveau(2, TEXTES.niveaux[2]!, true));
+    expect(screen.getByText(TEXTES.quiz.versNiveau(2, 80, 20, 0, 0))).toBeTruthy();
+  });
+
+  it('débloque le niveau 2 à 80 % sur les 20 dernières réponses, sans toucher au mode 2', async () => {
+    const { etat } = demarrer({ niveauAtteint: 1, dernieresReponses: Array<boolean>(19).fill(true) });
+    await fireEvent.click(caseDuManche('Corde 6, à vide'));
+    expect(screen.getByText(TEXTES.quiz.debloque(2, TEXTES.niveaux[2]!))).toBeTruthy();
+    expect(etat.progression.avancement).toEqual({ 1: avancementInitial(2), 2: avancementInitial() });
+    // Le niveau 2 commence à la question suivante.
+    expect(question()).toBe('Trouvez Mi (E)');
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(screen.getByRole<HTMLSelectElement>('combobox', { name: TEXTES.quiz.niveau }).value).toBe('2');
+    expect(question()).toMatch(/sur la corde \d$/);
   });
 
   it('suit la notation des réglages', async () => {

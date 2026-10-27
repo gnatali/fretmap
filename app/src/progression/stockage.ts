@@ -7,14 +7,17 @@ import {
   REGLAGES_DEFAUT,
   TOLERANCES,
   VERSION_SCHEMA,
+  avancementInitial,
   progressionInitiale,
+  type AvancementMode,
   type Niveau,
   type Progression,
   type Reglages,
-  type ScoreNiveau,
   type Statistique,
 } from './modele';
+import { contenuNiveau } from './niveaux';
 
+/** Clé du stockage ; elle ne suit pas la version du schéma (une nouvelle clé perdrait les progressions). */
 export const CLE_STOCKAGE = 'fretmap.v1';
 /** Copie du contenu illisible trouvé au chargement, pour ne pas perdre une progression en silence. */
 export const CLE_ILLISIBLE = 'fretmap.v1.illisible';
@@ -81,29 +84,38 @@ function estStatistique(valeur: unknown): valeur is Statistique {
   );
 }
 
-function normaliserScores(valeur: unknown): Progression['scoreParNiveau'] {
-  const scores: Progression['scoreParNiveau'] = {};
-  if (!estObjet(valeur)) return scores;
-  for (const [cle, score] of Object.entries(valeur)) {
-    const niveau = Number(cle);
-    if (!estNiveau(niveau) || !estObjet(score)) continue;
-    if (estEntierPositif(score.questions) && estEntierPositif(score.reussites) && score.reussites <= score.questions) {
-      scores[niveau] = { questions: score.questions, reussites: score.reussites } satisfies ScoreNiveau;
-    }
+function normaliserAvancement(valeur: unknown): AvancementMode {
+  if (!estObjet(valeur) || !estNiveau(valeur.niveauAtteint)) return avancementInitial();
+  const requises = contenuNiveau(valeur.niveauAtteint).reponsesPourPasser;
+  const dernieres = Array.isArray(valeur.dernieresReponses)
+    ? valeur.dernieresReponses.filter((r): r is boolean => typeof r === 'boolean')
+    : [];
+  return {
+    niveauAtteint: valeur.niveauAtteint,
+    dernieresReponses: requises === null ? [] : dernieres.slice(-requises),
+  };
+}
+
+/** Avancement par mode : en version 1, le niveau était commun aux deux modes (`niveauActuel`). */
+function lireAvancement(donnees: Brut): Progression['avancement'] {
+  if (donnees.version === 1) {
+    const niveau = estNiveau(donnees.niveauActuel) ? donnees.niveauActuel : 1;
+    return { 1: avancementInitial(niveau), 2: avancementInitial(niveau) };
   }
-  return scores;
+  const avancement = estObjet(donnees.avancement) ? donnees.avancement : {};
+  return { 1: normaliserAvancement(avancement[1]), 2: normaliserAvancement(avancement[2]) };
 }
 
 /**
- * Ramène des données lues (stockage ou import) au schéma courant. Version 1 : validation et valeurs par défaut
- * pour les champs manquants ou invalides. Renvoie null si les données ne sont pas une progression connue.
+ * Ramène des données lues (stockage ou import) au schéma courant : validation et valeurs par défaut pour les champs
+ * manquants ou invalides. La version 1 (niveau commun aux deux modes, `scoreParNiveau` jamais rempli) est convertie.
+ * Renvoie null si les données ne sont pas une progression connue.
  */
 export function migrer(donnees: unknown): Progression | null {
-  if (!estObjet(donnees) || donnees.version !== VERSION_SCHEMA) return null;
+  if (!estObjet(donnees) || (donnees.version !== 1 && donnees.version !== VERSION_SCHEMA)) return null;
   return {
     version: VERSION_SCHEMA,
-    niveauActuel: estNiveau(donnees.niveauActuel) ? donnees.niveauActuel : 1,
-    scoreParNiveau: normaliserScores(donnees.scoreParNiveau),
+    avancement: lireAvancement(donnees),
     statistiques: Array.isArray(donnees.statistiques)
       ? donnees.statistiques.filter(estStatistique).map((s) => ({ ...s }))
       : [],

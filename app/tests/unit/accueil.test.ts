@@ -9,7 +9,7 @@ describe('accueil', () => {
   it('affiche le titre, le niveau et les cinq entrées de la spec §7', () => {
     render(App, { stockage: stockageMemoire() });
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(TEXTES.titre);
-    expect(screen.getByText(TEXTES.niveauActuel(1))).toBeTruthy();
+    expect(screen.getByText(TEXTES.niveauxAtteints(1, 1))).toBeTruthy();
     const boutons = screen.getAllByRole('button');
     expect(boutons.map((b) => b.querySelector('.titre')?.textContent)).toEqual([
       'Mode 1',
