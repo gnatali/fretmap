@@ -33,12 +33,12 @@
   let retour = $state<{ juste: boolean; texte: string } | null>(null);
   let minuteur: ReturnType<typeof setTimeout> | undefined;
 
-  function nouvelleQuestion(precedente?: Position): Question {
-    return tirerQuestion(positionsDuNiveau(niveau), contenuNiveau(niveau).caseMax, hasard, precedente);
+  function nouvelleQuestion(precedente?: Question): Question {
+    return tirerQuestion(positionsDuNiveau(niveau), contenuNiveau(niveau), hasard, precedente);
   }
 
   /** Nouvelle question ; sans reposer la précédente quand on reste au même niveau. */
-  function suivante(precedente?: Position): void {
+  function suivante(precedente?: Question): void {
     clearTimeout(minuteur);
     minuteur = undefined;
     question = nouvelleQuestion(precedente);
@@ -50,18 +50,22 @@
   function toucher(touchee: Position): void {
     if (retour) return;
     const tempsMs = performance.now() - debut;
-    const { juste, casesCorrectes } = verifierMode1(question, touchee);
-    const corde = question.position.corde;
+    const { juste, positionsCorrectes } = verifierMode1(question, touchee);
     marques = juste
       ? { [`${touchee.corde}-${touchee.case}`]: 'juste' }
       : {
-          ...Object.fromEntries(casesCorrectes.map((k) => [`${corde}-${k}`, 'attendue' as const])),
+          ...Object.fromEntries(positionsCorrectes.map((p) => [`${p.corde}-${p.case}`, 'attendue' as const])),
           [`${touchee.corde}-${touchee.case}`]: 'faux',
         };
-    retour = { juste, texte: juste ? TEXTES.mode1.juste : TEXTES.mode1.faux(question.nom, casesCorrectes) };
+    retour = {
+      juste,
+      texte: juste ? TEXTES.mode1.juste : TEXTES.mode1.faux(question.nom, positionsCorrectes, question.cordeDemandee),
+    };
     score = noter(score, juste);
-    etat.repondre({ mode: 1, position: question.position, juste, tempsMs, date: new Date() });
-    minuteur = setTimeout(() => suivante(question.position), DELAI_SUIVANTE_MS);
+    // Juste : la position touchée est connue (E sur la corde 1, ou la case 12) ; faux : la position tirée.
+    etat.repondre({ mode: 1, position: juste ? touchee : question.position, juste, tempsMs, date: new Date() });
+    const precedente = question;
+    minuteur = setTimeout(() => suivante(precedente), DELAI_SUIVANTE_MS);
   }
 
   onDestroy(() => clearTimeout(minuteur));
@@ -93,7 +97,7 @@
 
 <p class="question" aria-live="polite">
   {TEXTES.mode1.question} <strong class="nom">{question.nom}</strong>
-  {TEXTES.mode1.surLaCorde} <strong>{question.position.corde}</strong>
+  {#if question.cordeDemandee}{TEXTES.mode1.surLaCorde} <strong>{question.position.corde}</strong>{/if}
 </p>
 
 <p class="retour" class:juste={retour?.juste} class:faux={retour && !retour.juste} role="status">
@@ -103,7 +107,7 @@
 <Manche
   {caseMax}
   afficherNotes={etat.progression.reglages.afficherNotes}
-  cordeEnEvidence={question.position.corde}
+  cordeEnEvidence={question.cordeDemandee ? question.position.corde : null}
   {marques}
   onToucher={toucher}
 />

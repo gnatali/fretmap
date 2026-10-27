@@ -8,14 +8,16 @@ export interface ContenuNiveau {
   caseMax: number;
   /** Notes naturelles seulement (sans dièse). */
   naturelles: boolean;
+  /** La question indique la corde. Pas au niveau 1 : avec les cordes à vide, la corde serait la réponse. */
+  cordeDemandee: boolean;
 }
 
 export const NIVEAUX: readonly ContenuNiveau[] = [
-  { niveau: 1, caseMax: 0, naturelles: false },
-  { niveau: 2, caseMax: 5, naturelles: true },
-  { niveau: 3, caseMax: 5, naturelles: false },
-  { niveau: 4, caseMax: 7, naturelles: false },
-  { niveau: 5, caseMax: 12, naturelles: false },
+  { niveau: 1, caseMax: 0, naturelles: false, cordeDemandee: false },
+  { niveau: 2, caseMax: 5, naturelles: true, cordeDemandee: true },
+  { niveau: 3, caseMax: 5, naturelles: false, cordeDemandee: true },
+  { niveau: 4, caseMax: 7, naturelles: false, cordeDemandee: true },
+  { niveau: 5, caseMax: 12, naturelles: false, cordeDemandee: true },
 ];
 
 export function contenuNiveau(niveau: Niveau): ContenuNiveau {

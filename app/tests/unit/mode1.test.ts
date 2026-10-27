@@ -14,7 +14,7 @@ describe('mode 1', () => {
   function demarrer() {
     const stockage = stockageMemoire();
     const etat = new EtatApp(stockage);
-    // Hasard nul : niveau 1, première question = corde 6 à vide (E).
+    // Hasard nul : niveau 1, première question = E (corde 6 ou corde 1, à vide).
     render(Mode1, { etat, onQuitter: () => {}, hasard: () => 0 });
     return { stockage, etat };
   }
@@ -24,7 +24,7 @@ describe('mode 1', () => {
 
   it('valide la bonne case, enregistre la réponse et passe à la question suivante après 1 s', async () => {
     const { stockage, etat } = demarrer();
-    expect(question()).toBe('Trouvez E sur la corde 6');
+    expect(question()).toBe('Trouvez E');
     await fireEvent.click(caseDuManche('Corde 6, à vide'));
     expect(screen.getByRole('status').textContent).toContain(TEXTES.mode1.juste);
     expect(document.querySelector('.score')?.textContent).toContain('1 / 1');
@@ -32,17 +32,35 @@ describe('mode 1', () => {
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"reussites":1');
 
     await vi.advanceTimersByTimeAsync(1000);
-    // La question précédente n'est pas reposée : corde 5 à vide (A).
-    expect(question()).toBe('Trouvez A sur la corde 5');
+    // La note précédente n'est pas reposée : A.
+    expect(question()).toBe('Trouvez A');
     expect(screen.getByRole('status').textContent).toBe('');
   });
 
-  it('signale une erreur et montre la bonne case', async () => {
+  it('niveau 1 : accepte E sur la corde 1 et compte la réponse sur la position touchée', async () => {
+    const { etat } = demarrer();
+    await fireEvent.click(caseDuManche('Corde 1, à vide'));
+    expect(screen.getByRole('status').textContent).toContain(TEXTES.mode1.juste);
+    expect(etat.progression.statistiques).toMatchObject([{ corde: 1, case: 0, reussites: 1 }]);
+  });
+
+  it('niveau 1 : ne désigne aucune corde', () => {
     demarrer();
+    expect(document.querySelector('.case.evidence')).toBeNull();
+  });
+
+  it('signale une erreur et montre les bonnes cases', async () => {
+    const { etat } = demarrer();
     await fireEvent.click(caseDuManche('Corde 5, à vide'));
-    expect(screen.getByRole('status').textContent).toContain(TEXTES.mode1.faux('E', [0]));
-    expect(caseDuManche('Corde 6, à vide').getAttribute('aria-label')).toContain(TEXTES.manche.marque.attendue);
+    expect(screen.getByRole('status').textContent).toContain('Faux : E est la corde 6 ou la corde 1, à vide');
+    for (const corde of [6, 1]) {
+      expect(caseDuManche(`Corde ${corde}, à vide`).getAttribute('aria-label')).toContain(
+        TEXTES.manche.marque.attendue,
+      );
+    }
     expect(document.querySelector('.score')?.textContent).toContain('0 / 1');
+    // Réponse fausse : comptée sur la position tirée.
+    expect(etat.progression.statistiques).toMatchObject([{ corde: 6, case: 0, reussites: 0 }]);
   });
 
   it('ignore les touchers pendant le retour', async () => {
@@ -56,5 +74,8 @@ describe('mode 1', () => {
     demarrer();
     await fireEvent.change(screen.getByRole('combobox'), { target: { value: '5' } });
     expect(screen.getAllByRole('button', { name: /^Corde 1, case/ })).toHaveLength(12);
+    // Au-delà du niveau 1, la question indique la corde, mise en évidence.
+    expect(question()).toBe('Trouvez E sur la corde 6');
+    expect(document.querySelectorAll('.case.evidence')).toHaveLength(13);
   });
 });

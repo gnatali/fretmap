@@ -107,12 +107,14 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 **Quiz**
 - Tirage d'une position (corde, case) parmi celles du niveau ; la question affiche la note de cette position et la corde.
 - L'utilisateur touche la case. Toute case de la corde demandée qui donne la note est acceptée : sur une corde, une note revient toutes les 12 cases (une corde à vide et sa case 12, par exemple).
+- Niveau 1 (cordes à vide) : la question ne donne que la note, car la corde serait la réponse. Toute corde à vide qui donne la note est acceptée (E : cordes 6 et 1). Le tirage porte sur les noms de note, pour que E ne sorte pas deux fois plus souvent.
 - Retour immédiat : vert si juste, rouge si faux, avec affichage de la bonne case.
 - Score de session, série de bonnes réponses, pourcentage de réussite.
 - Passage automatique à la question suivante après 1 seconde.
 
 **Statistiques par note**
 - Pour chaque mode et chaque couple (corde, case) : nombre de tentatives, nombre de réussites, temps de réponse moyen.
+- Mode 1 : une réponse juste est comptée sur la position touchée (seule connue : corde 1 pour E au niveau 1, ou case 12) ; une réponse fausse, sur la position tirée.
 - Les notes les moins maîtrisées reviennent plus souvent (tirage pondéré).
 
 ### 5.2 Mode 2 : jouer la note
@@ -160,7 +162,7 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 
 | Niveau | Contenu | Condition de passage |
 |---|---|---|
-| 1 | Cordes à vide (E, A, D, G, B, E) | 80 % de réussite sur 20 questions |
+| 1 | Cordes à vide (E, A, D, G, B, E) ; la question ne donne pas la corde | 80 % de réussite sur 20 questions |
 | 2 | Cases 0 à 5, notes naturelles | 80 % sur 20 questions |
 | 3 | Cases 0 à 5, toutes les notes | 80 % sur 30 questions |
 | 4 | Cases 0 à 7, toutes les notes | 80 % sur 30 questions |

@@ -1,5 +1,10 @@
 // Tous les textes de l'interface (spec §13) : un seul fichier pour faciliter une future traduction.
 
+/** « la corde 6 ou la corde 1 ». */
+function listeCordes(cordes: readonly number[]): string {
+  return cordes.map((c) => `la corde ${c}`).join(' ou ');
+}
+
 /** « à la case 4 », « aux cases 0 et 12 ». */
 function listeCases(cases: readonly number[]): string {
   if (cases.length === 1) return `à la case ${cases[0]}`;
@@ -35,7 +40,10 @@ export const TEXTES = {
     question: 'Trouvez',
     surLaCorde: 'sur la corde',
     juste: 'Juste',
-    faux: (nom: string, cases: readonly number[]) => `Faux : ${nom} est ${listeCases(cases)}`,
+    faux: (nom: string, positions: readonly { corde: number; case: number }[], cordeDemandee: boolean) =>
+      cordeDemandee
+        ? `Faux : ${nom} est ${listeCases(positions.map((p) => p.case))}`
+        : `Faux : ${nom} est ${listeCordes(positions.map((p) => p.corde))}, à vide`,
     score: (bonnes: number, questions: number) => `${bonnes} / ${questions}`,
     pourcentage: (p: number | null) => (p === null ? '–' : `${p} %`),
     serie: (serie: number, meilleure: number) => `Série ${serie} (meilleure : ${meilleure})`,
