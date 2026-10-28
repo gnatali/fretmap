@@ -5,7 +5,7 @@ import { frequenceVersNote, midiVersFrequence } from '../../src/music/notes';
 import type { Niveau } from '../../src/progression/modele';
 import { contenuNiveau, positionsDuNiveau } from '../../src/progression/niveaux';
 import { tirerQuestion } from '../../src/quiz/tirage';
-import { TEXTES, consigne, duree, emplacement, retour } from '../../src/ui/textes';
+import { TEXTES, consigne, duree, emplacement, retour, retourFausse } from '../../src/ui/textes';
 
 const question = (niveau: Niveau, corde: number, numeroCase: number) => {
   const candidates = positionsDuNiveau(niveau).filter((p) => p.corde === corde && p.case === numeroCase);
@@ -19,6 +19,14 @@ describe('duree', () => {
     expect(duree(6000)).toBe('6,0 s');
     expect(duree(4500)).toBe('4,5 s');
     expect(duree(1840)).toBe('1,8 s');
+  });
+});
+
+describe('retourFausse', () => {
+  it('donne la note jouée et la pénalité, sans « −0 » quand le score était à 0', () => {
+    const la = frequenceVersNote(midiVersFrequence(45))!;
+    expect(retourFausse(la, 50, 'les-deux')).toBe('Fausse note : La (A) · −50');
+    expect(retourFausse(la, 0, 'anglo-saxonne')).toBe('Fausse note : A');
   });
 });
 

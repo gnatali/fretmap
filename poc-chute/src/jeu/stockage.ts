@@ -4,7 +4,7 @@ import { estCase, estNumeroCorde } from '../music/manche';
 import { NOTATIONS } from '../music/notation';
 import { NIVEAU_MAX, type Niveau, type Statistique } from '../progression/modele';
 import type { PartieJournal } from './journal';
-import type { ReglagesPartie } from './partie';
+import { REGLES_FAUSSE_NOTE, type ReglagesPartie } from './partie';
 import { DUREE_CHUTE_DEFAUT_MS, bornerDuree } from './vitesse';
 
 /** Clé du stockage, distincte de celle de l'application (fretmap.v1). */
@@ -35,6 +35,8 @@ export const REGLAGES_DEPART_DEFAUT: Readonly<ReglagesPartie> = {
   vitesseFixe: false,
   afficherCase: false,
   notation: 'les-deux',
+  // Mode par défaut depuis le 28/10/2026 (demande de l'utilisateur) : un ancien stockage sans ce champ y passe.
+  fausseNote: 'penalite',
 };
 
 export function donneesInitiales(): DonneesPoc {
@@ -83,6 +85,7 @@ function normaliserReglages(valeur: unknown): ReglagesPartie {
     vitesseFixe: booleen(r.vitesseFixe, d.vitesseFixe),
     afficherCase: booleen(r.afficherCase, d.afficherCase),
     notation: NOTATIONS.find((n) => n === r.notation) ?? d.notation,
+    fausseNote: REGLES_FAUSSE_NOTE.find((regle) => regle === r.fausseNote) ?? d.fausseNote,
   };
 }
 

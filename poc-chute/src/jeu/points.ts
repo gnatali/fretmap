@@ -23,6 +23,11 @@ export const CASE_HAUTE_MIN = 7;
 export const PALIER_SERIE = 10;
 /** Multiplicateur de série maximal : ×4 (spec §6.6). */
 export const MULTIPLICATEUR_MAX = 4;
+/**
+ * Points retirés par une fausse note en mode « pénalité » : 50, la moitié de POINTS_BASE (spec §6.6, choix de
+ * l'utilisateur du 28/10/2026). Le score ne descend pas sous 0.
+ */
+export const PENALITE_FAUSSE_NOTE = 50;
 
 /** Timing d'une note validée à cette progression (0 = apparition, 1 = ligne de jeu). */
 export function timingDe(progression: number): Timing {
@@ -52,7 +57,7 @@ export interface NoteJuste {
   serie: number;
 }
 
-/** Points d'une note juste, arrondis à l'entier. Une erreur ne rapporte rien et ne retire rien. */
+/** Points d'une note juste, arrondis à l'entier. Une erreur ne rapporte rien (pénalité à part : PENALITE_FAUSSE_NOTE). */
 export function pointsNote({ timing, dureeChuteMs, position, serie }: NoteJuste): number {
   const vitesse = DUREE_REFERENCE_VITESSE_MS / dureeChuteMs;
   return Math.round(POINTS_BASE * BONUS_TIMING[timing] * vitesse * facteurDifficulte(position) * multiplicateur(serie));

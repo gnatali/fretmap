@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1.3** (27/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 1.4** (28/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -118,6 +118,7 @@ poc-chute/
 - Choix du niveau, parmi les 7 niveaux de l'application, tous ouverts (Q16). Rappel du contenu du niveau (ex. « Cases 0 à 5, notes naturelles »).
 - Durée de chute initiale : curseur de 1 à 10 s, par pas de 0,5 s, 6 s par défaut (Q11).
 - Notation des notes : anglo-saxonne, française, les deux (défaut), comme dans l'application.
+- **Fausse note** (6.4) : « Coûte 50 points (la note reste à jouer) » (défaut) ou « Détruit la note (on passe à la suivante) ». La règle choisie est notée dans le journal.
 - **Options de mesure**, repliées par défaut : « Afficher la case » et « Vitesse fixe » (6.9).
 - Bouton « Démarrer », précédé de l'explication du micro et d'un rappel d'accorder la guitare : démarre le micro, puis le calibrage (2 s), puis la partie après un compte à rebours de 3 s. Le micro est démarré à chaque partie (« Démarrer » ou « Rejouer ») et arrêté à la fin : chaque partie a son calibrage. Un refus d'autorisation ou un micro introuvable ramène à l'écran de départ, avec le message. En mode simulation (`?simulation`), le bouton « Démarrer (simulation) » lance la partie au clavier.
 - Bouton « Exporter le journal » et « Vider le journal » (avec confirmation).
@@ -133,8 +134,10 @@ poc-chute/
 - **Indicateur** en bas de l'écran : dernière note détectée avec son octave et son écart en cents (Q8), grisée quand elle ne sonne plus ; niveau sonore avec un repère au seuil de silence ; messages « Jouez la note… » après 3 s de silence pendant qu'une note est attendue, « Note non reconnue, rejouez » (règle du mode 2) et « Mi2 (E2) : la note précédente sonne encore, étouffez la corde » (ancienne note). Les deux derniers restent affichés jusqu'au résultat de la note attendue. Si le navigateur a laissé actif un traitement du son, une ligne le signale.
 - **Retours** à chaque résultat (Q8) :
   - note juste : la note devient verte et s'efface, avec la qualité du timing (« Parfait », « Bien », « Juste ») et les points gagnés ;
-  - fausse note ou note ratée : la note devient rouge et s'efface, avec la note jouée s'il y en a une ;
-  - après une erreur, la **bonne case** s'affiche 1,5 s sur le manche (toutes les cases de la corde qui donnent la note).
+  - note détruite (mode « destruction ») ou ratée : la note devient rouge et s'efface, avec la note jouée s'il y en a une ;
+  - fausse note en mode « pénalité » : « Fausse note : La (A) · −50 », la note clignote en rouge et reste à jouer ;
+  - après une note détruite ou ratée, la **bonne case** s'affiche 1,5 s sur le manche (toutes les cases de la corde qui donnent la note) ;
+  - en mode « pénalité », après 3 fausses notes sur la même note (`FAUSSES_AVANT_RAPPEL`, comme le mode 2 de l'application), la bonne case reste affichée jusqu'au résultat de la note.
 - Bouton « Arrêter » : met fin à la partie (enregistrée comme interrompue). Pendant le calibrage ou le compte à rebours, il ramène au départ sans rien enregistrer.
 - **Onglet en arrière-plan** : la partie s'arrête comme avec « Arrêter », et le micro est coupé (comme en mode 2 de l'application, qui coupe alors le micro). Le verrou de veille est perdu en arrière-plan, et les images sans affichage fausseraient la mesure HC1.
 
@@ -150,18 +153,20 @@ poc-chute/
 ### 6.4 Validation au micro
 - La partie s'appuie sur `SuiviMode2`, sans modification. Quand une note devient attendue, `poser(question, précédente)` est appelé, avec la note qui vient de disparaître comme précédente.
 - **Note juste** (événement `reponse`, `juste`) : la note est validée.
-- **Fausse note** (événement `reponse`, pas `juste`) (Q14) : la note attendue est **détruite**. C'est une erreur, avec le même effet qu'une note ratée : 0 point, série cassée, ralentissement.
-- **Ancienne note** (événement `ancienneNote`) : ignorée une fois, sans effet sur la note, message dans l'indicateur, notée dans le journal. C'est la protection contre la corde précédente qui sonne encore, plus importante ici puisqu'une fausse note détruit la note.
+- **Fausse note** (événement `reponse`, pas `juste`), selon la règle choisie au départ :
+  - **« pénalité »** (défaut) : la note reste attendue et peut encore être jouée juste, jusqu'à la ligne. Chaque fausse note retire 50 points (`PENALITE_FAUSSE_NOTE`), sans faire descendre le score sous 0, casse la série et ralentit la chute (6.5). `SuiviMode2` garde la question, comme le mode 2 de l'application : la fausse note suivante demande une nouvelle attaque. Si elle est enfin jouée juste, la note rapporte ses points (6.6) ; sinon, elle est ratée en touchant la ligne ;
+  - **« destruction »** (Q14) : la note attendue est **détruite**. C'est une erreur, avec le même effet qu'une note ratée : 0 point, série cassée, ralentissement.
+- **Ancienne note** (événement `ancienneNote`) : ignorée une fois, sans effet sur la note, message dans l'indicateur, notée dans le journal. C'est la protection contre la corde précédente qui sonne encore : elle évite une note détruite ou une pénalité à tort.
 - **Non reconnue** (événement `nonReconnue`) : message affiché, sans effet sur la note, noté dans le journal.
 - **Latence** (Q18) : pas de compensation. La note est validée à l'instant de la détection, même si l'attaque a eu lieu juste avant que la note touche la ligne. Le journal enregistre l'instant de l'attaque et celui de la détection, pour compter les notes perdues à cause de la latence (HC3).
-- **Statistiques** : chaque note juste ou en erreur (fausse ou ratée) met à jour la statistique de la **position demandée** (tentatives, réussites, temps de réponse moyen), comme en mode 2.
+- **Statistiques** : chaque réponse (note juste, fausse note) et chaque note ratée met à jour la statistique de la **position demandée** (tentatives, réussites, temps de réponse moyen), comme en mode 2. En mode « pénalité », une note peut donc compter plusieurs réponses ; le temps de réponse part de la dernière fausse note, comme en mode 2.
 
 ### 6.5 Vitesse adaptative
 Q10 : la vitesse s'adapte au joueur pour le garder à sa limite ; Q11 : la plage de vitesses du jeu sera décidée sur les mesures.
 
 - **Départ** : la durée de chute choisie sur l'écran de départ.
 - **Accélération** : après 5 notes justes d'affilée (`NOTES_AVANT_ACCELERATION`), durée × 0,9 (`FACTEUR_ACCELERATION`). Le décompte repart de zéro.
-- **Ralentissement** : après chaque erreur (fausse note ou note ratée), durée × 1,15 (`FACTEUR_RALENTISSEMENT`), et le décompte d'accélération repart de zéro.
+- **Ralentissement** : après chaque erreur (fausse note, dans les deux modes, ou note ratée), durée × 1,15 (`FACTEUR_RALENTISSEMENT`), et le décompte d'accélération repart de zéro.
 - **Bornes** : 1 à 10 s (`DUREE_CHUTE_MIN_MS`, `DUREE_CHUTE_MAX_MS`).
 - Option de mesure « Vitesse fixe » : la durée ne change pas pendant la partie.
 
@@ -182,17 +187,17 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
 | Multiplicateur de série | min(4, 1 + ⌊série / 10⌋), la série comptant la note jouée : × 2 à la 10e note juste d'affilée, × 3 à la 20e, × 4 à la 30e |
 
 - Exemple : note juste, Bien, chute de 4 s, F# en case 2, 12e note juste d'affilée : 100 × 1,2 × 1,25 × 1,5 × 2 = 450 points.
-- Une erreur rapporte 0 point et remet la série à zéro. Pas de points retirés.
+- Une erreur rapporte 0 point et remet la série à zéro. En mode « pénalité », chaque fausse note retire en plus 50 points (`PENALITE_FAUSSE_NOTE`, la moitié de `POINTS_BASE`), sans faire descendre le score sous 0. En mode « destruction », aucun point n'est retiré.
 
 ### 6.7 Fin de partie
-- La partie compte **30 notes** (Q15, `NOTES_PAR_PARTIE`) et se termine quand la 30e est jouée, détruite ou ratée.
+- La partie compte **30 notes** (Q15, `NOTES_PAR_PARTIE`) et se termine quand la 30e est jouée juste, détruite ou ratée.
 - Écran de fin :
   - score ;
-  - notes justes, fausses et ratées ;
+  - notes justes, fausses notes jouées (notes détruites et fausses notes du mode « pénalité ») et notes ratées ;
   - meilleure série ;
   - durée de chute de départ, de fin et la plus courte atteinte ;
   - temps de réponse médian ;
-  - les positions ratées, avec leur bonne case.
+  - les **notes à revoir**, avec leur bonne case : notes détruites, ratées, ou jouées juste après une fausse note.
 - Boutons « Rejouer » (mêmes réglages), « Changer de niveau » et « Exporter le journal ».
 
 ### 6.8 Tirage des notes
@@ -223,7 +228,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
       "navigateur": "Mozilla/5.0 (Linux; Android 14; …) Chrome/…",
       "simulation": false,
       "interrompue": false,
-      "reglages": { "niveau": 5, "dureeInitialeMs": 6000, "vitesseFixe": false, "afficherCase": false, "notation": "les-deux" },
+      "reglages": { "niveau": 5, "dureeInitialeMs": 6000, "vitesseFixe": false, "afficherCase": false, "notation": "les-deux", "fausseNote": "penalite" },
       "seuilSilenceDbfs": -52.3,
       "traitementsActifs": [],
       "images": { "nombre": 5400, "medianeMs": 16.7, "p95Ms": 18.2, "partAuDelaDe33Ms": 0.004 },
@@ -253,7 +258,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
 }
 ```
 
-- `resultat` : `juste`, `fausse` ou `ratee`. `tAttaqueMs` : dernière attaque entendue pendant que la note était attendue (null si aucune). `progression` et `dureeChuteMs` : au moment du résultat. `evenements` : `ancienneNote` et `nonReconnue`, qui ne comptent pas. `tDetectionMs` et `detectee` sont null pour une note ratée, `timing` pour toute note qui n'est pas juste. `tempsReponseMedianMs` : médiane des temps de réponse des notes justes (de l'instant où la note est attendue à la détection).
+- `resultat` : `juste`, `fausse` (note détruite, mode « destruction » seulement) ou `ratee`. `tAttaqueMs` : dernière attaque entendue pendant que la note était attendue (null si aucune). `progression` et `dureeChuteMs` : au moment du résultat. `evenements` : `ancienneNote` et `nonReconnue`, qui ne comptent pas, et `fausse` en mode « pénalité », par exemple `{ "type": "fausse", "tMs": 1700, "nom": "D", "midi": 50, "cents": 4, "penalite": 50 }` (note jouée ; `penalite` : points vraiment retirés, moins de 50 si le score était plus bas). Le résumé `fausses` compte toutes les fausses notes jouées. `tDetectionMs` et `detectee` sont null pour une note ratée, `timing` pour toute note qui n'est pas juste. `tempsReponseMedianMs` : médiane des temps de réponse des notes justes (de l'instant où la note est attendue à la détection).
 - `images` : durées entre deux `requestAnimationFrame` pendant la partie (médiane, 95e centile, part au-delà de 33 ms). Le micro tourne en même temps : c'est la mesure de HC1.
 
 ---
@@ -279,6 +284,8 @@ Dans `src/jeu/`, nommées en majuscules et commentées avec leur valeur initiale
 | `CASE_HAUTE_MIN` | 7 | Q13, proposition |
 | `PALIER_SERIE`, `MULTIPLICATEUR_MAX` | 10, 4 | Q13, proposition |
 | `DUREE_RAPPEL_CASE_MS` | 1500 (dans `jeu/partie.ts`) | Q8, proposition |
+| `PENALITE_FAUSSE_NOTE` | 50 (dans `jeu/points.ts`) | Q22 |
+| `FAUSSES_AVANT_RAPPEL` | 3 (dans `jeu/partie.ts`) | Q24 |
 | `PARTIES_GARDEES` | 50 | proposition |
 | `DT_MAX_MS` | 100 | proposition (version 1.1) |
 
@@ -291,7 +298,7 @@ Seuils proposés, à confirmer à la relecture.
 | # | Hypothèse | Critère de réussite | Mesure |
 |---|---|---|---|
 | HC1 | L'animation reste fluide avec le micro actif | Médiane ≥ 55 images/s (≤ 18 ms) et moins de 5 % d'images au-delà de 33 ms, sur toutes les parties | Journal (`images`) |
-| HC2 | La détection est fiable en jeu | Case affichée : ≥ 95 % de notes justes au premier essai, et au plus 1 note détruite à tort par partie (fausse note alors que la case était affichée) | Scénario S1 |
+| HC2 | La détection est fiable en jeu | Case affichée : ≥ 95 % de notes justes au premier essai, et au plus 1 fausse note à tort par partie (fausse note détectée alors que la case était affichée) | Scénario S1 |
 | HC3 | La latence ne gâche pas le jeu | Médiane de l'attaque à la validation < 300 ms ; < 5 % des notes ratées alors que l'attaque a eu lieu avant la ligne | Scénarios S1 à S3 |
 | HC4 | La vitesse adaptative trouve la limite du joueur | La durée de chute varie de moins de ±20 % sur les 10 dernières notes d'une partie ; relever la plage jouée par niveau (pour fixer la plage du mode 3, Q11) | Scénarios S2 et S3 |
 | HC5 | Le jeu aide à mémoriser le manche | Entre le 1er et le 5e jour, au même niveau : temps de réponse médian en baisse d'au moins 20 %, ou réussite en hausse d'au moins 10 points ; et ressenti positif de l'utilisateur (plaisir, envie de rejouer), noté dans la synthèse | Scénario S4 |
@@ -302,7 +309,7 @@ Seuils proposés, à confirmer à la relecture.
 
 **Matériel** : le téléphone Android et la guitare acoustique du premier POC, guitare accordée avec l'accordeur de l'application, pièce calme.
 
-**Scénarios** :
+**Scénarios**, avec la règle de la fausse note par défaut (« pénalité ») ; le mode « destruction » peut être essayé en plus, la règle est notée dans le journal :
 1. **S1, détection en jeu** : options « Afficher la case » et « Vitesse fixe » à 5 s, niveau 7, 3 parties.
 2. **S2, jeu facile** : niveau 2, vitesse adaptative, départ à 6 s, 3 parties.
 3. **S3, jeu difficile** : niveau 5, vitesse adaptative, départ à 6 s, 3 parties.
@@ -344,12 +351,12 @@ Le POC est prêt pour la campagne quand (critères vérifiés en phase 4 par les
 - `chute.test.ts` : progression en fonction du temps ; apparition au tiers de la chute ; note ratée à `p = 1` ; un changement de vitesse s'applique à toutes les notes, sans dépassement.
 - `vitesse.test.ts` : accélération après 5 notes justes ; ralentissement après une erreur ; bornes de 1 et 10 s ; vitesse fixe.
 - `points.test.ts` : exemple de 6.6 ; chaque facteur seul ; paliers du multiplicateur (9e, 10e, 20e, 30e note).
-- `partie.test.ts` : la fausse note détruit la note attendue ; ancienne note ignorée une fois ; note non reconnue sans effet ; statistiques sur la position demandée ; fin à 30 notes ; partie interrompue.
+- `partie.test.ts` : en mode « destruction », la fausse note détruit la note attendue ; en mode « pénalité », elle retire 50 points (score minimum 0), casse la série, ralentit la chute et laisse la note à jouer ; ancienne note ignorée une fois ; note non reconnue sans effet ; statistiques sur la position demandée ; fin à 30 notes ; partie interrompue.
 - `journal.test.ts` : format de l'export, mesures d'images (médiane, 95e centile, part au-delà de 33 ms), limite de 50 parties, relecture après rechargement.
 
 **De bout en bout** (`tests/e2e/`, Playwright, profil Pixel 7) :
-- en mode simulation : une partie complète au niveau 2 jusqu'à l'écran de fin ; une note ratée quand on ne joue pas ; une fausse note par la touche F ; l'export télécharge un JSON valide ;
-- au micro simulé (fichier WAV, comme `app/`) : calibrage, note juste, ancienne note ignorée, fausse note, puis journal exporté avec le seuil de silence, les instants d'attaque et de détection.
+- en mode simulation : une partie complète au niveau 2 jusqu'à l'écran de fin ; une note ratée quand on ne joue pas ; une fausse note par la touche F, dans chaque mode (pénalité, bonne case après 3 fausses notes) ; l'export télécharge un JSON valide ;
+- au micro simulé (fichier WAV, comme `app/`), en mode « pénalité » : calibrage, note juste, ancienne note ignorée, fausse note pénalisée puis la même note jouée juste, et journal exporté avec le seuil de silence, les instants d'attaque et de détection.
 
 ---
 
@@ -408,7 +415,7 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 | Q11 | Plage de temps de chute | À mesurer dans le POC |
 | Q12 | Note qui atteint le bas | Série cassée et ralentissement |
 | Q13 | Calcul des points | Base et multiplicateur de série, bonus de timing, de vitesse et de difficulté |
-| Q14 | Fausse note | Erreur, la note est détruite |
+| Q14 | Fausse note | Erreur, la note est détruite (devenu le mode « destruction » en option : Q21 à Q25) |
 | Q15 | Fin de partie | Nombre de notes fixe |
 | Q16 | Origine des notes | Niveaux de l'application et tirage pondéré |
 | Q17 | Son pendant la partie | Silence |
@@ -416,8 +423,19 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 | Q19 | Mesures | Journal JSON exportable |
 | Q20 | Suite | Mode 3 de l'application |
 
+**Questions du 28/10/2026** (option de la règle de la fausse note) :
+
+| # | Question | Réponse de l'utilisateur |
+|---|---|---|
+| Q21 | Règle de la fausse note | Une option : mode actuel (la note est détruite), ou mode où la fausse note ne fait pas passer à la suivante, fait perdre des points et indique qu'elle est fausse ; on passe à la suivante quand la note est juste ou qu'elle arrive en bas |
+| Q22 | Points perdus par fausse note | −50 points, score jamais négatif |
+| Q23 | Autres effets de la fausse note | Série cassée et ralentissement |
+| Q24 | Bonne case après une fausse note | Après 3 fausses notes sur la même note |
+| Q25 | Place et défaut de l'option | Écran de départ ; le mode « pénalité » par défaut |
+
 **Choix ajoutés à la rédaction, à valider à la relecture** :
-- Une fausse note a le même effet qu'une note ratée : série cassée et ralentissement (Q12 et Q14).
+- Une fausse note a le même effet qu'une note ratée : série cassée et ralentissement (Q12 et Q14), dans les deux modes (Q23).
+- En mode « pénalité », chaque fausse note compte comme une réponse fausse dans les statistiques de la position, comme en mode 2 de l'application.
 - Les statistiques par position sont gardées, car le tirage pondéré en a besoin (Q16), sans écran de statistiques.
 - Options de mesure « Afficher la case » et « Vitesse fixe », et mode simulation pour les tests.
 - Le ressenti est noté par l'utilisateur dans la synthèse ; pas de questionnaire dans la page (Q19).

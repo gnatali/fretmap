@@ -49,7 +49,14 @@ describe('chargement', () => {
     expect(charger(stockageMemoire())).toEqual(donneesInitiales());
     expect(donneesInitiales()).toMatchObject({
       version: 1,
-      reglages: { niveau: 1, dureeInitialeMs: 6000, vitesseFixe: false, afficherCase: false, notation: 'les-deux' },
+      reglages: {
+        niveau: 1,
+        dureeInitialeMs: 6000,
+        vitesseFixe: false,
+        afficherCase: false,
+        notation: 'les-deux',
+        fausseNote: 'penalite',
+      },
       seuilSilenceDbfs: null,
       statistiques: [],
       parties: [],
@@ -60,7 +67,14 @@ describe('chargement', () => {
     const stockage = stockageMemoire();
     const donnees: DonneesPoc = {
       ...donneesInitiales(),
-      reglages: { niveau: 5, dureeInitialeMs: 4500, vitesseFixe: true, afficherCase: true, notation: 'francaise' },
+      reglages: {
+        niveau: 5,
+        dureeInitialeMs: 4500,
+        vitesseFixe: true,
+        afficherCase: true,
+        notation: 'francaise',
+        fausseNote: 'destruction',
+      },
       seuilSilenceDbfs: -51.5,
       statistiques: [statistique],
       parties: [partieJournal(0)],
@@ -84,7 +98,7 @@ describe('chargement', () => {
     const stockage = stockageMemoire({
       [CLE_STOCKAGE]: JSON.stringify({
         version: 1,
-        reglages: { niveau: 9, dureeInitialeMs: 60000, vitesseFixe: 'oui', notation: 'latine' },
+        reglages: { niveau: 9, dureeInitialeMs: 60000, vitesseFixe: 'oui', notation: 'latine', fausseNote: 'rien' },
         seuilSilenceDbfs: 'fort',
       }),
     });

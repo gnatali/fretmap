@@ -18,17 +18,27 @@ import {
   type PartieJournal,
   type ResultatNote,
 } from './journal';
-import { multiplicateur, pointsNote, timingDe, type Timing } from './points';
+import { PENALITE_FAUSSE_NOTE, multiplicateur, pointsNote, timingDe, type Timing } from './points';
 import { apresResultat, vitesseInitiale, type EtatVitesse } from './vitesse';
 
 /** Notes par partie : 30 (spec §6.7, Q15), à ajuster. */
 export const NOTES_PAR_PARTIE = 30;
 /** Durée d'affichage de la bonne case après une erreur, en ms : 1,5 s (spec §6.2, Q8), à ajuster. */
 export const DUREE_RAPPEL_CASE_MS = 1500;
+/** Fausses notes sur une même note avant d'afficher la bonne case, en mode « pénalité » : 3, comme le mode 2 de
+ * l'application (spec §6.2, choix de l'utilisateur du 28/10/2026), à ajuster. */
+export const FAUSSES_AVANT_RAPPEL = 3;
 /** Validation au micro : le demi-ton, octave non stricte, sans réglage dans le POC (spec §3). */
 export const OPTIONS_VALIDATION: OptionsMode2 = { tolerance: 50, octaveStricte: false };
 /** Le jeu se joue au micro : ses statistiques sont celles du mode 2 du modèle de l'application. */
 const MODE: Mode = 2;
+
+/**
+ * Effet d'une fausse note (spec §6.4) : « penalite » (défaut) retire des points, la note reste à jouer ;
+ * « destruction » détruit la note attendue (Q14), on passe à la suivante.
+ */
+export type RegleFausseNote = 'penalite' | 'destruction';
+export const REGLES_FAUSSE_NOTE: readonly RegleFausseNote[] = ['penalite', 'destruction'];
 
 /** Choix de l'écran de départ (spec §6.1). */
 export interface ReglagesPartie {
@@ -39,6 +49,7 @@ export interface ReglagesPartie {
   /** Option de mesure : l'étiquette de la note donne aussi la case (affichage seulement). */
   afficherCase: boolean;
   notation: Notation;
+  fausseNote: RegleFausseNote;
 }
 
 export interface OptionsPartie {
@@ -64,6 +75,11 @@ export type EvenementPartie =
       /** Note jouée (null pour une note ratée). */
       detectee: NoteDetectee | null;
     }
+  /**
+   * Mode « pénalité » : fausse note sur la note attendue, qui reste à jouer. `penalite` : points vraiment retirés ;
+   * `fausses` : fausses notes sur cette note.
+   */
+  | { type: 'fausse'; note: NoteEnChute; detectee: NoteDetectee; penalite: number; fausses: number }
   /** Première note jouée identique à la note précédente : la corde précédente sonne encore, ignorée une fois. */
   | { type: 'ancienneNote'; detectee: NoteDetectee }
   /** Attaque sans note stable au bout de 1,5 s : ni juste ni fausse. */
@@ -94,6 +110,12 @@ export class Partie {
   private dernierT: number;
   /** Dernière attaque entendue pendant que la note attendue l'était. */
   private derniereAttaqueMs: number | null = null;
+  /** Début du temps de réponse de la note attendue : instant où elle l'est devenue, puis dernière fausse note. */
+  private debutReponseMs: number;
+  /** Fausses notes sur la note attendue (mode « pénalité »). */
+  private faussesAttendue = 0;
+  /** Fausses notes de la partie, dans les deux modes (y compris sur une note attendue au moment d'un arrêt). */
+  private fausses = 0;
   /** Événements sans effet de la note attendue. */
   private evenementsAttendue: EvenementNoteJournal[] = [];
   private readonly notesJournal: NoteJournal[] = [];
@@ -112,6 +134,7 @@ export class Partie {
     this.hasard = options.hasard ?? Math.random;
     this.debutMs = options.debutMs;
     this.dernierT = options.debutMs;
+    this.debutReponseMs = options.debutMs;
     this.date = options.date;
     this.vitesse = vitesseInitiale(reglages.dureeInitialeMs, reglages.vitesseFixe);
     this.dureeMinMs = this.vitesse.dureeMs;
@@ -184,8 +207,9 @@ export class Partie {
       return [{ type: 'nonReconnue' }];
     }
     const tAttaqueMs = evenement.latenceMs !== null ? etat.tMs - evenement.latenceMs : this.derniereAttaqueMs;
+    if (!evenement.juste) return this.fausseNote(note, etat.tMs, evenement.note, tAttaqueMs);
     this.chute.retirerAttendue();
-    return this.conclure(note, evenement.juste ? 'juste' : 'fausse', etat.tMs, evenement.note, tAttaqueMs);
+    return this.conclure(note, 'juste', etat.tMs, evenement.note, tAttaqueMs);
   }
 
   /** Vrai si le micro n'entend rien depuis plus de 3 s alors qu'une note est attendue (message « Jouez la note… »). */
@@ -202,8 +226,9 @@ export class Partie {
     if (!note) return [];
     const midi = noteDePosition(note.question.position).midi + (juste ? 0 : 1);
     const detectee = frequenceVersNote(midiVersFrequence(midi))!;
+    if (!juste) return this.fausseNote(note, tMs, detectee, tMs);
     this.chute.retirerAttendue();
-    return this.conclure(note, juste ? 'juste' : 'fausse', tMs, detectee, tMs);
+    return this.conclure(note, 'juste', tMs, detectee, tMs);
   }
 
   /** Bouton « Arrêter » : la partie est terminée et marquée interrompue. */
@@ -231,7 +256,7 @@ export class Partie {
       resume: {
         score: this.score,
         justes: justes.length,
-        fausses: this.notesJournal.filter((n) => n.resultat === 'fausse').length,
+        fausses: this.fausses,
         ratees: this.notesJournal.filter((n) => n.resultat === 'ratee').length,
         meilleureSerie: this.meilleureSerie,
         dureeFinaleMs: Math.round(this.vitesse.dureeMs),
@@ -268,7 +293,54 @@ export class Partie {
     note.tAttendueMs = tMs;
     this.suivi.poser(note.question, this.derniereConclue);
     this.derniereAttaqueMs = null;
+    this.debutReponseMs = tMs;
+    this.faussesAttendue = 0;
     this.evenementsAttendue = [];
+  }
+
+  /**
+   * Fausse note sur la note attendue (spec §6.4). Mode « destruction » : la note est détruite. Mode « pénalité » :
+   * elle reste à jouer (le suivi du micro garde la question, comme le mode 2 de l'application) ; le score perd
+   * PENALITE_FAUSSE_NOTE, sans descendre sous 0 ; la série est cassée, la chute ralentit et la réponse compte
+   * dans les statistiques de la position demandée.
+   */
+  private fausseNote(
+    note: NoteEnChute,
+    tMs: number,
+    detectee: NoteDetectee,
+    tAttaqueMs: number | null,
+  ): EvenementPartie[] {
+    this.fausses++;
+    if (this.reglages.fausseNote === 'destruction') {
+      this.chute.retirerAttendue();
+      return this.conclure(note, 'fausse', tMs, detectee, tAttaqueMs);
+    }
+    const penalite = Math.min(this.score, PENALITE_FAUSSE_NOTE);
+    this.score -= penalite;
+    this.serie = 0;
+    this.vitesse = apresResultat(this.vitesse, false);
+    this.dureeMinMs = Math.min(this.dureeMinMs, this.vitesse.dureeMs);
+    this.enregistrerStatistique(note.question.position, false, tMs, tMs - this.debutReponseMs);
+    this.debutReponseMs = tMs;
+    this.faussesAttendue++;
+    const { nom, midi, cents } = detectee;
+    this.evenementsAttendue.push({ type: 'fausse', tMs: this.relatif(tMs), nom, midi, cents, penalite });
+    return [{ type: 'fausse', note, detectee, penalite, fausses: this.faussesAttendue }];
+  }
+
+  /** Réponse sur la position demandée, avec la règle de l'application (enregistrerReponse, mode 2). */
+  private enregistrerStatistique(position: Position, juste: boolean, tMs: number, tempsMs: number): void {
+    // Mise à jour de l'application, sur une progression qui ne porte que les statistiques.
+    this.stats = enregistrerReponse(
+      { ...progressionInitiale(), statistiques: this.stats },
+      {
+        mode: MODE,
+        position,
+        juste,
+        tempsMs,
+        date: new Date(this.date.getTime() + tMs - this.debutMs),
+      },
+    ).statistiques;
   }
 
   /** Résultat d'une note déjà retirée de la chute : série, points, vitesse, statistique, journal, note suivante. */
@@ -294,17 +366,8 @@ export class Partie {
     this.vitesse = apresResultat(this.vitesse, juste);
     this.dureeMinMs = Math.min(this.dureeMinMs, this.vitesse.dureeMs);
 
-    // Mise à jour de l'application (enregistrerReponse), sur une progression qui ne porte que les statistiques.
-    this.stats = enregistrerReponse(
-      { ...progressionInitiale(), statistiques: this.stats },
-      {
-        mode: MODE,
-        position,
-        juste,
-        tempsMs: tMs - tAttendueMs,
-        date: new Date(this.date.getTime() + tMs - this.debutMs),
-      },
-    ).statistiques;
+    // Temps de réponse : depuis la dernière fausse note s'il y en a eu, sinon depuis l'instant où la note est attendue.
+    this.enregistrerStatistique(position, juste, tMs, note.tAttendueMs === null ? 0 : tMs - this.debutReponseMs);
 
     this.notesJournal.push({
       index: note.index,

@@ -7,6 +7,8 @@
     question: Question;
     /** 0 = apparition en haut, 1 = ligne de jeu. */
     progression: number;
+    /** Fausse note à l'instant, en mode « pénalité » : la note reste en jeu et clignote en rouge. */
+    faute?: boolean;
   }
 
   /** Effet vert ou rouge laissé par une note jouée, détruite ou ratée. */
@@ -95,6 +97,7 @@
             class="note"
             class:attendue={rang === 0}
             class:large={!note.question.cordeDemandee}
+            class:faute={note.faute}
             data-index={note.index}
             style:left={centre(note.question)}
             style:transform={decalage(note.progression)}
@@ -242,6 +245,20 @@
   .note.large {
     min-width: 5rem;
   }
+  /* Le décalage de chute passe par transform ; la secousse par translate, qui s'y ajoute. */
+  .note.faute {
+    border-color: var(--faux);
+    background: color-mix(in srgb, var(--faux) 20%, var(--surface));
+    animation: secousse 300ms ease-in-out;
+  }
+  @keyframes secousse {
+    25% {
+      translate: -4px 0;
+    }
+    75% {
+      translate: 4px 0;
+    }
+  }
   .secondaire {
     font-size: 0.6875rem;
     font-weight: 500;
@@ -270,7 +287,8 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .effet {
+    .effet,
+    .note.faute {
       animation-name: none;
     }
   }

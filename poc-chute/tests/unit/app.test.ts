@@ -20,10 +20,14 @@ describe('écran de départ', () => {
     await fireEvent.change(screen.getByLabelText(TEXTES.depart.niveau), { target: { value: '5' } });
     await fireEvent.input(screen.getByRole('slider'), { target: { value: '4500' } });
     await fireEvent.click(screen.getByLabelText(TEXTES.depart.vitesseFixe));
+    const fausseNote = screen.getByLabelText(TEXTES.depart.fausseNote) as HTMLSelectElement;
+    expect(fausseNote.value).toBe('penalite');
+    await fireEvent.change(fausseNote, { target: { value: 'destruction' } });
     expect(JSON.parse(stockage.donnees[CLE_STOCKAGE]!).reglages).toMatchObject({
       niveau: 5,
       dureeInitialeMs: 4500,
       vitesseFixe: true,
+      fausseNote: 'destruction',
     });
     expect(screen.getByText('4,5 s')).toBeTruthy();
   });

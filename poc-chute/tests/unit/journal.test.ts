@@ -49,7 +49,14 @@ describe('export', () => {
 
   it('écrit le format, la version, la date et les parties', () => {
     const partie = new Partie(
-      { niveau: 3, dureeInitialeMs: 5000, vitesseFixe: false, afficherCase: true, notation: 'francaise' },
+      {
+        niveau: 3,
+        dureeInitialeMs: 5000,
+        vitesseFixe: false,
+        afficherCase: true,
+        notation: 'francaise',
+        fausseNote: 'penalite',
+      },
       [],
       { debutMs: 0, date: new Date('2026-10-28T19:00:00.000Z'), hasard: () => 0 },
     );

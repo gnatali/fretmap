@@ -22,16 +22,16 @@ export interface NoteJouee {
 
 /**
  * Déroulé de tests/e2e/micro.spec.ts, depuis l'ouverture du micro : 2 s de calibrage (bruit de fond seul) et 3 s de
- * compte à rebours, puis, au niveau 2 avec un hasard nul (notes attendues E, F, E) :
- * E2 juste, E2 ignoré (la note précédente sonne encore), A2 faux (la note F est détruite), E2 juste.
+ * compte à rebours, puis, au niveau 2 avec un hasard nul et le mode « pénalité » (notes attendues E, puis F) :
+ * E2 juste, E2 ignoré (la note précédente sonne encore), A2 faux (la note F reste à jouer), F2 juste.
  */
 export const NOTES_CHUTE: readonly NoteJouee[] = [
   { note: 'E2', debutS: 7.5, dureeS: 1.5 },
-  { note: 'E2', debutS: 10.5, dureeS: 1.5 },
-  { note: 'A2', debutS: 13.5, dureeS: 1.5 },
-  { note: 'E2', debutS: 16.5, dureeS: 1.5 },
+  { note: 'E2', debutS: 10, dureeS: 1.5 },
+  { note: 'A2', debutS: 12.5, dureeS: 1.5 },
+  { note: 'F2', debutS: 15, dureeS: 1.5 },
 ];
-const DUREE_TOTALE_S = 19;
+const DUREE_TOTALE_S = 17;
 
 /** Échantillons dans [−1, 1] : bruit de fond vers −70 dBFS et notes pincées. */
 export function synthetiser(notes: readonly NoteJouee[], dureeS: number): Float32Array {

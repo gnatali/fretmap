@@ -20,6 +20,7 @@ const REGLAGES: ReglagesPartie = {
   vitesseFixe: true,
   afficherCase: false,
   notation: 'les-deux',
+  fausseNote: 'destruction',
 };
 
 describe('écran de partie au micro', () => {

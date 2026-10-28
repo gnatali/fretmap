@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { ContexteJournal } from '../../src/jeu/journal';
-import { NOTES_PAR_PARTIE, Partie, type EvenementPartie, type ReglagesPartie } from '../../src/jeu/partie';
+import {
+  FAUSSES_AVANT_RAPPEL,
+  NOTES_PAR_PARTIE,
+  Partie,
+  type EvenementPartie,
+  type ReglagesPartie,
+} from '../../src/jeu/partie';
 import type { Statistique } from '../../src/progression/modele';
 import { etat } from './detection';
 
@@ -12,6 +18,8 @@ const REGLAGES: ReglagesPartie = {
   vitesseFixe: false,
   afficherCase: false,
   notation: 'les-deux',
+  // Règle historique (Q14) : les tests ci-dessous la couvrent ; le mode « pénalité » a son propre bloc.
+  fausseNote: 'destruction',
 };
 const CONTEXTE: ContexteJournal = {
   navigateur: 'test',
@@ -204,6 +212,81 @@ describe('validation au micro', () => {
     expect(resultats(partie.traiterDetection(etat(DEBUT + 800, { note: 'E4', nouvelle: true })))).toMatchObject([
       { resultat: 'juste' },
     ]);
+  });
+});
+
+describe('mode « pénalité » : la fausse note coûte des points, la note reste à jouer', () => {
+  const penalite = (reglages: Partial<ReglagesPartie> = {}, simulation = false) =>
+    nouvellePartie({ fausseNote: 'penalite', ...reglages }, [], simulation);
+
+  it('retire 50 points, casse la série, ralentit la chute et compte la réponse ; la note reste attendue', () => {
+    const partie = penalite();
+    jouerJustes(partie, 2);
+    avancer(partie, DEBUT + 100, DEBUT + 150);
+    expect(partie.score).toBe(250);
+
+    const evenements = partie.traiterDetection(etat(DEBUT + 500, { note: 'G2', nouvelle: true }));
+    expect(evenements).toMatchObject([{ type: 'fausse', note: { index: 3 }, detectee: { nom: 'G' }, penalite: 50 }]);
+    expect(evenements[0]).toMatchObject({ fausses: 1 });
+    expect(partie.score).toBe(200);
+    expect(partie.serie).toBe(0);
+    expect(partie.meilleureSerie).toBe(2);
+    expect(partie.dureeChuteMs).toBeCloseTo(6900);
+    expect(partie.attendue!.index).toBe(3);
+    expect(partie.notesRestantes).toBe(NOTES_PAR_PARTIE - 2);
+    expect(partie.statistiques.find((s) => s.case === 0)).toMatchObject({ tentatives: 2, reussites: 1 });
+
+    // Juste ensuite : points à la durée ralentie (100 × 1,5 × 5/6,9), temps de réponse depuis la fausse note.
+    const [resultat] = resultats(partie.traiterDetection(etat(DEBUT + 900, { note: 'E2', nouvelle: true })));
+    expect(resultat).toMatchObject({ resultat: 'juste', note: { index: 3 }, points: 109, serie: 1 });
+    expect(partie.statistiques.find((s) => s.case === 0)).toMatchObject({ tentatives: 3, reussites: 2 });
+    const journal = partie.journal(CONTEXTE);
+    expect(journal.notes[2]).toMatchObject({
+      resultat: 'juste',
+      evenements: [{ type: 'fausse', tMs: 500, nom: 'G', midi: 43, cents: 0, penalite: 50 }],
+    });
+    expect(journal.resume).toMatchObject({ fausses: 1, justes: 3, score: 309 });
+  });
+
+  it('le score ne descend pas sous 0 ; la bonne case est due à la 3e fausse note', () => {
+    const partie = penalite({}, true);
+    expect(partie.jouerSimule(false, DEBUT + 100)).toMatchObject([
+      { type: 'fausse', penalite: 0, fausses: 1, detectee: { nom: 'F', midi: 41 } },
+    ]);
+    partie.jouerSimule(false, DEBUT + 200);
+    expect(partie.jouerSimule(false, DEBUT + 300)).toMatchObject([{ type: 'fausse', fausses: FAUSSES_AVANT_RAPPEL }]);
+    expect(partie.score).toBe(0);
+    expect(partie.attendue!.index).toBe(1);
+    // Partie arrêtée sur cette note : ses fausses notes comptent dans le résumé.
+    partie.arreter();
+    expect(partie.journal(CONTEXTE).resume).toMatchObject({ fausses: 3, justes: 0 });
+  });
+
+  it('ignore une fois la note précédente encore sonore, puis compte la fausse note sans détruire', () => {
+    const partie = penalite();
+    partie.traiterDetection(etat(DEBUT + 500, { note: 'E2', nouvelle: true }));
+    avancer(partie, DEBUT + 500, DEBUT + 550);
+    expect(partie.traiterDetection(etat(DEBUT + 600, { note: 'E2', nouvelle: true }))).toMatchObject([
+      { type: 'ancienneNote' },
+    ]);
+    expect(partie.traiterDetection(etat(DEBUT + 900, { note: 'E2', nouvelle: true }))).toMatchObject([
+      { type: 'fausse', fausses: 1 },
+    ]);
+    expect(partie.attendue!.question.nom).toBe('F');
+    expect(resultats(partie.traiterDetection(etat(DEBUT + 1300, { note: 'F2', nouvelle: true })))).toMatchObject([
+      { resultat: 'juste', note: { index: 2 } },
+    ]);
+    expect(partie.journal(CONTEXTE).notes[1]!.evenements.map((e) => e.type)).toEqual(['ancienneNote', 'fausse']);
+  });
+
+  it('une note ratée après des fausses notes finit « ratee »', () => {
+    const partie = penalite({ vitesseFixe: true });
+    partie.jouerSimule(false, DEBUT + 100);
+    const [ratee] = resultats(avancer(partie, DEBUT, DEBUT + 6100));
+    expect(ratee).toMatchObject({ resultat: 'ratee', note: { index: 1 } });
+    const journal = partie.journal(CONTEXTE);
+    expect(journal.notes[0]).toMatchObject({ resultat: 'ratee', evenements: [{ type: 'fausse' }] });
+    expect(journal.resume).toMatchObject({ fausses: 1, ratees: 1 });
   });
 });
 

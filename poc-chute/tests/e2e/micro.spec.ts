@@ -2,12 +2,12 @@ import { readFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 import { debordants } from './outils';
 
-// Partie au micro simulé par le fichier de tests/e2e/son.ts : calibrage, compte à rebours, puis E2 (juste),
-// E2 (ignoré : la note précédente sonne encore), A2 (fausse) et E2 (juste).
-// Math.random renvoie 0 : au niveau 2, les notes attendues sont E, F, puis E.
+// Partie au micro simulé par le fichier de tests/e2e/son.ts, en mode « pénalité » (défaut) : calibrage, compte à
+// rebours, puis E2 (juste), E2 (ignoré : la note précédente sonne encore), A2 (fausse : la note F reste à jouer) et
+// F2 (juste). Math.random renvoie 0 : au niveau 2, les notes attendues sont E, puis F.
 const NOTE_JUSTE = /^(Parfait|Bien|Juste) ! \+\d+$/;
 
-test('partie au micro : calibrage, note juste, ancienne note, fausse note, journal', async ({ page }) => {
+test('partie au micro : calibrage, note juste, ancienne note, fausse note pénalisée, journal', async ({ page }) => {
   test.setTimeout(45_000);
   await page.addInitScript(() => {
     Math.random = () => 0;
@@ -30,7 +30,9 @@ test('partie au micro : calibrage, note juste, ancienne note, fausse note, journ
   await expect(indicateur).toContainText('Mi2 (E2)');
   await expect(page.locator('.consigne')).toHaveText('À jouer : Fa (F) · corde 6');
   await expect(indicateur).toContainText('la note précédente sonne encore', { timeout: 10_000 });
-  await expect(statut).toHaveText('Fausse note : La (A)', { timeout: 10_000 });
+  // La première note a rapporté au moins 50 points : la pénalité est entière.
+  await expect(statut).toHaveText('Fausse note : La (A) · −50', { timeout: 10_000 });
+  await expect(page.locator('.consigne')).toHaveText('À jouer : Fa (F) · corde 6');
   await expect(statut).toHaveText(NOTE_JUSTE, { timeout: 10_000 });
 
   await page.getByRole('button', { name: 'Arrêter' }).click();
@@ -38,6 +40,7 @@ test('partie au micro : calibrage, note juste, ancienne note, fausse note, journ
   await expect(page.locator('.justes')).toHaveText('2');
   await expect(page.locator('.fausses')).toHaveText('1');
   await expect(page.locator('.ratees')).toHaveText('0');
+  await expect(page.locator('.manquees li')).toContainText('Fa (F)');
 
   const [telechargement] = await Promise.all([
     page.waitForEvent('download'),
@@ -45,13 +48,22 @@ test('partie au micro : calibrage, note juste, ancienne note, fausse note, journ
   ]);
   const contenu = JSON.parse(await readFile((await telechargement.path())!, 'utf8'));
   const [partie] = contenu.parties;
-  expect(partie).toMatchObject({ simulation: false, interrompue: true, reglages: { niveau: 2, vitesseFixe: true } });
+  expect(partie).toMatchObject({
+    simulation: false,
+    interrompue: true,
+    reglages: { niveau: 2, vitesseFixe: true, fausseNote: 'penalite' },
+  });
   expect(typeof partie.seuilSilenceDbfs).toBe('number');
   expect(Array.isArray(partie.traitementsActifs)).toBe(true);
-  expect(partie.notes.map((n: { resultat: string }) => n.resultat)).toEqual(['juste', 'fausse', 'juste']);
-  expect(partie.notes[1]).toMatchObject({ detectee: { nom: 'A' }, evenements: [{ type: 'ancienneNote', nom: 'E' }] });
-  for (const note of [partie.notes[0], partie.notes[2]]) {
-    expect(note.detectee).toMatchObject({ nom: 'E', midi: 40 });
-    expect(note.tAttaqueMs).toBeLessThan(note.tDetectionMs);
-  }
+  expect(partie.notes.map((n: { resultat: string }) => n.resultat)).toEqual(['juste', 'juste']);
+  expect(partie.notes[0].detectee).toMatchObject({ nom: 'E', midi: 40 });
+  expect(partie.notes[1]).toMatchObject({
+    detectee: { nom: 'F', midi: 41 },
+    evenements: [
+      { type: 'ancienneNote', nom: 'E' },
+      { type: 'fausse', nom: 'A', penalite: 50 },
+    ],
+  });
+  for (const note of partie.notes) expect(note.tAttaqueMs).toBeLessThan(note.tDetectionMs);
+  expect(partie.resume).toMatchObject({ justes: 2, fausses: 1, ratees: 0 });
 });

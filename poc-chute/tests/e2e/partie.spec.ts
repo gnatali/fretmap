@@ -8,13 +8,19 @@ interface Options {
   niveau?: string;
   dureeMs?: number;
   vitesseFixe?: boolean;
+  /** Règle de la fausse note ; « penalite » par défaut. */
+  fausseNote?: 'penalite' | 'destruction';
 }
 
 /** Ouvre le POC en simulation, règle la partie, la démarre et attend la première note (après 3 s de compte à rebours). */
-async function demarrer(page: Page, { niveau = '2', dureeMs = 10000, vitesseFixe = false }: Options = {}) {
+async function demarrer(
+  page: Page,
+  { niveau = '2', dureeMs = 10000, vitesseFixe = false, fausseNote = 'penalite' }: Options = {},
+) {
   await page.goto('/?simulation');
   await page.getByLabel('Niveau').selectOption(niveau);
   await page.getByRole('slider').fill(String(dureeMs));
+  await page.getByLabel('Fausse note').selectOption(fausseNote);
   if (vitesseFixe) {
     await page.getByText('Options de mesure').click();
     await page.getByLabel(/Vitesse fixe/).check();
@@ -33,14 +39,14 @@ test('partie complète au clavier : 30 notes justes jusqu’à l’écran de fin
   await expect(page.getByRole('heading', { name: 'Fin de partie' })).toBeVisible();
   await expect(page.locator('.justes')).toHaveText('30');
   await expect(page.locator('.meilleure-serie')).toHaveText('30');
-  await expect(page.getByText('Aucune note manquée.')).toBeVisible();
+  await expect(page.getByText('Aucune note à revoir.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Rejouer' }).click();
   await expect(page.locator('.note.attendue[data-index="1"]')).toBeVisible({ timeout: 6000 });
 });
 
-test('fausse note, note juste, arrêt et export du journal', async ({ page }) => {
-  await demarrer(page, { dureeMs: 8000 });
+test('mode « destruction » : fausse note, note juste, arrêt et export du journal', async ({ page }) => {
+  await demarrer(page, { dureeMs: 8000, fausseNote: 'destruction' });
   await page.keyboard.press('f');
   await expect(page.getByRole('status')).toContainText('Fausse note');
   // Une erreur ralentit la chute de 15 % : 8 s → 9,2 s.
@@ -65,9 +71,52 @@ test('fausse note, note juste, arrêt et export du journal', async ({ page }) =>
   expect(contenu).toMatchObject({ format: 'fretmap-chute-journal', version: 1 });
   expect(contenu.parties).toHaveLength(1);
   const [partie] = contenu.parties;
-  expect(partie).toMatchObject({ simulation: true, interrompue: true, reglages: { niveau: 2, dureeInitialeMs: 8000 } });
+  expect(partie).toMatchObject({
+    simulation: true,
+    interrompue: true,
+    reglages: { niveau: 2, dureeInitialeMs: 8000, fausseNote: 'destruction' },
+  });
   expect(partie.notes.map((n: { resultat: string }) => n.resultat)).toEqual(['fausse', 'juste']);
   expect(partie.images.nombre).toBeGreaterThan(0);
+});
+
+test('mode « pénalité » (défaut) : la fausse note coûte 50 points, la note reste à jouer', async ({ page }) => {
+  await demarrer(page, { dureeMs: 8000 });
+  // Note 1 juste, Parfait à 8 s de chute : 100 × 1,5 × 5/8 = 94.
+  await page.keyboard.press('Space');
+  await expect(page.locator('.score')).toHaveText('94');
+  await expect(page.locator('.note.attendue[data-index="2"]')).toBeVisible();
+
+  await page.keyboard.press('f');
+  // Tirage au hasard : la note jouée est un demi-ton au-dessus de la note attendue, quelle qu'elle soit.
+  await expect(page.getByRole('status')).toHaveText(/^Fausse note : .+ · −50$/);
+  await expect(page.locator('.score')).toHaveText('44');
+  await expect(page.locator('.chute')).toHaveText('9,2 s');
+  await expect(page.locator('.note.attendue[data-index="2"]')).toBeVisible();
+  await expect(page.locator('.rappel')).toHaveCount(0);
+  // À la 3e fausse note sur la même note, la bonne case reste affichée jusqu'au résultat.
+  await page.keyboard.press('f');
+  await page.keyboard.press('f');
+  await expect(page.locator('.rappel')).toHaveCount(1);
+  await expect(page.locator('.score')).toHaveText('0');
+  await page.keyboard.press('Space');
+  await expect(page.getByRole('status')).toContainText('+');
+  await expect(page.locator('.rappel')).toHaveCount(0);
+  await expect(page.locator('.restantes')).toHaveText('28');
+
+  await page.getByRole('button', { name: 'Arrêter' }).click();
+  await expect(page.locator('.justes')).toHaveText('2');
+  await expect(page.locator('.fausses')).toHaveText('3');
+  await expect(page.locator('.manquees li')).toHaveCount(1);
+
+  const [telechargement] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Exporter le journal' }).click(),
+  ]);
+  const [partie] = JSON.parse(await readFile((await telechargement.path())!, 'utf8')).parties;
+  expect(partie.reglages.fausseNote).toBe('penalite');
+  expect(partie.notes.map((n: { resultat: string }) => n.resultat)).toEqual(['juste', 'juste']);
+  expect(partie.notes[1].evenements.map((e: { type: string }) => e.type)).toEqual(['fausse', 'fausse', 'fausse']);
 });
 
 test('une note qui touche la ligne sans être jouée est ratée', async ({ page }) => {

@@ -10,7 +10,8 @@ En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/wo
 
 - **À la guitare** (téléphone Android, Chrome, en portrait) : accorder la guitare avec l'accordeur de l'application, choisir le niveau et la durée de chute, puis « Démarrer ». Le navigateur demande l'accès au micro ; ne pas jouer pendant les 2 s de mesure du bruit ambiant, puis jouer après le compte à rebours de 3 s. L'indicateur du bas montre la note entendue, le niveau sonore et les messages du micro.
 - **Au clavier**, pour le développement : https://gnatali.github.io/fretmap/poc-chute/?simulation. **Espace** (ou « Jouer la note ») = note juste, **F** (ou « Fausse note ») = fausse note.
-- Écran de départ : niveau, durée de chute au départ, notation, options de mesure (afficher la case, vitesse fixe), export et vidage du journal. Les choix sont gardés.
+- Écran de départ : niveau, durée de chute au départ, notation, règle de la fausse note, options de mesure (afficher la case, vitesse fixe), export et vidage du journal. Les choix sont gardés.
+- Règle de la fausse note (spec §6.4) : « Coûte 50 points (la note reste à jouer) », par défaut, ou « Détruit la note (on passe à la suivante) ». Dans les deux cas, une fausse note casse la série et ralentit la chute. En mode « pénalité », la bonne case s'affiche après 3 fausses notes sur la même note.
 - Partie : 30 notes, bouton « Arrêter » ; elle s'arrête aussi quand l'onglet passe en arrière-plan. Écran de fin : résumé, notes manquées avec leur bonne case, « Rejouer » (nouveau calibrage).
 - Après une série de parties : « Exporter le journal », puis ajouter le fichier à `resultats/` (spec §9).
 

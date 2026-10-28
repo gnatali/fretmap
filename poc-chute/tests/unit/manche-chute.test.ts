@@ -39,6 +39,19 @@ describe('MancheChute', () => {
     expect(notes[0]!.querySelector('.secondaire')!.textContent).toBe('G');
   });
 
+  it('fait clignoter en rouge la note qui vient de recevoir une fausse note', () => {
+    const { container } = render(MancheChute, {
+      caseMax: 7,
+      notation: 'les-deux',
+      notes: [
+        { index: 1, question: question(7, 3, 0), progression: 0.5, faute: true },
+        { index: 2, question: question(7, 6, 1), progression: 0.1 },
+      ],
+    });
+    const notes = [...container.querySelectorAll<HTMLElement>('.note')];
+    expect(notes.map((n) => n.classList.contains('faute'))).toEqual([true, false]);
+  });
+
   it('suit la notation et affiche la case avec l’option de mesure', () => {
     const { container } = render(MancheChute, {
       caseMax: 7,

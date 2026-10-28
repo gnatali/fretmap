@@ -1,10 +1,10 @@
 // Tous les textes de l'interface du POC : un seul fichier, comme dans l'application.
 import type { Traitement } from '../ecoute.svelte';
-import type { EvenementPartie } from '../jeu/partie';
-import type { Timing } from '../jeu/points';
+import type { EvenementPartie, RegleFausseNote } from '../jeu/partie';
+import { PENALITE_FAUSSE_NOTE, type Timing } from '../jeu/points';
 import type { Position } from '../music/manche';
 import { nomAffiche, type Notation } from '../music/notation';
-import type { NomNote } from '../music/notes';
+import type { NomNote, NoteDetectee } from '../music/notes';
 import type { Question } from '../quiz/tirage';
 
 type Resultat = Extract<EvenementPartie, { type: 'resultat' }>;
@@ -33,6 +33,7 @@ export const TEXTES = {
     niveau: 'Niveau',
     dureeChute: 'Durée de chute au départ',
     notation: 'Notation des notes',
+    fausseNote: 'Fausse note',
     optionsMesure: 'Options de mesure',
     afficherCase: 'Afficher la case sur les notes',
     vitesseFixe: 'Vitesse fixe (sans accélération ni ralentissement)',
@@ -58,6 +59,10 @@ export const TEXTES = {
     7: 'Cases 0 à 12, toutes les notes',
   } as Record<number, string>,
   nomNiveau: (niveau: number, description: string) => `${niveau} · ${description}`,
+  reglesFausseNote: {
+    penalite: `Coûte ${PENALITE_FAUSSE_NOTE} points (la note reste à jouer)`,
+    destruction: 'Détruit la note (on passe à la suivante)',
+  } as Record<RegleFausseNote, string>,
   notations: {
     'les-deux': 'Les deux : Mi (E)',
     francaise: 'Française : Mi',
@@ -114,8 +119,8 @@ export const TEXTES = {
     chuteValeurs: (depart: string, fin: string, min: string) =>
       `${depart} au départ, ${fin} à la fin, ${min} au plus court`,
     tempsReponse: 'Temps de réponse médian',
-    manquees: 'Notes manquées',
-    aucuneManquee: 'Aucune note manquée.',
+    manquees: 'Notes à revoir',
+    aucuneManquee: 'Aucune note à revoir.',
     rejouer: 'Rejouer',
     changer: 'Changer de niveau',
     exporter: 'Exporter le journal',
@@ -143,6 +148,12 @@ export function retour(resultat: Resultat, notation: Notation): string {
     return `${TEXTES.partie.fausse} : ${nomAffiche(resultat.detectee.nom, notation)}`;
   }
   return 'Ratée';
+}
+
+/** Fausse note en mode « pénalité » : « Fausse note : La (A) · −50 », sans pénalité si le score était à 0. */
+export function retourFausse(detectee: NoteDetectee, penalite: number, notation: Notation): string {
+  const texte = `${TEXTES.partie.fausse} : ${nomAffiche(detectee.nom, notation)}`;
+  return penalite > 0 ? `${texte} · −${penalite}` : texte;
 }
 
 /**

@@ -5,6 +5,7 @@
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import {
     DUREE_RAPPEL_CASE_MS,
+    FAUSSES_AVANT_RAPPEL,
     NOTES_PAR_PARTIE,
     Partie,
     type EvenementPartie,
@@ -18,7 +19,7 @@
   import { caseMaxDuNiveau } from '../../progression/niveaux';
   import Indicateur from '../composants/Indicateur.svelte';
   import MancheChute, { type Effet, type NoteAffichee } from '../composants/MancheChute.svelte';
-  import { TEXTES, consigne, duree, retour } from '../textes';
+  import { TEXTES, consigne, duree, retour, retourFausse } from '../textes';
 
   // Écran de jeu (spec §6.2 à §6.4) : calibrage du micro, compte à rebours, puis une image par
   // requestAnimationFrame. La partie (jeu/partie.ts) décide de tout ; l'écran copie son état à chaque image,
@@ -65,7 +66,10 @@
   // svelte-ignore state_referenced_locally
   let dureeChute = $state(bornerDuree(reglages.dureeInitialeMs));
   let dernierRetour = $state<{ texte: string; juste: boolean } | null>(null);
-  let rappel = $state.raw<{ positions: readonly Position[]; jusqua: number } | null>(null);
+  /** Bonne case montrée sur le manche, pour la note `index` (sans échéance après 3 fausses notes sur elle). */
+  let rappel = $state.raw<{ index: number; positions: readonly Position[]; jusqua: number } | null>(null);
+  /** Mode « pénalité » : note qui vient de recevoir une fausse note (clignotement rouge). */
+  let faute: { index: number; jusqua: number } | null = null;
   let effets = $state.raw<(Effet & { jusqua: number })[]>([]);
   let numeroEffet = 0;
   // Indicateur du micro.
@@ -125,7 +129,21 @@
         info = null;
         dernierRetour = { texte: retour(evenement, reglages.notation), juste };
         effets = [...effets, { id: ++numeroEffet, question, progression, juste, jusqua: t + DUREE_EFFET_MS }];
-        if (!juste) rappel = { positions: question.positionsCorrectes, jusqua: t + DUREE_RAPPEL_CASE_MS };
+        const index = evenement.note.index;
+        if (!juste) rappel = { index, positions: question.positionsCorrectes, jusqua: t + DUREE_RAPPEL_CASE_MS };
+        else if (rappel?.index === index) rappel = null;
+      } else if (evenement.type === 'fausse') {
+        // Mode « pénalité » : la note reste en jeu ; la bonne case reste affichée après 3 fausses notes sur elle.
+        const { index, question } = evenement.note;
+        info = null;
+        dernierRetour = {
+          texte: retourFausse(evenement.detectee, evenement.penalite, reglages.notation),
+          juste: false,
+        };
+        faute = { index, jusqua: t + DUREE_EFFET_MS };
+        if (evenement.fausses >= FAUSSES_AVANT_RAPPEL) {
+          rappel = { index, positions: question.positionsCorrectes, jusqua: Infinity };
+        }
       } else if (evenement.type === 'nonReconnue') {
         info = TEXTES.indicateur.nonReconnue;
       } else if (evenement.type === 'ancienneNote') {
@@ -139,7 +157,13 @@
 
   function rafraichir(t: number): void {
     if (!partie) return;
-    notes = partie.notes.map(({ index, question, progression }) => ({ index, question, progression }));
+    if (faute && faute.jusqua <= t) faute = null;
+    notes = partie.notes.map(({ index, question, progression }) => ({
+      index,
+      question,
+      progression,
+      faute: faute?.index === index,
+    }));
     score = partie.score;
     serie = partie.serie;
     multiplicateur = partie.multiplicateur;

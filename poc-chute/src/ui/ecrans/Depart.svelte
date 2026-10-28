@@ -1,13 +1,13 @@
 <script lang="ts">
-  import type { ReglagesPartie } from '../../jeu/partie';
+  import { REGLES_FAUSSE_NOTE, type RegleFausseNote, type ReglagesPartie } from '../../jeu/partie';
   import { DUREE_CHUTE_MAX_MS, DUREE_CHUTE_MIN_MS } from '../../jeu/vitesse';
   import { NOTATIONS, type Notation } from '../../music/notation';
   import type { Niveau } from '../../progression/modele';
   import { NIVEAUX } from '../../progression/niveaux';
   import { TEXTES, duree } from '../textes';
 
-  // Écran de départ (spec §6.1) : niveau, durée de chute, notation, options de mesure, démarrage du micro, journal.
-  // Chaque choix est enregistré tout de suite par l'appelant.
+  // Écran de départ (spec §6.1) : niveau, durée de chute, notation, règle de la fausse note, options de mesure,
+  // démarrage du micro, journal. Chaque choix est enregistré tout de suite par l'appelant.
 
   /** Pas du curseur de durée de chute, en ms : 0,5 s (spec §6.1). */
   const PAS_DUREE_MS = 500;
@@ -75,6 +75,18 @@
     <select value={reglages.notation} onchange={(e) => changer('notation', e.currentTarget.value as Notation)}>
       {#each NOTATIONS as notation (notation)}
         <option value={notation}>{TEXTES.notations[notation]}</option>
+      {/each}
+    </select>
+  </label>
+
+  <label>
+    {TEXTES.depart.fausseNote}
+    <select
+      value={reglages.fausseNote}
+      onchange={(e) => changer('fausseNote', e.currentTarget.value as RegleFausseNote)}
+    >
+      {#each REGLES_FAUSSE_NOTE as regle (regle)}
+        <option value={regle}>{TEXTES.reglesFausseNote[regle]}</option>
       {/each}
     </select>
   </label>

@@ -30,14 +30,15 @@
     }));
   }
 
-  /** Notes fausses ou ratées, une ligne par position demandée. */
+  /** Notes fausses, ratées ou trouvées après une fausse note (mode « pénalité »), une ligne par position demandée. */
   const manquees = $derived.by(() => {
     const cordeDemandee = contenuNiveau(niveau).cordeDemandee;
     const vues: string[] = [];
     const lignes: string[] = [];
     for (const note of journal.notes) {
       const cle = `${note.position.corde}-${note.position.case}`;
-      if (note.resultat === 'juste' || vues.includes(cle)) continue;
+      const sansErreur = note.resultat === 'juste' && !note.evenements.some((e) => e.type === 'fausse');
+      if (sansErreur || vues.includes(cle)) continue;
       vues.push(cle);
       lignes.push(emplacement(note.nom, positionsCorrectes(note.position), cordeDemandee, notation));
     }

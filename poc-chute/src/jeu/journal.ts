@@ -9,12 +9,20 @@ export const VERSION_JOURNAL = 1;
 /** Image jugée lente au-delà de cette durée, en ms : 33, soit moins de 30 images/s (spec §8, HC1). */
 export const SEUIL_IMAGE_LENTE_MS = 33;
 
-/** Résultat d'une note : jouée juste, détruite par une fausse note, ou arrivée sur la ligne sans être jouée. */
+/**
+ * Résultat d'une note : jouée juste, détruite par une fausse note (mode « destruction »), ou arrivée sur la ligne
+ * sans être jouée.
+ */
 export type ResultatNote = 'juste' | 'fausse' | 'ratee';
 
-/** Événements sans effet sur la note, gardés pour l'analyse. */
+/**
+ * Événements de la note attendue avant son résultat : ancienne note et note non reconnue (sans effet), fausse note
+ * en mode « pénalité » (la note reste à jouer ; `penalite` : points vraiment retirés).
+ */
 export type EvenementNoteJournal =
-  { type: 'ancienneNote'; tMs: number; nom: NomNote } | { type: 'nonReconnue'; tMs: number };
+  | { type: 'ancienneNote'; tMs: number; nom: NomNote }
+  | { type: 'nonReconnue'; tMs: number }
+  | { type: 'fausse'; tMs: number; nom: NomNote; midi: number; cents: number; penalite: number };
 
 /** Une note de la partie. Les temps sont en ms depuis le début de la partie. */
 export interface NoteJournal {
@@ -56,6 +64,7 @@ export interface MesuresImages {
 export interface ResumePartie {
   score: number;
   justes: number;
+  /** Fausses notes jouées : notes détruites, plus fausses notes du mode « pénalité ». */
   fausses: number;
   ratees: number;
   meilleureSerie: number;
