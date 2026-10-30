@@ -119,6 +119,33 @@ test('mode « pénalité » (défaut) : la fausse note coûte 50 points, la note
   expect(partie.notes[1].evenements.map((e: { type: string }) => e.type)).toEqual(['fausse', 'fausse', 'fausse']);
 });
 
+test('pause : manche masqué, notes ignorées, reprise après le compte à rebours', async ({ page }) => {
+  await demarrer(page);
+  await page.keyboard.press('p');
+  const cache = page.getByRole('group', { name: 'Pause' });
+  await expect(cache).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Pause' })).toBeDisabled();
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(1000);
+  await expect(page.locator('.restantes')).toHaveText('30');
+
+  await cache.getByRole('button', { name: 'Reprendre' }).click();
+  await expect(cache).toBeHidden({ timeout: 6000 });
+  await page.keyboard.press('Space');
+  await expect(page.locator('.restantes')).toHaveText('29');
+
+  await page.getByRole('button', { name: 'Arrêter' }).click();
+  const [telechargement] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Exporter le journal' }).click(),
+  ]);
+  const [partie] = JSON.parse(await readFile((await telechargement.path())!, 'utf8')).parties;
+  expect(partie.pauses).toHaveLength(1);
+  // 1 s de pause, plus les 3 s du compte à rebours de reprise.
+  expect(partie.pauses[0]).toMatchObject({ arrierePlan: false });
+  expect(partie.pauses[0].dureeMs).toBeGreaterThanOrEqual(4000);
+});
+
 test('une note qui touche la ligne sans être jouée est ratée', async ({ page }) => {
   await demarrer(page, { dureeMs: 1000, vitesseFixe: true });
   await expect(page.getByRole('status')).toHaveText('Ratée', { timeout: 5000 });

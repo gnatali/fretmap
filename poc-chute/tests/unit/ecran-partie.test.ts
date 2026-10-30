@@ -107,14 +107,73 @@ describe('écran de partie au micro', () => {
     expect(journal.images.nombre).toBeGreaterThan(0);
   });
 
-  it('l’onglet passé en arrière-plan arrête la partie', async () => {
-    const { onFin, envoyer } = await demarrer();
+  /** Calibrage (2 s), puis compte à rebours (3 s) : la partie commence, la note 1 (E) est attendue. */
+  async function commencer(envoyer: (ms: number, options?: OptionsEtat) => Promise<void>) {
     for (let t = 0; t <= DUREE_CALIBRAGE_MS; t += 100) await envoyer(100, { niveauDbfs: -70 });
-    await vi.advanceTimersByTimeAsync(3500);
+    await vi.advanceTimersByTimeAsync(3000);
+  }
+
+  const cache = () => screen.queryByRole('group', { name: TEXTES.partie.enPause });
+  const decalage = () => document.querySelector<HTMLElement>('.note[data-index="1"]')!.style.transform;
+
+  it('pause : temps du jeu gelé, manche masqué, notes ignorées ; reprise après 3 s ; touche P', async () => {
+    const { onFin, envoyer, jouer } = await demarrer();
+    await commencer(envoyer);
+    await vi.advanceTimersByTimeAsync(1000);
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.pause }));
+    expect(cache()).not.toBeNull();
+    const avant = decalage();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(decalage()).toBe(avant);
+    await jouer('E2');
+    expect(screen.getByRole('status').textContent).toBe('');
+
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.reprendre }));
+    expect(texte('.compte-reprise')).toContain('3');
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(cache()).toBeNull();
+    // 1,7 s de jeu sur 10 s de chute : Parfait.
+    await jouer('E2');
+    expect(screen.getByRole('status').textContent).toBe('Parfait ! +75');
+
+    await fireEvent.keyDown(window, { key: 'p' });
+    expect(cache()).not.toBeNull();
+    await fireEvent.keyDown(window, { key: 'p' });
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(cache()).toBeNull();
+
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    const journal = onFin.mock.calls[0]![0];
+    // Temps du jeu : la pause ne compte pas (1000 ms + attaque 500 ms + note 200 ms).
+    expect(journal.notes[0]).toMatchObject({ resultat: 'juste', tDetectionMs: 1700 });
+    expect(journal.pauses).toEqual([
+      { tMs: 1000, dureeMs: 5000 + 700 + 3000, arrierePlan: false },
+      { tMs: 1700, dureeMs: 3000, arrierePlan: false },
+    ]);
+  });
+
+  it('onglet en arrière-plan : pause automatique, micro coupé ; « Reprendre » mesure le bruit, puis relance', async () => {
+    const { ecoute, onFin, envoyer, jouer } = await demarrer();
+    await commencer(envoyer);
+    await vi.advanceTimersByTimeAsync(1000);
     Object.defineProperty(document, 'hidden', { value: true, configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
     Object.defineProperty(document, 'hidden', { value: false, configurable: true });
-    expect(onFin).toHaveBeenCalledOnce();
-    expect(onFin.mock.calls[0]![0].interrompue).toBe(true);
+    await tick();
+    expect(onFin).not.toHaveBeenCalled();
+    expect(ecoute.statut).toBe('arrete');
+    expect(cache()!.textContent).toContain(TEXTES.partie.microCoupe);
+
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.reprendre }));
+    await tick();
+    expect(ecoute.statut).toBe('calibrage');
+    expect(cache()!.textContent).toContain(TEXTES.micro.calibrage);
+    await commencer(envoyer);
+    expect(cache()).toBeNull();
+    await jouer('E2');
+    expect(screen.getByRole('status').textContent).toBe('Parfait ! +75');
+
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    expect(onFin.mock.calls[0]![0].pauses).toMatchObject([{ tMs: 1000, arrierePlan: true }]);
   });
 });

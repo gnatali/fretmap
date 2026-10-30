@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1.4** (28/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 1.5** (30/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Version 1.5 : pause (bouton, touche P), manche masqué pendant la pause, pause automatique quand l'onglet passe en arrière-plan (au lieu de l'arrêt), temps du jeu sans les pauses (30/10/2026). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -139,7 +139,11 @@ poc-chute/
   - après une note détruite ou ratée, la **bonne case** s'affiche 1,5 s sur le manche (toutes les cases de la corde qui donnent la note) ;
   - en mode « pénalité », après 3 fausses notes sur la même note (`FAUSSES_AVANT_RAPPEL`, comme le mode 2 de l'application), la bonne case reste affichée jusqu'au résultat de la note.
 - Bouton « Arrêter » : met fin à la partie (enregistrée comme interrompue). Pendant le calibrage ou le compte à rebours, il ramène au départ sans rien enregistrer.
-- **Onglet en arrière-plan** : la partie s'arrête comme avec « Arrêter », et le micro est coupé (comme en mode 2 de l'application, qui coupe alors le micro). Le verrou de veille est perdu en arrière-plan, et les images sans affichage fausseraient la mesure HC1.
+- **Pause** (Q26) : bouton « Pause » dans la barre du haut, ou touche P, pendant la partie.
+  - Le temps du jeu est gelé : la chute s'arrête, et les délais, temps de réponse et temps du journal ne comptent pas la pause (`jeu/horloge.ts`).
+  - Les notes jouées et les touches de simulation sont ignorées, et la boucle d'images s'arrête : la mesure HC1 ne compte pas la pause.
+  - Un cache opaque couvre le manche, pour qu'on ne cherche pas la case hors du temps de jeu. « Reprendre » relance après un compte à rebours de 3 s, toujours sous le cache.
+- **Onglet en arrière-plan** (Q27) : pause automatique. Le micro est coupé (comme en mode 2 de l'application), car le verrou de veille est perdu en arrière-plan. « Reprendre » relance le micro, puis la mesure du bruit (2 s), le compte à rebours et la partie. Avant la première note, pendant la mesure du bruit ou le compte à rebours du départ, l'arrière-plan ramène au départ, comme « Arrêter ».
 
 ### 6.3 Chute et délai
 - **Progression** : chaque note a une progression `p` de 0 (apparition en haut) à 1 (ligne de jeu). À chaque image, `p` augmente de `dt / durée de chute actuelle`. La vitesse est **commune** à toutes les notes à l'écran : un changement de vitesse s'applique à toutes en même temps, et une note ne peut pas en dépasser une autre. Une image de plus de 100 ms (`DT_MAX_MS`, onglet en arrière-plan) compte pour 100 ms : les notes ne sautent pas toutes à la ligne d'un coup.
@@ -215,7 +219,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
   - réglages de l'écran de départ et dernier seuil de silence mesuré ;
   - statistiques par position (tentatives, réussites, temps de réponse moyen), pour le tirage ;
   - journal des 50 dernières parties (`PARTIES_GARDEES`).
-- **Export JSON** (Q19) : fichier `journal-poc-chute-AAAAMMJJ-HHMM.json`, avec toutes les parties gardées. Les temps sont en millisecondes depuis le début de la partie.
+- **Export JSON** (Q19) : fichier `journal-poc-chute-AAAAMMJJ-HHMM.json`, avec toutes les parties gardées. Les temps sont en millisecondes depuis le début de la partie, en temps du jeu : les pauses n'y comptent pas. `pauses` donne chaque pause : `tMs` (temps du jeu au début), `dureeMs` (durée réelle) et `arrierePlan` (pause automatique).
 
 ```json
 {
@@ -232,6 +236,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
       "seuilSilenceDbfs": -52.3,
       "traitementsActifs": [],
       "images": { "nombre": 5400, "medianeMs": 16.7, "p95Ms": 18.2, "partAuDelaDe33Ms": 0.004 },
+      "pauses": [{ "tMs": 41200, "dureeMs": 12800, "arrierePlan": false }],
       "resume": { "score": 8450, "justes": 26, "fausses": 2, "ratees": 2, "meilleureSerie": 14, "dureeFinaleMs": 3900, "dureeMinMs": 3500, "tempsReponseMedianMs": 1850 },
       "notes": [
         {
@@ -432,6 +437,13 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 | Q23 | Autres effets de la fausse note | Série cassée et ralentissement |
 | Q24 | Bonne case après une fausse note | Après 3 fausses notes sur la même note |
 | Q25 | Place et défaut de l'option | Écran de départ ; le mode « pénalité » par défaut |
+
+**Questions du 30/10/2026** (pause, demandée par l'utilisateur) :
+
+| # | Question | Réponse de l'utilisateur |
+|---|---|---|
+| Q26 | Que voit-on pendant la pause ? | Le manche est masqué |
+| Q27 | Onglet en arrière-plan | Pause automatique (micro coupé, relancé par « Reprendre ») |
 
 **Choix ajoutés à la rédaction, à valider à la relecture** :
 - Une fausse note a le même effet qu'une note ratée : série cassée et ralentissement (Q12 et Q14), dans les deux modes (Q23).

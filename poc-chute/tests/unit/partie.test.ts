@@ -26,6 +26,7 @@ const CONTEXTE: ContexteJournal = {
   seuilSilenceDbfs: -50,
   traitementsActifs: [],
   images: { nombre: 0, medianeMs: null, p95Ms: null, partAuDelaDe33Ms: null },
+  pauses: [],
 };
 
 /** Tirage toujours sur la première position possible : au niveau 2, E2 (corde 6, case 0) et F2 (case 1) alternent. */

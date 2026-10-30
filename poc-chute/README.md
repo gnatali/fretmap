@@ -12,7 +12,7 @@ En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/wo
 - **Au clavier**, pour le développement : https://gnatali.github.io/fretmap/poc-chute/?simulation. **Espace** (ou « Jouer la note ») = note juste, **F** (ou « Fausse note ») = fausse note.
 - Écran de départ : niveau, durée de chute au départ, notation, règle de la fausse note, options de mesure (afficher la case, vitesse fixe), export et vidage du journal. Les choix sont gardés.
 - Règle de la fausse note (spec §6.4) : « Coûte 50 points (la note reste à jouer) », par défaut, ou « Détruit la note (on passe à la suivante) ». Dans les deux cas, une fausse note casse la série et ralentit la chute. En mode « pénalité », la bonne case s'affiche après 3 fausses notes sur la même note.
-- Partie : 30 notes, bouton « Arrêter » ; elle s'arrête aussi quand l'onglet passe en arrière-plan. Écran de fin : résumé, notes manquées avec leur bonne case, « Rejouer » (nouveau calibrage).
+- Partie : 30 notes, boutons « Pause » (ou touche P) et « Arrêter ». Pendant la pause, le manche est masqué et le temps du jeu est gelé. Quand l'onglet passe en arrière-plan, la partie se met en pause et le micro est coupé : « Reprendre » le relance, avec 2 s de mesure du bruit. Écran de fin : résumé, notes à revoir avec leur bonne case, « Rejouer » (nouveau calibrage).
 - Après une série de parties : « Exporter le journal », puis ajouter le fichier à `resultats/` (spec §9).
 
 ## Commandes

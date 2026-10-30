@@ -39,7 +39,7 @@ export const TEXTES = {
     vitesseFixe: 'Vitesse fixe (sans accélération ni ralentissement)',
     demarrer: 'Démarrer',
     demarrerSimulation: 'Démarrer (simulation)',
-    aideSimulation: 'Mode simulation, sans micro : Espace = note juste, F = fausse note.',
+    aideSimulation: 'Mode simulation, sans micro : Espace = note juste, F = fausse note, P = pause.',
     accordez: 'Accordez d’abord la guitare avec l’accordeur de l’application.',
     journal: 'Journal des parties',
     exporter: (parties: number) => `Exporter le journal (${pluriel(parties, 'partie')})`,
@@ -71,12 +71,17 @@ export const TEXTES = {
   partie: {
     score: 'Score',
     serie: 'Série',
-    restantes: 'Restantes',
+    restantes: 'Reste',
     chute: 'Chute',
     arreter: 'Arrêter',
     jouer: 'Jouer la note',
     fausse: 'Fausse note',
     compteARebours: 'Départ dans',
+    pause: 'Pause',
+    enPause: 'Pause',
+    reprendre: 'Reprendre',
+    repriseDans: 'Reprise dans',
+    microCoupe: 'Micro coupé : l’application est passée en arrière-plan. « Reprendre » le relance (2 s sans jouer).',
   },
   micro: {
     explication:

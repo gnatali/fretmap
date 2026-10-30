@@ -1,5 +1,6 @@
 // Journal des parties (spec §6.10) : format exporté en JSON, mesure de la fluidité (HC1), nom du fichier d'export.
 import type { Position } from '../music/manche';
+import type { Pause } from './horloge';
 import type { NomNote } from '../music/notes';
 import type { ReglagesPartie } from './partie';
 import type { Timing } from './points';
@@ -81,6 +82,8 @@ export interface ContexteJournal {
   /** Traitements audio que le navigateur a laissés actifs malgré la demande. */
   traitementsActifs: string[];
   images: MesuresImages;
+  /** Pauses de la partie ; les temps du journal sont ceux du jeu, sans les pauses (spec §6.2). */
+  pauses: Pause[];
 }
 
 export interface PartieJournal extends ContexteJournal {

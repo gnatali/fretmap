@@ -2,6 +2,7 @@
   import { onDestroy, onMount } from 'svelte';
   import type { EtatDetection } from '../../audio/pitch';
   import type { Ecoute } from '../../ecoute.svelte';
+  import { HorlogeJeu } from '../../jeu/horloge';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import {
     DUREE_RAPPEL_CASE_MS,
@@ -23,7 +24,9 @@
 
   // Écran de jeu (spec §6.2 à §6.4) : calibrage du micro, compte à rebours, puis une image par
   // requestAnimationFrame. La partie (jeu/partie.ts) décide de tout ; l'écran copie son état à chaque image,
-  // lui transmet les détections du micro et affiche les retours. Le micro est démarré et arrêté par App.svelte.
+  // lui transmet les détections du micro et affiche les retours. Le micro est démarré et arrêté par App.svelte,
+  // sauf après une pause en arrière-plan : il est alors coupé ici, et relancé par « Reprendre » (geste).
+  // Tous les temps donnés à la partie passent par l'horloge du jeu, qui retire les pauses.
 
   /** Compte à rebours avant la première note, en secondes : 3 (spec §6.1). */
   const COMPTE_A_REBOURS_S = 3;
@@ -49,9 +52,19 @@
   const caseMax = $derived(caseMaxDuNiveau(reglages.niveau, 2));
   /** Micro calibré (ou simulation) : le compte à rebours peut partir. */
   const pret = $derived(ecoute === null || ecoute.statut === 'actif');
+  /**
+   * micro : accès et mesure du bruit ; compte : compte à rebours ; jeu : la partie tourne ; pause. Le départ et la
+   * reprise après une pause suivent le même chemin : micro (si besoin), compte, jeu.
+   */
+  let phase = $state<'micro' | 'compte' | 'jeu' | 'pause'>('micro');
   let compte = $state(COMPTE_A_REBOURS_S);
-  let decompteLance = false;
+  /** Micro coupé par une pause en arrière-plan : « Reprendre » le relance. */
+  let microCoupe = $state(false);
   let partie: Partie | null = null;
+  let enPartie = $state(false);
+  const horloge = new HorlogeJeu();
+  /** Temps du jeu au début de la partie (origine des pauses du journal). */
+  let debutJeu = 0;
   const mesure = new MesureImages();
   let dernierT: number | null = null;
   let boucle = 0;
@@ -81,32 +94,79 @@
   const attendue = $derived(notes[0] ?? null);
   const message = $derived(info ?? (silence ? TEXTES.indicateur.jouez : null));
 
+  // Micro prêt (au départ, ou relancé après une pause en arrière-plan) : compte à rebours.
   $effect(() => {
-    if (!pret || decompteLance) return;
-    decompteLance = true;
-    minuteur = setTimeout(decompter, 1000);
+    if (phase === 'micro' && pret) lancerCompte();
   });
+
+  function lancerCompte(): void {
+    phase = 'compte';
+    compte = COMPTE_A_REBOURS_S;
+    minuteur = setTimeout(decompter, 1000);
+  }
 
   function decompter(): void {
     compte -= 1;
     if (compte > 0) minuteur = setTimeout(decompter, 1000);
+    else if (partie) relancer();
     else commencer();
   }
 
   function commencer(): void {
-    const t = performance.now();
+    const t = horloge.jeu(performance.now());
+    debutJeu = t;
     partie = new Partie(reglages, statistiques, { debutMs: t, date: new Date(), hasard, simulation });
+    enPartie = true;
+    phase = 'jeu';
     rafraichir(t);
     boucle = requestAnimationFrame(image);
   }
 
+  /** Fin du compte à rebours après une pause : le temps du jeu repart, la boucle aussi. */
+  function relancer(): void {
+    horloge.reprendre(performance.now());
+    phase = 'jeu';
+    boucle = requestAnimationFrame(image);
+  }
+
+  /**
+   * Pause (bouton, touche P, ou onglet en arrière-plan). En arrière-plan, le micro est coupé, comme le mode 2 de
+   * l'application ; une pause en cours de reprise (mesure du bruit, compte à rebours) revient à la pause.
+   */
+  function pauser(arrierePlan: boolean): void {
+    if (!partie || partie.terminee || phase === 'pause') return;
+    clearTimeout(minuteur);
+    cancelAnimationFrame(boucle);
+    // La boucle repartira sans compter la durée de la pause comme une image (HC1).
+    dernierT = null;
+    horloge.pauser(performance.now(), arrierePlan);
+    phase = 'pause';
+    if (arrierePlan && ecoute) {
+      microCoupe = true;
+      void ecoute.arreter();
+    }
+  }
+
+  /** « Reprendre » : relance le micro s'il a été coupé (dans le clic), puis le compte à rebours. */
+  function reprendre(): void {
+    if (phase !== 'pause') return;
+    if (microCoupe && ecoute) {
+      microCoupe = false;
+      void ecoute.demarrer();
+      phase = 'micro';
+    } else {
+      lancerCompte();
+    }
+  }
+
   /** Une image : mesure de sa durée (HC1), avance de la chute, retours, copie de l'état. */
   function image(t: number): void {
-    if (!partie) return;
+    if (!partie || phase !== 'jeu') return;
     if (dernierT !== null) mesure.ajouter(t - dernierT);
     dernierT = t;
-    traiter(partie.avancer(t), t);
-    rafraichir(t);
+    const tJeu = horloge.jeu(t);
+    traiter(partie.avancer(tJeu), tJeu);
+    rafraichir(tJeu);
     if (!partie.terminee) boucle = requestAnimationFrame(image);
   }
 
@@ -116,9 +176,10 @@
    */
   function surDetection(etat: EtatDetection): void {
     if (etat.stable) entendue = etat.stable;
-    if (!partie || partie.terminee) return;
-    traiter(partie.traiterDetection(etat), etat.tMs);
-    silence = partie.silenceProlonge(etat.tMs);
+    if (!partie || partie.terminee || phase !== 'jeu') return;
+    const tJeu = horloge.jeu(etat.tMs);
+    traiter(partie.traiterDetection({ ...etat, tMs: tJeu }), tJeu);
+    silence = partie.silenceProlonge(tJeu);
   }
 
   function traiter(evenements: EvenementPartie[], t: number): void {
@@ -181,14 +242,15 @@
       seuilSilenceDbfs: ecoute?.seuilDbfs ?? null,
       traitementsActifs: ecoute ? [...ecoute.traitementsActifs] : [],
       images: mesure.resultat(),
+      pauses: horloge.pauses(debutJeu, performance.now()),
     });
     onFin(journal, partie.statistiques);
   }
 
   /** Mode simulation : joue la note attendue, juste ou un demi-ton au-dessus. */
   function jouer(juste: boolean): void {
-    if (!partie || partie.terminee) return;
-    const t = performance.now();
+    if (!partie || partie.terminee || phase !== 'jeu') return;
+    const t = horloge.jeu(performance.now());
     traiter(partie.jouerSimule(juste, t), t);
     rafraichir(t);
   }
@@ -198,11 +260,18 @@
       onAnnuler();
       return;
     }
-    traiter(partie.arreter(), performance.now());
+    clearTimeout(minuteur);
+    traiter(partie.arreter(), horloge.jeu(performance.now()));
   }
 
   function touche(evenement: KeyboardEvent): void {
-    if (!simulation || evenement.repeat) return;
+    if (evenement.repeat) return;
+    if (evenement.key === 'p' || evenement.key === 'P') {
+      if (phase === 'pause') reprendre();
+      else pauser(false);
+      return;
+    }
+    if (!simulation) return;
     // Sur un bouton, Espace le déclenche déjà : ne pas jouer deux fois.
     const surBouton = evenement.target instanceof HTMLButtonElement;
     if (evenement.key === ' ' && !surBouton) {
@@ -213,9 +282,14 @@
     }
   }
 
-  /** Onglet en arrière-plan : la partie s'arrête, comme le mode 2 de l'application coupe le micro. */
+  /**
+   * Onglet en arrière-plan : pause automatique, micro coupé. Avant la première note (mesure du bruit, compte à
+   * rebours du départ), rien n'est encore joué : retour au départ, comme « Arrêter ».
+   */
   function surVisibilite(): void {
-    if (document.hidden) arreter();
+    if (!document.hidden) return;
+    if (partie) pauser(true);
+    else arreter();
   }
 
   onMount(() => {
@@ -253,7 +327,22 @@
         <dd class="chute">{duree(dureeChute)}</dd>
       </div>
     </dl>
-    <button type="button" class="secondaire" onclick={arreter}>{TEXTES.partie.arreter}</button>
+    <div class="actions">
+      {#if enPartie}
+        <button
+          type="button"
+          class="secondaire pause"
+          aria-label={TEXTES.partie.pause}
+          title={TEXTES.partie.pause}
+          disabled={phase !== 'jeu'}
+          onclick={() => pauser(false)}
+        >
+          <!-- Symbole « pause » dessiné : deux barres (le caractère ⏸ est trop petit sur Android). -->
+          <span class="barres" aria-hidden="true"></span>
+        </button>
+      {/if}
+      <button type="button" class="secondaire" onclick={arreter}>{TEXTES.partie.arreter}</button>
+    </div>
   </header>
 
   <div class="zone">
@@ -265,11 +354,28 @@
       rappel={rappel?.positions ?? []}
       {effets}
     />
-    {#if !pret}
+    {#if enPartie && phase !== 'jeu'}
+      <!-- Pause et reprise : le manche est masqué, pour ne pas chercher la case hors du temps de jeu. -->
+      <div class="cache" role="group" aria-label={TEXTES.partie.enPause}>
+        {#if phase === 'pause'}
+          <p class="titre-cache">{TEXTES.partie.enPause}</p>
+          {#if microCoupe}<p>{TEXTES.partie.microCoupe}</p>{/if}
+          <button type="button" class="principal" onclick={reprendre}>{TEXTES.partie.reprendre}</button>
+        {:else if phase === 'micro'}
+          <p aria-live="polite">{ecoute?.statut === 'calibrage' ? TEXTES.micro.calibrage : TEXTES.micro.demarrage}</p>
+          {#if ecoute?.erreur}<p class="alerte" role="alert">{ecoute.erreur}</p>{/if}
+        {:else}
+          <p class="compte-reprise" aria-live="assertive">
+            <span class="sr-only">{TEXTES.partie.repriseDans}</span>
+            {compte}
+          </p>
+        {/if}
+      </div>
+    {:else if phase === 'micro'}
       <p class="preparation" aria-live="polite">
         <span>{ecoute?.statut === 'calibrage' ? TEXTES.micro.calibrage : TEXTES.micro.demarrage}</span>
       </p>
-    {:else if compte > 0}
+    {:else if phase === 'compte'}
       <p class="compte" aria-live="assertive">
         <span class="sr-only">{TEXTES.partie.compteARebours}</span>
         {compte}
@@ -326,10 +432,58 @@
     justify-content: space-between;
     gap: 0.5rem;
   }
+  .actions {
+    display: flex;
+    gap: 0.375rem;
+  }
+  .pause {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 0 0.5rem;
+  }
+  .barres {
+    width: 14px;
+    height: 16px;
+    border-inline: 5px solid currentColor;
+  }
+  .pause:disabled {
+    opacity: 0.55;
+  }
+  .cache {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    text-align: center;
+    background: var(--fond);
+    border: 1px solid var(--cadre);
+  }
+  .cache p {
+    margin: 0;
+  }
+  .titre-cache {
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+  .cache .principal {
+    min-width: 12rem;
+    min-height: 52px;
+    font-size: 1.125rem;
+  }
+  .compte-reprise {
+    font-size: 4rem;
+    font-weight: 700;
+  }
   .compteurs {
     display: grid;
     grid-template-columns: repeat(4, auto);
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin: 0;
   }
   .compteurs div {
@@ -344,6 +498,7 @@
     margin: 0;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
   .multiplicateur {
     font-weight: 500;

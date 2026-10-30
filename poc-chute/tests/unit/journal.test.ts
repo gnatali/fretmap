@@ -45,6 +45,7 @@ describe('export', () => {
     seuilSilenceDbfs: null,
     traitementsActifs: ['autoGainControl'],
     images: new MesureImages().resultat(),
+    pauses: [{ tMs: 800, dureeMs: 2500, arrierePlan: false }],
   };
 
   it('écrit le format, la version, la date et les parties', () => {

@@ -253,6 +253,7 @@ export class Partie {
       seuilSilenceDbfs: contexte.seuilSilenceDbfs,
       traitementsActifs: [...contexte.traitementsActifs],
       images: { ...contexte.images },
+      pauses: contexte.pauses.map((p) => ({ ...p })),
       resume: {
         score: this.score,
         justes: justes.length,

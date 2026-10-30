@@ -40,6 +40,7 @@ function partieJournal(minute: number): PartieJournal {
     seuilSilenceDbfs: -48,
     traitementsActifs: [],
     images: new MesureImages().resultat(),
+    pauses: [],
   });
 }
 
