@@ -1,6 +1,6 @@
 // Partie du mode progressif (spec §16) : des cordes à vide au manche entier. Les notes du niveau sont tirées selon leur
-// réussite, la vitesse suit la réussite (immobile au départ), et le niveau passe quand chaque note et l'ensemble sont
-// réussis à une vitesse donnée ; quelques notes s'ajoutent alors. Même interface que Partie pour l'écran ; le temps
+// réussite, la vitesse suit la réussite (immobile au départ) jusqu'au plafond du niveau, et le niveau passe quand chaque
+// note et l'ensemble sont réussis à ce plafond ; quelques notes s'ajoutent alors. Même interface que Partie pour l'écran ; le temps
 // est passé en paramètre (temps du jeu, sans les pauses).
 import type { EtatDetection } from '../../audio/pitch';
 import { CASE_MAX, noteDePosition, type Position } from '../../music/manche';
@@ -14,7 +14,7 @@ import { OPTIONS_VALIDATION } from '../partie';
 import { POINTS_BASE, multiplicateur } from '../points';
 import { difficulte, notesAAjouter, positionsDepart } from './difficulte';
 import type { EssaiJournal, PartieProgressiveJournal, PassageJournal } from './journal';
-import type { ReglagesProgressif } from './reglages';
+import { plafondVitesse, type ReglagesProgressif } from './reglages';
 import {
   justesse,
   matriceReussites,
@@ -63,8 +63,11 @@ export type EvenementProgressif =
   | { type: 'fausse'; note: NoteEnChute; detectee: NoteDetectee; penalite: number; fausses: number }
   | { type: 'ancienneNote'; detectee: NoteDetectee }
   | { type: 'nonReconnue' }
-  /** Niveau validé : bonus, notes ajoutées (vide quand tout le manche est validé), pause puis vitesse 0. */
-  | { type: 'niveau'; niveau: number; bonus: number; ajoutees: Position[] }
+  /**
+   * Niveau validé : bonus, notes ajoutées (vide quand tout le manche est validé), plafond de vitesse du nouveau niveau ;
+   * pause puis vitesse 0.
+   */
+  | { type: 'niveau'; niveau: number; bonus: number; ajoutees: Position[]; plafond: number }
   | { type: 'fin'; interrompue: boolean };
 
 const memePosition = (a: Position, b: Position) => a.corde === b.corde && a.case === b.case;
@@ -147,6 +150,11 @@ export class PartieProgressive {
 
   get vitesse(): number {
     return this.vitesseActuelle;
+  }
+
+  /** Plafond de vitesse du niveau : la vitesse ne le dépasse pas, et l'atteindre est une condition du passage. */
+  get plafond(): number {
+    return plafondVitesse(this.niveauActuel, this.reglages);
   }
 
   /** Durée de chute à la vitesse actuelle ; infinie à vitesse 0 (note immobile). */
@@ -378,7 +386,7 @@ export class PartieProgressive {
       this.serie++;
       points = Math.round(POINTS_BASE * score * (1 + vitesse) * multiplicateur(this.serie));
       this.score += points;
-      this.vitesseActuelle = Math.min(1, vitesse + this.reglages.acceleration * score);
+      this.vitesseActuelle = Math.min(this.plafond, vitesse + this.reglages.acceleration * score);
     } else {
       this.serie = 0;
       points = -Math.min(this.score, this.reglages.penalitePerdue);
@@ -425,11 +433,11 @@ export class PartieProgressive {
 
   /**
    * Passage de niveau : chaque note a assez d'essais et une réussite ≥ seuilNote, la réussite globale est
-   * ≥ seuilGlobal, et la vitesse ≥ vitesseRequise.
+   * ≥ seuilGlobal, et la vitesse a atteint le plafond du niveau.
    */
   private niveauValide(): boolean {
     const r = this.reglages;
-    if (this.mancheComplet || this.vitesseActuelle + 1e-9 < r.vitesseRequise) return false;
+    if (this.mancheComplet || this.vitesseActuelle + 1e-9 < this.plafond) return false;
     const notesReussies = this.notesDuNiveau.every(
       (p) => this.essaisDe(p) >= r.essaisMinimum && this.reussiteDe(p) + 1e-9 >= r.seuilNote,
     );
@@ -443,11 +451,12 @@ export class PartieProgressive {
     if (ajoutees.length === 0) this.mancheComplet = true;
     this.notesDuNiveau = [...this.notesDuNiveau, ...ajoutees];
     this.niveauActuel++;
-    this.passages.push({ tMs: this.relatif(tMs), niveau: this.niveauActuel, bonus, ajoutees });
+    const plafond = this.plafond;
+    this.passages.push({ tMs: this.relatif(tMs), niveau: this.niveauActuel, bonus, ajoutees, plafond });
     // Pause : les notes restantes sont retirées sans compter ; la partie reprend à vitesse 0.
     this.chute = new Chute();
     this.vitesseActuelle = 0;
     this.finPauseMs = tMs + DUREE_PAUSE_NIVEAU_MS;
-    return { type: 'niveau', niveau: this.niveauActuel, bonus, ajoutees: ajoutees.map((p) => ({ ...p })) };
+    return { type: 'niveau', niveau: this.niveauActuel, bonus, ajoutees: ajoutees.map((p) => ({ ...p })), plafond };
   }
 }

@@ -59,6 +59,14 @@ describe('écran de départ, mode progressif', () => {
     expect(donnees(stockage).reglagesProgressif).toMatchObject({ methodeNote: 'temps', seuilNote: 0.75 });
     expect(document.querySelector('[data-cle="seuilNote"]')!.textContent).toBe('75 %');
 
+    // Plafond de vitesse : 30 % au niveau 1, + 5 % par niveau, soit 100 % au niveau 15 ; + 10 % : niveau 8.
+    expect(screen.getByText(TEXTES.progressif.vitessePleine(15))).toBeTruthy();
+    await fireEvent.input(screen.getByLabelText(new RegExp(TEXTES.progressif.reglages.vitesseParNiveau)), {
+      target: { value: '0.1' },
+    });
+    expect(donnees(stockage).reglagesProgressif).toMatchObject({ vitesseDepart: 0.3, vitesseParNiveau: 0.1 });
+    expect(screen.getByText(TEXTES.progressif.vitessePleine(8))).toBeTruthy();
+
     await fireEvent.change(screen.getByLabelText(TEXTES.depart.modeJeu), { target: { value: 'classique' } });
     expect(donnees(stockage).modeJeu).toBe('classique');
     expect(screen.getByLabelText(TEXTES.depart.niveau)).toBeTruthy();

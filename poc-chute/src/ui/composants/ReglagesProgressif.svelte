@@ -3,6 +3,7 @@
     BORNES_PROGRESSIF,
     REGLAGES_PROGRESSIF_DEFAUT,
     bornerReglage,
+    niveauVitessePleine,
     type CleNumerique,
     type ReglagesProgressif,
   } from '../../jeu/progressif/reglages';
@@ -28,7 +29,8 @@
   const FORMATS: Record<CleNumerique, Format> = {
     seuilNote: 'pourcent',
     seuilGlobal: 'pourcent',
-    vitesseRequise: 'pourcent',
+    vitesseDepart: 'pourcent',
+    vitesseParNiveau: 'pourcent',
     dureeChuteMinMs: 'duree',
     notesAjoutees: 'nombre',
     essaisNote: 'nombre',
@@ -49,7 +51,8 @@
     'seuilNote',
     'seuilGlobal',
     'dureeChuteMinMs',
-    'vitesseRequise',
+    'vitesseDepart',
+    'vitesseParNiveau',
     'notesAjoutees',
   ];
   const AVANCES: readonly CleNumerique[] = [
@@ -98,6 +101,9 @@
       value={reglages[cle]}
       oninput={(e) => changer(cle, bornerReglage(cle, Number(e.currentTarget.value)))}
     />
+    {#if cle === 'vitesseParNiveau'}
+      <span class="aide">{TEXTES.progressif.vitessePleine(niveauVitessePleine(reglages))}</span>
+    {/if}
   </label>
 {/snippet}
 
@@ -167,6 +173,10 @@
     padding: 0.625rem 0;
     cursor: pointer;
     font-weight: 600;
+  }
+  .aide {
+    font-weight: 400;
+    color: var(--discret);
   }
   .avances .secondaire {
     justify-self: start;

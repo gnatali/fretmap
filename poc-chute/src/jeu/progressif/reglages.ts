@@ -11,8 +11,13 @@ export interface ReglagesProgressif {
   seuilNote: number;
   /** Réussite globale minimale pour passer le niveau (0 à 1). */
   seuilGlobal: number;
-  /** Vitesse minimale pour passer le niveau, en part de la vitesse max (0 à 1). */
-  vitesseRequise: number;
+  /**
+   * Plafond de vitesse au niveau 1, en part de la vitesse max (0 à 1). La vitesse ne dépasse pas le plafond du niveau,
+   * et l'atteindre est une condition du passage.
+   */
+  vitesseDepart: number;
+  /** Hausse du plafond de vitesse à chaque niveau, en part de la vitesse max. */
+  vitesseParNiveau: number;
   /** Durée de chute à la vitesse max (« vitesse max »), en ms. */
   dureeChuteMinMs: number;
   /** Notes ajoutées à chaque passage de niveau. */
@@ -43,13 +48,17 @@ export interface ReglagesProgressif {
   bonusNiveau: number;
 }
 
-/** Valeurs par défaut (propositions du 30/10/2026, spec §16). */
+/**
+ * Valeurs par défaut (propositions du 30/10/2026, spec §16). Plafond de vitesse : 30 % au niveau 1, + 5 % par niveau
+ * (réponse de l'utilisateur après le premier journal, annexe B9).
+ */
 export const REGLAGES_PROGRESSIF_DEFAUT: Readonly<ReglagesProgressif> = {
   methodeNote: 'score',
   methodeGlobale: 'moyenne',
   seuilNote: 0.6,
   seuilGlobal: 0.8,
-  vitesseRequise: 0.5,
+  vitesseDepart: 0.3,
+  vitesseParNiveau: 0.05,
   dureeChuteMinMs: 3000,
   notesAjoutees: 3,
   essaisNote: 5,
@@ -73,7 +82,8 @@ export type CleNumerique = Exclude<keyof ReglagesProgressif, 'methodeNote' | 'me
 export const BORNES_PROGRESSIF: Readonly<Record<CleNumerique, { min: number; max: number; pas: number }>> = {
   seuilNote: { min: 0.3, max: 1, pas: 0.05 },
   seuilGlobal: { min: 0.3, max: 1, pas: 0.05 },
-  vitesseRequise: { min: 0, max: 1, pas: 0.1 },
+  vitesseDepart: { min: 0.1, max: 1, pas: 0.05 },
+  vitesseParNiveau: { min: 0, max: 0.5, pas: 0.05 },
   dureeChuteMinMs: { min: 1000, max: 10000, pas: 500 },
   notesAjoutees: { min: 1, max: 6, pas: 1 },
   essaisNote: { min: 2, max: 20, pas: 1 },
@@ -98,4 +108,22 @@ export function bornerReglage(cle: CleNumerique, valeur: number): number {
   const surLePas = min + Math.round((valeur - min) / pas) * pas;
   // Arrondi à 6 décimales : 0,1 × 6 ne doit pas devenir 0,6000000000000001.
   return Math.round(Math.min(max, Math.max(min, surLePas)) * 1e6) / 1e6;
+}
+
+/** Plafond de vitesse d'un niveau : vitesseDepart + (niveau − 1) × vitesseParNiveau, sans dépasser la vitesse max. */
+export function plafondVitesse(
+  niveau: number,
+  reglages: Pick<ReglagesProgressif, 'vitesseDepart' | 'vitesseParNiveau'>,
+): number {
+  const plafond = reglages.vitesseDepart + (niveau - 1) * reglages.vitesseParNiveau;
+  return Math.round(Math.min(1, plafond) * 1e6) / 1e6;
+}
+
+/** Premier niveau joué à la vitesse max, ou null si le plafond n'y arrive jamais (hausse nulle). */
+export function niveauVitessePleine(
+  reglages: Pick<ReglagesProgressif, 'vitesseDepart' | 'vitesseParNiveau'>,
+): number | null {
+  if (reglages.vitesseDepart >= 1) return 1;
+  if (reglages.vitesseParNiveau <= 0) return null;
+  return 1 + Math.ceil((1 - reglages.vitesseDepart) / reglages.vitesseParNiveau - 1e-9);
 }

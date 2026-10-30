@@ -108,7 +108,13 @@
   let reussite = $state(0);
   let vitesse = $state(0);
   /** Passage de niveau : bilan affiché pendant la pause du jeu (temps du jeu de la reprise). */
-  let passage = $state.raw<{ niveau: number; bonus: number; ajoutees: Position[]; reprise: number } | null>(null);
+  let passage = $state.raw<{
+    niveau: number;
+    bonus: number;
+    ajoutees: Position[];
+    plafond: number;
+    reprise: number;
+  } | null>(null);
   let resteAvantReprise = $state(0);
   let dernierRetour = $state<{ texte: string; juste: boolean } | null>(null);
   /** Bonne case montrée sur le manche, pour la note `index` (sans échéance après 3 fausses notes sur elle). */
@@ -245,8 +251,8 @@
         info = TEXTES.indicateur.ancienneNote(nomAffiche(nom, notation, octave));
       } else if (evenement.type === 'niveau') {
         // Mode progressif : bilan et nouvelles notes, entourées sur le manche pendant la pause du jeu.
-        const { niveau: nouveau, bonus, ajoutees } = evenement;
-        passage = { niveau: nouveau - 1, bonus, ajoutees, reprise: t + DUREE_PAUSE_NIVEAU_MS };
+        const { niveau: nouveau, bonus, ajoutees, plafond } = evenement;
+        passage = { niveau: nouveau - 1, bonus, ajoutees, plafond, reprise: t + DUREE_PAUSE_NIVEAU_MS };
         rappel = { index: -1, positions: ajoutees, jusqua: t + DUREE_PAUSE_NIVEAU_MS };
         if (partie instanceof ClassePartieProgressive) onNiveau?.(partie);
       } else if (evenement.type === 'fin') {
@@ -434,6 +440,7 @@
             {/each}
           </ul>
         {/if}
+        <p class="plafond">{TEXTES.progressif.plafond(pourcent(passage.plafond))}</p>
         <p class="reprise">{TEXTES.progressif.repriseDans(resteAvantReprise)}</p>
       </div>
     {/if}

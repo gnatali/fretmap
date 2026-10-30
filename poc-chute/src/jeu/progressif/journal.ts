@@ -46,6 +46,8 @@ export interface PassageJournal {
   niveau: number;
   bonus: number;
   ajoutees: Position[];
+  /** Plafond de vitesse du nouveau niveau (part de la vitesse max) ; absent avant la version 2.1 de la spec. */
+  plafond?: number;
 }
 
 /** Notes du niveau à la fin de la partie, avec leur réussite (méthode choisie). */

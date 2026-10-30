@@ -10,7 +10,7 @@ En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/wo
 
 Deux modes de jeu, au choix sur l'écran de départ :
 
-- **Progressif** (par défaut, spec §16) : on commence aux cordes à vide, notes immobiles ; la vitesse monte avec la réussite ; quand chaque note et le niveau sont assez réussis à la vitesse requise, le niveau passe et 3 notes s'ajoutent (montrées sur le manche pendant une pause de 6 s). Une fausse note coûte 50 points, la note reste à jouer ; à la 3e, ou si elle arrive en bas, elle est perdue (−150). La partie dure jusqu'à « Arrêter » ; « Reprendre au niveau N » repart des notes atteintes. Les méthodes de calcul de la réussite et tous les seuils se règlent au départ ; le journal note toutes les méthodes pour les comparer.
+- **Progressif** (par défaut, spec §16) : on commence aux cordes à vide, notes immobiles ; la vitesse monte avec la réussite, jusqu'au plafond du niveau (30 % de la vitesse max au niveau 1, + 5 % par niveau) ; quand chaque note et le niveau sont assez réussis à ce plafond, le niveau passe et 3 notes s'ajoutent (montrées sur le manche pendant une pause de 6 s). Une fausse note coûte 50 points, la note reste à jouer ; à la 3e, ou si elle arrive en bas, elle est perdue (−150). La partie dure jusqu'à « Arrêter » ; « Reprendre au niveau N » repart des notes atteintes. Les méthodes de calcul de la réussite et tous les seuils se règlent au départ ; le journal note toutes les méthodes pour les comparer.
 - **Classique** (spec §6) : 30 notes d'un niveau de l'application, durée de chute adaptative.
 
 Dans les deux modes :

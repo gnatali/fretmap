@@ -20,7 +20,21 @@ test('mode progressif : note immobile, passage au niveau 2, note perdue, reprise
   expect(await attendue.getAttribute('style')).toBe(position);
   expect(await debordants(page)).toEqual([]);
 
-  // Notes justes jusqu'au passage : bilan, nouvelles notes entourées sur le manche, reprise à vitesse 0.
+  // La vitesse monte avec les notes justes, jusqu'au plafond du niveau 1 : 30 %.
+  const vitesse = page.locator('.vitesse');
+  for (let i = 0; i < 10 && (await vitesse.textContent()) !== '30 %'; i++) {
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(100);
+  }
+  await expect(vitesse).toHaveText('30 %');
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(100);
+  }
+  await expect(vitesse).toHaveText('30 %');
+
+  // Notes justes jusqu'au passage : bilan, nouvelles notes entourées sur le manche, vitesse max du niveau 2, reprise
+  // à vitesse 0.
   const passage = page.getByText('Niveau 1 validé ! +500');
   for (let i = 0; i < 100 && !(await passage.isVisible()); i++) {
     await page.keyboard.press('Space');
@@ -32,6 +46,7 @@ test('mode progressif : note immobile, passage au niveau 2, note perdue, reprise
     'Do (C) · corde 2, case 1',
     'Fa (F) · corde 1, case 1',
   ]);
+  await expect(page.locator('.passage .plafond')).toHaveText('Vitesse max du niveau : 35 %');
   await expect(page.locator('.rappel')).toHaveCount(3);
   await expect(page.locator('.niveau')).toHaveText('2');
   await expect(passage).toBeHidden({ timeout: 8000 });
@@ -59,7 +74,8 @@ test('mode progressif : note immobile, passage au niveau 2, note perdue, reprise
   const [partie] = JSON.parse(await readFile((await telechargement.path())!, 'utf8')).parties;
   expect(partie).toMatchObject({ mode: 'progressif', simulation: true, niveauDepart: 1 });
   expect(partie.resume).toMatchObject({ niveauAtteint: 2, perdues: 1, fausses: 3 });
-  expect(partie.passages).toHaveLength(1);
+  expect(partie.passages).toMatchObject([{ niveau: 2, plafond: 0.35 }]);
+  expect(partie.resume.vitesseMax).toBe(0.3);
   expect(partie.essais.length).toBeGreaterThanOrEqual(18);
   expect(Object.keys(partie.essais[0].globales)).toEqual(['score', 'taux', 'temps']);
 

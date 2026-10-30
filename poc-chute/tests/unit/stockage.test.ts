@@ -121,6 +121,9 @@ describe('chargement', () => {
           methodeGlobale: 'autre',
           seuilNote: 0.62,
           dureeChuteMinMs: 99999,
+          // Réglage retiré en version 2.1 (remplacé par le plafond de vitesse) : ignoré.
+          vitesseRequise: 0.4,
+          vitesseParNiveau: 0.12,
           notesAjoutees: 'trois',
         },
         progressif: {
@@ -141,6 +144,7 @@ describe('chargement', () => {
       methodeNote: 'temps',
       seuilNote: 0.6,
       dureeChuteMinMs: 10000,
+      vitesseParNiveau: 0.1,
     });
     expect(donnees.progressif).toEqual({
       niveau: 3,

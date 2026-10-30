@@ -30,6 +30,14 @@ describe('retourFausse', () => {
   });
 });
 
+describe('mode progressif', () => {
+  it('donne la vitesse max du niveau et le niveau où elle atteint 100 %', () => {
+    expect(TEXTES.progressif.plafond('35 %')).toBe('Vitesse max du niveau : 35 %');
+    expect(TEXTES.progressif.vitessePleine(15)).toBe('100 % au niveau 15');
+    expect(TEXTES.progressif.vitessePleine(null)).toBe('Même vitesse max à tous les niveaux');
+  });
+});
+
 describe('indicateur', () => {
   it('donne l’écart en cents signé, au singulier pour zéro', () => {
     expect(TEXTES.indicateur.cents(3.4)).toBe('+3 cents');

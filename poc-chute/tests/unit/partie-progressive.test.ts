@@ -6,7 +6,12 @@ import {
   PartieProgressive,
   type EvenementProgressif,
 } from '../../src/jeu/progressif/partie-progressive';
-import { REGLAGES_PROGRESSIF_DEFAUT, type ReglagesProgressif } from '../../src/jeu/progressif/reglages';
+import {
+  REGLAGES_PROGRESSIF_DEFAUT,
+  niveauVitessePleine,
+  plafondVitesse,
+  type ReglagesProgressif,
+} from '../../src/jeu/progressif/reglages';
 import { positions, type Position } from '../../src/music/manche';
 import { etat } from './detection';
 
@@ -101,6 +106,20 @@ describe('notes jouées', () => {
     expect(partie.vitesse).toBeCloseTo(0.1 + 0.1 * 0.8203125);
   });
 
+  it('la vitesse ne dépasse pas le plafond du niveau : 30 % au niveau 1', () => {
+    const partie = nouvelle();
+    expect(partie.plafond).toBe(0.3);
+    let t = 0;
+    for (let i = 0; i < 5; i++) {
+      t += 500;
+      partie.avancer(t);
+      partie.jouerSimule(true, t);
+    }
+    expect(partie.vitesse).toBe(0.3);
+    expect(partie.dureeChuteMs).toBeCloseTo(10_000);
+    expect(partie.journal(CONTEXTE).resume.vitesseMax).toBe(0.3);
+  });
+
   it('une fausse note coûte 50 points et ralentit, la note reste ; à la 3e, elle est perdue (−150)', () => {
     const partie = nouvelle();
     partie.jouerSimule(true, 1000);
@@ -155,8 +174,24 @@ describe('notes jouées', () => {
   });
 });
 
+describe('plafond de vitesse', () => {
+  it('30 % au niveau 1, + 5 % par niveau, 100 % au niveau 15 (réglages par défaut)', () => {
+    const r = REGLAGES_PROGRESSIF_DEFAUT;
+    expect([1, 2, 3, 5, 9, 15, 20].map((n) => plafondVitesse(n, r))).toEqual([0.3, 0.35, 0.4, 0.5, 0.7, 1, 1]);
+    expect(niveauVitessePleine(r)).toBe(15);
+    expect(niveauVitessePleine({ vitesseDepart: 0.3, vitesseParNiveau: 0.1 })).toBe(8);
+    expect(niveauVitessePleine({ vitesseDepart: 1, vitesseParNiveau: 0 })).toBe(1);
+    expect(niveauVitessePleine({ vitesseDepart: 0.5, vitesseParNiveau: 0 })).toBeNull();
+  });
+
+  it('une reprise au niveau 3 plafonne à 40 %', () => {
+    const notes = [...positionsDepart(), { corde: 6, case: 1 } as Position];
+    expect(nouvelle({}, { niveau: 3, positions: notes }).plafond).toBe(0.4);
+  });
+});
+
 describe('passage de niveau', () => {
-  it('quand chaque note et l’ensemble sont réussis à la vitesse requise : bonus, notes ajoutées, pause, vitesse 0', () => {
+  it('quand chaque note et l’ensemble sont réussis au plafond de vitesse : bonus, notes ajoutées, pause, vitesse 0', () => {
     const partie = nouvelle({}, { hasard: hasardFixe() });
     const { t, niveau } = jouerJusquAuPassage(partie);
     expect(niveau).toEqual({
@@ -168,6 +203,7 @@ describe('passage de niveau', () => {
         { corde: 2, case: 1 },
         { corde: 1, case: 1 },
       ],
+      plafond: 0.35,
     });
     // Chaque corde à vide a été jouée au moins 3 fois (essais minimum).
     const journal = partie.journal(CONTEXTE);
@@ -176,12 +212,13 @@ describe('passage de niveau', () => {
         journal.essais.filter((e) => e.position.corde === p.corde && e.position.case === 0).length,
       ).toBeGreaterThanOrEqual(3);
     }
-    expect(journal.essais.at(-1)!.vitesse).toBeGreaterThanOrEqual(0.5);
+    expect(journal.resume.vitesseMax).toBe(0.3);
 
     expect(partie.niveau).toBe(2);
     expect(partie.positions).toHaveLength(9);
     expect(partie.caseMax).toBe(1);
     expect(partie.vitesse).toBe(0);
+    expect(partie.plafond).toBe(0.35);
     expect(partie.enPause).toBe(true);
     expect(partie.notes).toHaveLength(0);
     expect(partie.jouerSimule(true, t + 100)).toEqual([]);
@@ -192,17 +229,17 @@ describe('passage de niveau', () => {
     expect(partie.enPause).toBe(false);
     expect(partie.attendue).not.toBeNull();
 
-    expect(journal.passages).toEqual([{ tMs: t, niveau: 2, bonus: 500, ajoutees: niveau.ajoutees }]);
+    expect(journal.passages).toEqual([{ tMs: t, niveau: 2, bonus: 500, ajoutees: niveau.ajoutees, plafond: 0.35 }]);
     expect(Object.keys(journal.essais[0]!.globales)).toEqual(['score', 'taux', 'temps']);
     expect(journal.essais[0]!.reussites).toMatchObject({ score: 1, taux: 1, temps: 1 });
     expect(journal.resume).toMatchObject({ niveauDepart: 1, niveauAtteint: 2 });
   });
 
-  it('pas de passage tant que la vitesse requise n’est pas atteinte', () => {
-    // Accélération minimale : 0,01 par note ; il faut 50 notes justes pour atteindre la moitié de la vitesse max.
+  it('pas de passage tant que la vitesse n’a pas atteint le plafond du niveau', () => {
+    // Accélération minimale : 0,01 par note ; il faut 30 notes justes pour atteindre le plafond de 30 %.
     const partie = nouvelle({ acceleration: 0.01 }, { hasard: hasardFixe() });
     let t = 0;
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 28; i++) {
       t += 500;
       const evenements = [...partie.avancer(t), ...partie.jouerSimule(true, t)];
       expect(evenements.some((e) => e.type === 'niveau')).toBe(false);
@@ -213,7 +250,7 @@ describe('passage de niveau', () => {
 
   it('tout le manche validé : un dernier bonus sans note ajoutée, puis plus de passage', () => {
     const partie = nouvelle(
-      { essaisMinimum: 1, vitesseRequise: 0, seuilNote: 0.3, seuilGlobal: 0.3 },
+      { essaisMinimum: 1, vitesseDepart: 0.1, seuilNote: 0.3, seuilGlobal: 0.3 },
       { hasard: hasardFixe(7), positions: positions() },
     );
     const { t, niveau } = jouerJusquAuPassage(partie);
