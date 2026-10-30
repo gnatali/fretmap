@@ -329,7 +329,7 @@ Seuils proposés, à confirmer à la relecture.
 4. **S4, pédagogie** : une partie par jour pendant 5 jours, au même niveau (le niveau 5, ou celui où l'utilisateur fait encore des erreurs), vitesse adaptative, départ à 6 s. À la fin, l'utilisateur note son ressenti : plaisir, difficulté, envie de rejouer, impression d'apprendre.
 5. **S5, mode progressif** (version 2.0) : une partie par jour, en reprenant au niveau atteint, avec les méthodes par défaut ; changer de méthode d'un jour à l'autre si l'une semble mal suivre le jeu. Le journal note toutes les méthodes à chaque essai : l'analyse compare celles qui suivent le mieux les progrès (niveaux passés, temps de réponse, erreurs) et le ressenti.
 
-Exporter le journal après chaque série de parties et l'ajouter à `poc-chute/resultats/`. L'analyse se fait comme pour le premier POC ; un skill d'analyse propre à ce journal sera écrit avec le premier journal reçu.
+Exporter le journal après chaque série de parties et l'ajouter à `poc-chute/resultats/`. L'analyse suit le skill `analyser-journal-chute` ; elle est consignée dans `poc-chute/resultats/README.md`.
 
 ---
 

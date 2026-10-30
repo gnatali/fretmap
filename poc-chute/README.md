@@ -20,7 +20,7 @@ Dans les deux modes :
 - Écran de départ : mode de jeu et ses réglages, notation, options de mesure (afficher la case, vitesse fixe en mode classique), export et vidage du journal. Les choix sont gardés.
 - Mode classique, règle de la fausse note (spec §6.4) : « Coûte 50 points (la note reste à jouer) », par défaut, ou « Détruit la note (on passe à la suivante) ». Dans les deux cas, une fausse note casse la série et ralentit la chute. En mode « pénalité », la bonne case s'affiche après 3 fausses notes sur la même note.
 - Partie : boutons « Pause » (ou touche P) et « Arrêter ». Pendant la pause, le manche est masqué et le temps du jeu est gelé. Quand l'onglet passe en arrière-plan, la partie se met en pause et le micro est coupé : « Reprendre » le relance, avec 2 s de mesure du bruit. Écran de fin (mode classique) : résumé, notes à revoir avec leur bonne case, « Rejouer » (nouveau calibrage).
-- Après une série de parties : « Exporter le journal », puis ajouter le fichier à `resultats/` (spec §9).
+- Après une série de parties : « Exporter le journal », puis ajouter le fichier à `resultats/` (spec §9). L'analyse de chaque journal est dans `resultats/README.md`.
 
 ## Commandes
 
