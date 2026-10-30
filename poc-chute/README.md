@@ -10,10 +10,12 @@ En ligne : https://gnatali.github.io/fretmap/poc-chute/ (publié par `.github/wo
 
 Deux modes de jeu, au choix sur l'écran de départ :
 
-- **Progressif** (par défaut, spec §16) : on commence aux cordes à vide, notes immobiles ; la vitesse monte avec la réussite, jusqu'au plafond du niveau (30 % de la vitesse max au niveau 1, + 5 % par niveau) ; quand chaque note et le niveau sont assez réussis à ce plafond, le niveau passe et 3 notes s'ajoutent (montrées sur le manche pendant une pause de 6 s). Une fausse note coûte 50 points, la note reste à jouer ; à la 3e, ou si elle arrive en bas, elle est perdue (−150). La partie dure jusqu'à « Arrêter » ; « Reprendre au niveau N » repart des notes atteintes. Les méthodes de calcul de la réussite et tous les seuils se règlent au départ ; le journal note toutes les méthodes pour les comparer.
+- **Progressif** (par défaut, spec §16) : on commence aux cordes à vide, notes immobiles ; la vitesse monte avec la réussite, jusqu'au plafond du niveau (30 % de la vitesse max au niveau 1, + 5 % par niveau) ; quand chaque note et le niveau sont assez réussis à ce plafond, le niveau passe et 3 notes s'ajoutent (montrées sur le manche pendant une pause de 6 s). Une fausse note coûte 50 points, la note reste à jouer ; à la 3e, ou si elle arrive en bas, elle est perdue (−150). La partie dure jusqu'à « Arrêter » ; « Reprendre au niveau N » repart des notes atteintes. Les méthodes de calcul de la réussite et tous les seuils se règlent au départ ; le journal note toutes les méthodes pour les comparer. Une note pas encore jouée 3 fois sort en priorité ; le bilan du passage de niveau s'affiche sous le manche.
 - **Classique** (spec §6) : 30 notes d'un niveau de l'application, durée de chute adaptative.
 
 Dans les deux modes :
+
+- Un nom de note ne revient qu'après 2 notes d'un autre nom (pas de La2 puis La3). Le manche affiche les cases 0 à 5, puis jusqu'à 7 ou 12 selon les notes du niveau.
 
 - **À la guitare** (téléphone Android, Chrome, en portrait) : accorder la guitare avec l'accordeur de l'application, choisir le mode et ses réglages, puis démarrer. Le navigateur demande l'accès au micro ; ne pas jouer pendant les 2 s de mesure du bruit ambiant, puis jouer après le compte à rebours de 3 s. L'indicateur du bas montre la note entendue, le niveau sonore et les messages du micro.
 - **Au clavier**, pour le développement : https://gnatali.github.io/fretmap/poc-chute/?simulation. **Espace** (ou « Jouer la note ») = note juste, **F** (ou « Fausse note ») = fausse note.

@@ -367,10 +367,17 @@ Le POC est prêt pour la campagne quand (critères vérifiés en phase 4 par les
 - `points.test.ts` : exemple de 6.6 ; chaque facteur seul ; paliers du multiplicateur (9e, 10e, 20e, 30e note).
 - `partie.test.ts` : en mode « destruction », la fausse note détruit la note attendue ; en mode « pénalité », elle retire 50 points (score minimum 0), casse la série, ralentit la chute et laisse la note à jouer ; ancienne note ignorée une fois ; note non reconnue sans effet ; statistiques sur la position demandée ; fin à 30 notes ; partie interrompue.
 - `journal.test.ts` : format de l'export, mesures d'images (médiane, 95e centile, part au-delà de 33 ms), limite de 50 parties, relecture après rechargement.
+- `horloge.test.ts` : temps du jeu sans les pauses.
+- `enchainement.test.ts` : noms des 2 dernières notes écartés du tirage, avec repli.
+- Mode progressif : `difficulte.test.ts` (difficulté, notes ajoutées à chaque niveau), `reussite.test.ts` (score d'essai, 3 méthodes par note et 3 pour le niveau), `partie-progressive.test.ts` (vitesse 0, plafond par niveau, fausse note, note perdue ou ratée, passage de niveau, reprise, tirage des nouvelles notes, journal).
+- Écrans (jsdom) : `app.test.ts`, `ecran-partie.test.ts` (pause, arrière-plan), `manche-chute.test.ts` (paliers de 5, 7 et 12 cases).
 
 **De bout en bout** (`tests/e2e/`, Playwright, profil Pixel 7) :
 - en mode simulation : une partie complète au niveau 2 jusqu'à l'écran de fin ; une note ratée quand on ne joue pas ; une fausse note par la touche F, dans chaque mode (pénalité, bonne case après 3 fausses notes) ; l'export télécharge un JSON valide ;
-- au micro simulé (fichier WAV, comme `app/`), en mode « pénalité » : calibrage, note juste, ancienne note ignorée, fausse note pénalisée puis la même note jouée juste, et journal exporté avec le seuil de silence, les instants d'attaque et de détection.
+- au micro simulé (fichier WAV, comme `app/`), en mode « pénalité » : calibrage, note juste, ancienne note ignorée, fausse note pénalisée puis la même note jouée juste, et journal exporté avec le seuil de silence, les instants d'attaque et de détection ;
+- la pause (manche masqué, notes ignorées, reprise) ;
+- le mode progressif (`progressif.spec.ts`) : note immobile, plafond de 30 %, passage au niveau 2, note perdue, reprise, journal ; et, sur un écran de 360 px, un passage de niveau dont le bilan ne cache aucune nouvelle note ;
+- aucun écran ne déborde à 412 et 360 px (`debordants()` mesure à la largeur de l'écran émulé).
 
 ---
 
@@ -385,7 +392,7 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 | 3 | Tout ce qui ne dépend pas du micro : écrans en portrait (départ, partie, fin), animation, retours visuels, mode simulation, réglages, statistiques et journal enregistrés, mesure des images, export et vidage du journal, tests de bout en bout |
 | 4 | Branchement du micro : `Ecoute`, calibrage, `traiterDetection` (`SuiviMode2`), indicateur en direct, messages « Jouez la note… » et « Note non reconnue », seuil et traitements dans le journal, test de bout en bout avec un micro simulé (fichier WAV, comme `app/`) |
 | 5 | Campagne sur Android (S1 à S5), analyse des journaux, `SYNTHESE.md`, décision |
-| entre 4 et 5 | À la demande de l'utilisateur : règle de la fausse note (version 1.4), pause (1.5), mode progressif (2.0, §16) |
+| entre 4 et 5 | À la demande de l'utilisateur : règle de la fausse note (version 1.4), pause (1.5), mode progressif (2.0, §16). Après les premiers journaux (`poc-chute/resultats/README.md`) : plafond de vitesse par niveau et notes variées (2.1), manche de 5, 7 ou 12 cases et bilan du passage sous le manche (2.2), poids de tirage maximal des notes pas encore assez jouées (2.3) |
 
 ---
 
