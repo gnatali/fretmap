@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { REGLAGES_DEFAUT, progressionInitiale, type Progression } from '../../src/progression/modele';
+import { REGLAGES_DEFAUT, jeuInitial, progressionInitiale, type Progression } from '../../src/progression/modele';
 import {
   CLE_ILLISIBLE,
   CLE_STOCKAGE,
@@ -15,9 +15,11 @@ import { stockageMemoire } from './memoire';
 
 const exemple = (): Progression => ({
   ...progressionInitiale(),
-  avancement: {
-    1: { niveauAtteint: 3, dernieresReponses: [true, false, true] },
-    2: { niveauAtteint: 1, dernieresReponses: [] },
+  avancement: { 2: { niveauAtteint: 3, dernieresReponses: [true, false, true] } },
+  jeu: {
+    niveau: 2,
+    positions: [...jeuInitial().positions, { corde: 6, case: 1 }, { corde: 2, case: 1 }, { corde: 1, case: 1 }],
+    record: { score: 4200, niveau: 3 },
   },
   statistiques: [
     {
@@ -39,7 +41,7 @@ const exemple = (): Progression => ({
       derniereDate: '2026-10-27T08:01:00.000Z',
     },
   ],
-  reglages: { ...REGLAGES_DEFAUT, tolerance: 30, a4: 442, afficherNotes: true, notation: 'francaise' },
+  reglages: { ...REGLAGES_DEFAUT, tolerance: 30, a4: 442, notation: 'francaise' },
 });
 
 describe('charger et sauver', () => {
@@ -72,7 +74,7 @@ describe('charger et sauver', () => {
   });
 
   it('traite une version inconnue comme illisible', () => {
-    const s = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ ...exemple(), version: 3 }) });
+    const s = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ ...exemple(), version: 4 }) });
     expect(charger(s).etat).toBe('corrompu');
     expect(s.donnees[CLE_ILLISIBLE]).toBeDefined();
   });
@@ -102,41 +104,76 @@ describe('migrer', () => {
     expect(migrer({ version: 2, reglages: { notation: 'anglo-saxonne' } })?.reglages.notation).toBe('anglo-saxonne');
   });
 
-  it('version 1 : le niveau commun devient le niveau atteint des deux modes, réglages et statistiques gardés', () => {
+  it('version 1 : le niveau commun devient le niveau atteint du mode 2, réglages et statistiques gardés', () => {
     const { statistiques, reglages } = exemple();
     const v1 = { version: 1, niveauActuel: 3, scoreParNiveau: {}, statistiques, reglages };
     expect(migrer(v1)).toEqual({
-      version: 2,
-      avancement: {
-        1: { niveauAtteint: 3, dernieresReponses: [] },
-        2: { niveauAtteint: 3, dernieresReponses: [] },
-      },
+      version: 3,
+      avancement: { 2: { niveauAtteint: 3, dernieresReponses: [] } },
+      jeu: jeuInitial(),
       statistiques,
       reglages,
     });
-    expect(migrer({ ...v1, niveauActuel: 9 })?.avancement[1].niveauAtteint).toBe(1);
+    expect(migrer({ ...v1, niveauActuel: 9 })?.avancement[2].niveauAtteint).toBe(1);
+  });
+
+  it('version 2 : le jeu du mode 1 commence aux cordes à vide, le reste est gardé (export du 31/10/2026)', () => {
+    // Extrait de l'export de l'utilisateur (app/resultats/) : niveau 4 au quiz du mode 1, afficherNotes retiré.
+    const v2 = {
+      version: 2,
+      avancement: { 1: { niveauAtteint: 4, dernieresReponses: [] }, 2: { niveauAtteint: 1, dernieresReponses: [] } },
+      statistiques: exemple().statistiques,
+      reglages: { ...REGLAGES_DEFAUT, afficherNotes: false, afficherCaseMode2: true, seuilSilenceDb: -67.9 },
+    };
+    expect(migrer(v2)).toEqual({
+      version: 3,
+      avancement: { 2: { niveauAtteint: 1, dernieresReponses: [] } },
+      jeu: jeuInitial(),
+      statistiques: exemple().statistiques,
+      reglages: { ...REGLAGES_DEFAUT, afficherCaseMode2: true, seuilSilenceDb: -67.9 },
+    });
+  });
+
+  it('jeu invalide : cordes à vide, records gardés s’ils sont valides ; notes en double écartées', () => {
+    const record = { score: 900, niveau: 4 };
+    expect(migrer({ ...exemple(), jeu: { niveau: 0, positions: [], record } })?.jeu).toEqual(jeuInitial(record));
+    expect(migrer({ ...exemple(), jeu: 'x' })?.jeu).toEqual(jeuInitial());
+    expect(
+      migrer({
+        ...exemple(),
+        jeu: {
+          niveau: 3,
+          positions: [
+            { corde: 6, case: 0 },
+            { corde: 6, case: 0 },
+            { corde: 7, case: 0 },
+            { corde: 5, case: 13 },
+          ],
+          record: { score: -5, niveau: 2 },
+        },
+      })?.jeu,
+    ).toEqual({ niveau: 3, positions: [{ corde: 6, case: 0 }], record: { score: 0, niveau: 2 } });
   });
 
   it('écarte les statistiques et avancements invalides, et borne les dernières réponses', () => {
     const valide = exemple().statistiques[0]!;
     const p = migrer({
       ...exemple(),
-      avancement: {
-        1: { niveauAtteint: 2, dernieresReponses: [...Array<boolean>(25).fill(true), 'x', false] },
-        2: { niveauAtteint: 9, dernieresReponses: [true] },
-      },
+      avancement: { 2: { niveauAtteint: 2, dernieresReponses: [...Array<boolean>(25).fill(true), 'x', false] } },
       statistiques: [valide, { ...valide, case: 13 }, { ...valide, corde: 0 }, { ...valide, reussites: 9 }, null, 'x'],
     });
     // Niveau 2 : 20 réponses regardées ; les valeurs qui ne sont pas des booléens sont écartées.
-    expect(p?.avancement[1]).toEqual({
+    expect(p?.avancement[2]).toEqual({
       niveauAtteint: 2,
       dernieresReponses: [...Array<boolean>(19).fill(true), false],
     });
-    expect(p?.avancement[2]).toEqual({ niveauAtteint: 1, dernieresReponses: [] });
     expect(p?.statistiques).toEqual([valide]);
     expect(
-      migrer({ ...exemple(), avancement: { 1: { niveauAtteint: 7, dernieresReponses: [true] } } })?.avancement,
-    ).toEqual({ 1: { niveauAtteint: 7, dernieresReponses: [] }, 2: { niveauAtteint: 1, dernieresReponses: [] } });
+      migrer({ ...exemple(), avancement: { 2: { niveauAtteint: 9, dernieresReponses: [true] } } })?.avancement,
+    ).toEqual({ 2: { niveauAtteint: 1, dernieresReponses: [] } });
+    expect(
+      migrer({ ...exemple(), avancement: { 2: { niveauAtteint: 7, dernieresReponses: [true] } } })?.avancement,
+    ).toEqual({ 2: { niveauAtteint: 7, dernieresReponses: [] } });
   });
 
   it('refuse ce qui n’est pas une progression', () => {

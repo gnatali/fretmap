@@ -17,7 +17,8 @@ test('réglages : modification et persistance après rechargement', async ({ pag
   // La notation s'applique aux autres écrans.
   await page.getByRole('button', { name: 'Retour' }).click();
   await page.getByRole('button', { name: /^Mode 1/ }).click();
-  await expect(page.locator('.question .nom')).toHaveText(/^[A-G]#?$/);
+  await page.getByRole('button', { name: 'Commencer aux cordes à vide' }).click();
+  await expect(page.locator('.consigne')).toHaveText(/^[A-G]#? · à vide$/, { timeout: 5000 });
 });
 
 test('progression : export JSON, réinitialisation puis import', async ({ page }) => {
@@ -27,9 +28,12 @@ test('progression : export JSON, réinitialisation puis import', async ({ page }
   await page.goto('/');
   // Une réponse juste au mode 1 (niveau 1, question E).
   await page.getByRole('button', { name: /^Mode 1/ }).click();
+  await page.getByRole('button', { name: 'Commencer aux cordes à vide' }).click();
+  await expect(page.locator('.consigne')).toHaveText('Mi (E) · à vide', { timeout: 5000 });
   await page.getByRole('button', { name: 'Corde 6, à vide', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Juste');
+  await expect(page.locator('.retour')).toContainText('!');
   await page.getByRole('button', { name: 'Arrêter' }).click();
+  await page.getByRole('button', { name: 'Accueil' }).click();
 
   await page.getByRole('button', { name: /^Réglages/ }).click();
   const telechargement = page.waitForEvent('download');

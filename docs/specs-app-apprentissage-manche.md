@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 2.7** : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), précisions de la phase 5 sur les réglages (version 2.6), puis niveaux par mode, passage sur les dernières réponses et tirage pondéré (phase 6, version 2.7). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 3.0** (31/10/2026) : le mode 1 devient le jeu « Notes qui tombent » au toucher, repris du mode progressif du POC `poc-chute/` (§5.1), à la demande de l'utilisateur après sa session du 30/10 (export analysé dans [`app/resultats/README.md`](../app/resultats/README.md)) ; schéma de données version 3 (§6). Version 2.7 : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), précisions de la phase 5 sur les réglages (version 2.6), puis niveaux par mode, passage sur les dernières réponses et tirage pondéré (phase 6, version 2.7). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -96,27 +96,35 @@ Pas de backend, pas de framework lourd, pas de service tiers.
 
 ## 5. Fonctionnalités
 
-### 5.1 Mode 1 : manche virtuel et quiz
+### 5.1 Mode 1 : « Notes qui tombent » au toucher
 
-**Manche**
-- Affichage de 6 cordes et de 13 positions (case 0 à vide, cases 1 à 12), avec marqueurs aux cases 3, 5, 7, 9 et 12.
-- Affichage des notes sur les cases, masquable (une option par niveau).
-- Au-dessus du manche : choix du niveau parmi ceux débloqués dans le mode (5.4), avec l'avancement vers le niveau suivant, et affichage des notes, réglage enregistré et aussi présent dans l'écran Réglages. La notation des notes (5.4) se choisit dans l'écran Réglages.
-- Cordes à vide visibles à gauche, cases cliquables au pouce (zone minimale de 44 px de haut).
-- Orientation : affichage en portrait (manche vertical) par défaut, en paysage possible.
+Version 3.0. Le quiz du mode 1 (une question, 1 s d'attente, 7 niveaux) n'était pas assez prenant et ne faisait pas assez répéter chaque note : 104 réponses sur 29 positions, environ 2 essais par position hors cordes à vide (`app/resultats/README.md`). Il est remplacé par le **mode progressif du POC « Notes qui tombent »** ([`specs-poc-chute.md`](specs-poc-chute.md) §16), joué en touchant la case au lieu de jouer la note à la guitare. Code : `src/jeu/` (copié de `poc-chute/src/jeu/`, puis adapté au toucher : `partie.ts`).
 
-**Quiz**
-- Tirage d'une position (corde, case) parmi celles du niveau ; la question affiche la note de cette position et la corde.
-- L'utilisateur touche la case. Toute case de la corde demandée qui donne la note est acceptée : sur une corde, une note revient toutes les 12 cases (une corde à vide et sa case 12, par exemple).
-- Niveau 1 (cordes à vide) : la question ne donne que la note, car la corde serait la réponse. Toute corde à vide qui donne la note est acceptée (E : cordes 6 et 1). Le tirage porte sur les noms de note, pour que E ne sorte pas deux fois plus souvent.
-- Retour immédiat : vert si juste, rouge si faux, avec affichage de la bonne case.
-- Score de session, série de bonnes réponses, pourcentage de réussite.
-- Passage automatique à la question suivante après 1 seconde.
+**Règles reprises du POC (§16, valeurs par défaut de §16.5, sans réglage à l'écran)**
+- Manche vertical, cordes en colonnes (corde 6 à gauche), cases 0 à 5, puis 7, puis 12 selon les notes du niveau (POC §6.2). Les notes descendent dans la colonne de leur corde ; la plus basse est la note attendue.
+- Niveau 1 : les 6 cordes à vide. À chaque niveau validé, 3 notes s'ajoutent, de difficulté proche de la moyenne du niveau (case, + 3 cases pour une note altérée).
+- Vitesse 0 au départ (note immobile), puis elle monte avec la réussite, sans dépasser le plafond du niveau (30 % de la vitesse max au niveau 1, + 5 % par niveau ; vitesse max : 3 s de chute) ; chaque erreur la fait baisser.
+- Tirage : poids 1 + 3 × (1 − réussite) ; poids maximal tant qu'une note n'a pas 3 essais ; un nom de note ne revient qu'après 2 notes d'un autre nom.
+- Réussite d'une note : moyenne des scores d'essai (justesse et rapidité) de ses 5 derniers essais. Passage de niveau : chaque note a 3 essais et 60 % de réussite, le niveau 80 %, et la vitesse a atteint le plafond. Pause de 6 s avec le bilan et les nouvelles notes entourées, puis reprise à vitesse 0.
+- Points : 100 × score d'essai × (1 + vitesse) × multiplicateur de série (×2 à 10 notes justes d'affilée, jusqu'à ×4) ; −50 par case fausse ; −150 pour une note perdue ou ratée ; + 500 × niveau au passage.
+- Pause (bouton ou touche P, manche masqué), pause automatique quand l'onglet passe en arrière-plan ; compte à rebours de 3 s au départ et à la reprise.
+
+**Différences du toucher**
+- On touche la case : toute case de la corde demandée qui donne la note est acceptée (corde à vide et case 12, par exemple).
+- **Corde à vide : nom seul** (choix du 31/10/2026). Une note en case 0 ne donne pas la corde, qui serait la réponse : « Mi (E) · à vide » tombe au centre du manche, et toute corde à vide de ce nom est acceptée (Mi : cordes 6 et 1). L'essai compte pour la position tirée. Les autres notes donnent le nom et la corde ; la case est à trouver.
+- Case fausse : −50, série cassée, ralentissement, la note reste à jouer ; à la 3e case fausse, la note est perdue (−150). Après une note perdue ou ratée, la bonne case est entourée 1,5 s.
+- Pas de micro, pas de calibrage, pas de mode simulation.
+
+**Départ, fin, records et journal**
+- Départ : « Commencer aux cordes à vide », ou « Reprendre au niveau N » (mêmes notes, réussites remises à zéro) et « Recommencer aux cordes à vide » (avec confirmation). Le niveau et les notes sont enregistrés à chaque passage et à la fin.
+- Fin (« Arrêter ») : score, niveaux, notes jouées, justes, cases fausses, perdues, ratées, meilleure série, vitesse la plus haute, temps de réponse médian, et les notes du niveau de la moins réussie à la mieux réussie ; « Continuer au niveau N », « Accueil », « Exporter le journal ».
+- **Records** (choix du 31/10/2026) : meilleur score et plus haut niveau, affichés au départ ; « Nouveau record ! » en fin de partie.
+- **Journal** (choix du 31/10/2026) : chaque partie, avec chaque essai (temps, résultat, case touchée, cases fausses, réussites de toutes les méthodes), comme le journal progressif du POC (§16.6) sans les données du micro. Gardé à part de la progression (clé `fretmap.journal-mode1.v1`, 20 dernières parties), exporté en `journal-mode1-AAAAMMJJ-HHMM.json` (format `fretmap-mode1-journal`, version 1), pour régler le jeu.
 
 **Statistiques par note**
 - Pour chaque mode et chaque couple (corde, case) : nombre de tentatives, nombre de réussites, temps de réponse moyen.
-- Mode 1 : une réponse juste est comptée sur la position touchée (seule connue : corde 1 pour E au niveau 1, ou case 12) ; une réponse fausse, sur la position tirée.
-- Les notes les moins maîtrisées reviennent plus souvent (tirage pondéré, statistiques du mode joué) : poids d'une position = 1 + 3 × (erreurs + 1) / (tentatives + 2). Une position jamais jouée pèse 2,5 ; toujours réussie, son poids tend vers 1 ; toujours manquée, vers 4. Au niveau 1, le poids d'une note est la moyenne de ses cordes à vide.
+- Mode 1 : une case juste est comptée sur la position touchée (seule connue : corde 1 pour Mi à vide, ou case 12) ; une case fausse, une note perdue ou ratée, sur la position tirée. Temps : depuis que la note est attendue, ou depuis la dernière case fausse. Le jeu ne lit pas ces statistiques : il a sa propre réussite par note, sur la partie.
+- Mode 2 : les notes les moins maîtrisées reviennent plus souvent (tirage pondéré, statistiques du mode 2) : poids d'une position = 1 + 3 × (erreurs + 1) / (tentatives + 2).
 
 ### 5.2 Mode 2 : jouer la note
 
@@ -160,7 +168,7 @@ Accessible depuis la page d'accueil, pas seulement depuis un mode.
 
 ### 5.4 Niveaux et réglages
 
-**Niveaux** (progression linéaire, déverrouillage automatique ; mêmes niveaux dans les deux modes, avancement séparé par mode)
+**Niveaux du mode 2** (progression linéaire, déverrouillage automatique ; depuis la version 3.0, le mode 1 a les niveaux de son jeu, §5.1)
 
 | Niveau | Contenu | Condition de passage |
 |---|---|---|
@@ -192,7 +200,6 @@ Les notes sont affichées en dièses (A#, convention du POC), dans la notation c
 - Tolérance du mode 2 : demi-ton (défaut) / ±30 / ±20 cents
 - Octave stricte (oui / non)
 - Notation des notes : anglo-saxonne / française / les deux (défaut)
-- Afficher les notes sur le manche (oui / non)
 - Afficher la case en mode 2 (oui / non)
 - Référence A4 (430 à 450 Hz)
 - Seuil de silence : « Mesurer le bruit ambiant » (2 s, sans jouer), fait aussi au démarrage du micro
@@ -224,7 +231,6 @@ interface Statistique {
 interface Reglages {
   tolerance: 50 | 30 | 20;                      // 50 = demi-ton (défaut)
   octaveStricte: boolean;
-  afficherNotes: boolean;
   afficherCaseMode2: boolean;
   a4: number;                                   // 430 à 450
   seuilSilenceDb: number;                       // mesuré ; −45 par défaut
@@ -237,9 +243,16 @@ interface AvancementMode {
   dernieresReponses: boolean[];               // au niveau atteint, 20 ou 30 au plus (5.4)
 }
 
+interface ProgressionJeu {                    // jeu du mode 1 (§5.1)
+  niveau: number;                             // niveau atteint
+  positions: { corde: Corde; case: Case }[];  // notes du niveau (cordes à vide au départ)
+  record: { score: number; niveau: number };  // meilleur score, plus haut niveau
+}
+
 interface Progression {
-  version: 2;
-  avancement: Record<1 | 2, AvancementMode>;  // un avancement par mode
+  version: 3;
+  avancement: { 2: AvancementMode };          // niveaux du mode 2
+  jeu: ProgressionJeu;
   statistiques: Statistique[];
   reglages: Reglages;
 }
@@ -247,7 +260,8 @@ interface Progression {
 
 Règles :
 - Les statistiques sont mises à jour à chaque réponse, dans le mode concerné. Une attaque « non reconnue » (5.2) n'est pas une réponse.
-- Une migration est prévue dès la v1 (fonction `migrer(progression)`). Version 2 : la version 1 (`niveauActuel` commun aux deux modes, `scoreParNiveau` jamais rempli) est convertie ; son niveau devient le niveau atteint des deux modes.
+- Une migration est prévue dès la v1 (fonction `migrer(progression)`). Version 2 : la version 1 (`niveauActuel` commun aux deux modes, `scoreParNiveau` jamais rempli) est convertie ; son niveau devient le niveau atteint des deux modes. Version 3 : l'avancement du mode 1 et le réglage `afficherNotes` sont abandonnés, le jeu du mode 1 commence aux cordes à vide, les statistiques et les autres réglages sont gardés.
+- Le journal des parties du mode 1 est à part (§5.1), hors de l'export de la progression.
 - Un export JSON et un import JSON permettent de sauvegarder la progression manuellement.
 - Un réglage ajouté sans changer le sens des autres ne change pas la version du schéma : `migrer` complète les réglages absents avec leur valeur par défaut (cas de `notation`).
 
@@ -257,14 +271,14 @@ Règles :
 
 **Écrans**
 1. **Accueil** : boutons Mode 1, Mode 2, Accordeur, Statistiques, Réglages. Affichage du niveau atteint dans chaque mode.
-2. **Mode 1** : manche, question, score, bouton « Arrêter ».
+2. **Mode 1** : départ (reprise, records, journal), partie (manche et notes qui tombent, score, niveau, réussite, vitesse, « Pause », « Arrêter »), fin de partie.
 3. **Mode 2** : question, indicateur en direct, historique des dernières réponses, bouton « Arrêter ».
 4. **Accordeur** : aiguille, sélection de corde, accordage, A4.
 5. **Statistiques** : tableau des positions (grille 6 × 13, par mode) colorées selon le taux de réussite, niveau atteint, séries.
 6. **Réglages** : liste des options de 5.4.
 
 **Parcours minimal**
-- Au premier lancement : écran d'accueil, accès direct au Mode 1 niveau 1. Aucune inscription, aucun formulaire.
+- Au premier lancement : écran d'accueil, accès direct au Mode 1, aux cordes à vide. Aucune inscription, aucun formulaire.
 - Mode 2 et accordeur demandent le micro au premier usage, avec un texte explicatif avant la demande de permission, puis la consigne de calibrage (« ne jouez pas pendant 2 s »).
 
 **Mobile**
@@ -276,7 +290,7 @@ Règles :
 **Accessibilité**
 - Contrastes WCAG AA au minimum.
 - Couleur jamais seule : une bonne réponse est aussi signalée par une icône et un texte.
-- Mode 1 utilisable au clavier (flèches pour la sélection, Entrée pour valider) sur ordinateur.
+- Mode 1 utilisable au clavier (flèches pour la sélection, Entrée pour valider, P pour la pause) sur ordinateur.
 
 ---
 
@@ -314,6 +328,7 @@ fretmap/
     │   │   ├── stockage.ts          # Lecture et écriture localStorage, migration
     │   │   ├── statistiques.ts      # Mise à jour et pondération des tirages
     │   │   └── niveaux.ts           # Règles de passage de niveau
+    │   ├── jeu/                     # Jeu du mode 1, repris de poc-chute/src/jeu/ : chute, partie, réussite, journal
     │   ├── quiz/
     │   │   ├── score.ts             # Score de session : bonnes réponses, séries
     │   │   ├── tirage.ts            # Choix de la question selon le niveau
@@ -370,10 +385,12 @@ Les règles de validation du mode 2 (première note stable après une attaque, n
 - `notation.ts` : les 12 noms dans les trois notations, avec et sans octave, format « les deux ».
 - `validation.ts` : mode 1 (juste, fausse, case équivalente sur la même corde) ; mode 2 (dans la tolérance, hors tolérance, octave stricte et non stricte, première note après l'attaque, changement sans attaque ignoré, note précédente ignorée une fois, non-détection).
 - `niveaux.ts` : passage de niveau au seuil, pas de passage en dessous, niveau 7 sans fin, limite de plage du mode 2.
-- `stockage.ts` : sauvegarde, lecture, migration (dont la version 1 et un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
+- `stockage.ts` : sauvegarde, lecture, migration (versions 1 et 2, dont l'export de l'utilisateur du 31/10/2026, et un réglage `notation` absent qui devient `les-deux`), comportement si `localStorage` est vide ou corrompu.
+- `jeu/` : tests du POC repris (chute, enchaînement, horloge, difficulté, réussite) ; `partie.test.ts` (note immobile, case juste et fausse, note perdue et ratée, cordes à vide au nom seul, passage de niveau, reprise, tirage des nouvelles notes, journal) ; `journal.test.ts` (export, 20 parties gardées, stockage plein).
+- `mode1.test.ts` (composant) : compte à rebours, case juste et fausse, pause, passage de niveau, fin, records, reprise.
 
 **End-to-end (Playwright)**
-- Mode 1 : une question complète, bonne réponse et mauvaise réponse.
+- Mode 1 : case juste, case fausse, fin, record, journal exporté, statistiques ; passage au niveau 2 sans débordement à 360 px, puis reprise au niveau 2.
 - Réglages : modification et persistance après rechargement.
 - Export et import JSON.
 - Mode 2 : Chromium avec un micro simulé par un fichier WAV (`--use-fake-device-for-media-stream`, `--use-file-for-fake-audio-capture`). Le fichier commence par au moins 2 s de silence (calibrage), puis contient une note juste et une note fausse. Méthode utilisée pendant le POC.
@@ -393,7 +410,7 @@ La version 1 est terminée quand :
 
 - [ ] `npm run dev`, `npm run build` et `npm test` passent sans erreur dans `app/`
 - [ ] Le déploiement GitHub Pages se fait automatiquement depuis `main`, application à la racine du site et POC sous `/poc/`
-- [ ] Le mode 1 propose les 7 niveaux, avec score, série et statistiques
+- [ ] Le mode 1 est le jeu « Notes qui tombent » au toucher (§5.1), avec niveaux, points, records, journal et statistiques
 - [ ] Le mode 2 valide les notes des cases 0 à 12 sur Android avec guitare acoustique
 - [ ] L'accordeur couvre les quatre accordages et la référence A4 réglable
 - [ ] La progression survit à un rechargement, et l'export et l'import JSON fonctionnent
@@ -416,6 +433,7 @@ La version 1 est terminée quand :
 | 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé | Mode 2 jouable sur Android |
 | 5 | Accordeur complet, réglages (dont la notation des notes, déjà affichée et réglable dans le mode 1), export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
+| 6 bis | Mode 1 : jeu « Notes qui tombent » au toucher, repris du mode progressif du POC (§5.1), records, journal ; schéma version 3 (31/10/2026) | Mode 1 jouable |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
 
 ---

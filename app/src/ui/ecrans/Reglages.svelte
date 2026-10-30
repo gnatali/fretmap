@@ -93,14 +93,6 @@
       {/each}
     </select>
   </label>
-  <label class="ligne">
-    <input
-      type="checkbox"
-      checked={reglages.afficherNotes}
-      onchange={(e) => etat.definirReglage('afficherNotes', e.currentTarget.checked)}
-    />
-    {TEXTES.reglages.afficherNotes}
-  </label>
 </section>
 
 <section>

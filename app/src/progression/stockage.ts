@@ -1,5 +1,5 @@
 // Lecture et écriture de la progression dans localStorage, migration, export et import JSON (spec §6, §9).
-import { estCase, estNumeroCorde } from '../music/manche';
+import { estCase, estNumeroCorde, type Position } from '../music/manche';
 import { NOTATIONS } from '../music/notation';
 import { bornerA4 } from '../music/notes';
 import {
@@ -8,10 +8,12 @@ import {
   TOLERANCES,
   VERSION_SCHEMA,
   avancementInitial,
+  jeuInitial,
   progressionInitiale,
   type AvancementMode,
   type Niveau,
   type Progression,
+  type ProgressionJeu,
   type Reglages,
   type Statistique,
 } from './modele';
@@ -58,7 +60,6 @@ function normaliserReglages(valeur: unknown): Reglages {
   return {
     tolerance: TOLERANCES.find((t) => t === r.tolerance) ?? d.tolerance,
     octaveStricte: booleen(r.octaveStricte, d.octaveStricte),
-    afficherNotes: booleen(r.afficherNotes, d.afficherNotes),
     afficherCaseMode2: booleen(r.afficherCaseMode2, d.afficherCaseMode2),
     a4: typeof r.a4 === 'number' ? bornerA4(r.a4) : d.a4,
     seuilSilenceDb:
@@ -96,26 +97,56 @@ function normaliserAvancement(valeur: unknown): AvancementMode {
   };
 }
 
-/** Avancement par mode : en version 1, le niveau était commun aux deux modes (`niveauActuel`). */
+/**
+ * Avancement du mode 2 : en version 1, le niveau était commun aux deux modes (`niveauActuel`). Celui du mode 1 n'est
+ * plus lu (version 3 : le mode 1 a son jeu).
+ */
 function lireAvancement(donnees: Brut): Progression['avancement'] {
   if (donnees.version === 1) {
-    const niveau = estNiveau(donnees.niveauActuel) ? donnees.niveauActuel : 1;
-    return { 1: avancementInitial(niveau), 2: avancementInitial(niveau) };
+    return { 2: avancementInitial(estNiveau(donnees.niveauActuel) ? donnees.niveauActuel : 1) };
   }
   const avancement = estObjet(donnees.avancement) ? donnees.avancement : {};
-  return { 1: normaliserAvancement(avancement[1]), 2: normaliserAvancement(avancement[2]) };
+  return { 2: normaliserAvancement(avancement[2]) };
+}
+
+function estPosition(valeur: unknown): valeur is Position {
+  return estObjet(valeur) && estNumeroCorde(valeur.corde) && estCase(valeur.case);
+}
+
+/**
+ * Jeu du mode 1 : niveau, notes (sans doublon) et records. Absent ou invalide (versions 1 et 2), il repart aux cordes
+ * à vide, avec les records lus s'il y en a.
+ */
+function lireJeu(valeur: unknown): ProgressionJeu {
+  const j = estObjet(valeur) ? valeur : {};
+  const r = estObjet(j.record) ? j.record : {};
+  const record = {
+    score: estEntierPositif(r.score) ? r.score : 0,
+    niveau: estEntierPositif(r.niveau) ? r.niveau : 0,
+  };
+  const vues = new Set<string>();
+  const positions = (Array.isArray(j.positions) ? j.positions.filter(estPosition) : []).filter((p) => {
+    const cle = `${p.corde}-${p.case}`;
+    if (vues.has(cle)) return false;
+    vues.add(cle);
+    return true;
+  });
+  if (!Number.isInteger(j.niveau) || (j.niveau as number) < 1 || positions.length === 0) return jeuInitial(record);
+  return { niveau: j.niveau as number, positions: positions.map((p) => ({ corde: p.corde, case: p.case })), record };
 }
 
 /**
  * Ramène des données lues (stockage ou import) au schéma courant : validation et valeurs par défaut pour les champs
- * manquants ou invalides. La version 1 (niveau commun aux deux modes, `scoreParNiveau` jamais rempli) est convertie.
+ * manquants ou invalides. Les versions 1 (niveau commun aux deux modes) et 2 (quiz du mode 1 à 7 niveaux) sont
+ * converties : le jeu du mode 1 commence aux cordes à vide, les statistiques sont gardées.
  * Renvoie null si les données ne sont pas une progression connue.
  */
 export function migrer(donnees: unknown): Progression | null {
-  if (!estObjet(donnees) || (donnees.version !== 1 && donnees.version !== VERSION_SCHEMA)) return null;
+  if (!estObjet(donnees) || ![1, 2, VERSION_SCHEMA].includes(donnees.version as number)) return null;
   return {
     version: VERSION_SCHEMA,
     avancement: lireAvancement(donnees),
+    jeu: lireJeu(donnees.jeu),
     statistiques: Array.isArray(donnees.statistiques)
       ? donnees.statistiques.filter(estStatistique).map((s) => ({ ...s }))
       : [],

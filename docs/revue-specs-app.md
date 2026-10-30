@@ -67,3 +67,16 @@ Revue de [`specs-app-apprentissage-manche.md`](specs-app-apprentissage-manche.md
 | N12 | Choix du niveau après la phase 6 | Niveaux débloqués seulement ; les niveaux inférieurs servent d'entraînement et ne font pas progresser |
 | N13 | Modes 1 et 2 | Indépendants : niveau atteint et décompte séparés par mode (schéma de données version 2) |
 | N14 | Tirage pondéré | Poids = 1 + 3 × taux d'erreur lissé, (erreurs + 1) / (tentatives + 2), par position et par mode |
+
+## Décisions du 31/10/2026
+
+Demande de l'utilisateur, après sa session du mode 1 du 30/10 (export analysé dans [`app/resultats/README.md`](../app/resultats/README.md)) : le mode 1 fonctionne, mais il n'est pas assez prenant et ne fait pas assez répéter chaque note ; reprendre le fonctionnement du POC « Notes qui tombent » dans le mode 1, au toucher. Spécification version 3.0, §5.1.
+
+| # | Question | Décision |
+|---|---|---|
+| N15 | Place du jeu | Il remplace entièrement le quiz du mode 1 ; le mode 2 garde ses 7 niveaux |
+| N16 | Notes à vide au toucher (avec la corde, la réponse serait toujours la case 0) | Nom seul : « Mi (E) · à vide », toute corde à vide de ce nom est acceptée ; les autres notes donnent le nom et la corde |
+| N17 | Point de départ | Les cordes à vide (niveau 1 du jeu) ; les statistiques existantes sont gardées |
+| N18 | Ajouts au jeu du POC | Records (meilleur score, plus haut niveau) et journal exportable des parties ; pas de bip |
+| N19 | Réglages du jeu | Valeurs par défaut du mode progressif du POC (§16.5), sans réglage à l'écran ; à ajuster d'après les journaux |
+| N20 | Réglage « Afficher les notes » | Retiré : il donnerait la réponse du jeu (schéma version 3) |

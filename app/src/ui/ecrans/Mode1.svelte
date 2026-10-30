@@ -1,21 +1,16 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
   import type { EtatApp } from '../../etat.svelte';
-  import type { Position } from '../../music/manche';
-  import { nomAffiche } from '../../music/notation';
-  import type { Niveau } from '../../progression/modele';
-  import { contenuNiveau, positionsDuNiveau } from '../../progression/niveaux';
-  import { poidsDuMode } from '../../progression/statistiques';
-  import { SCORE_INITIAL, noter } from '../../quiz/score';
-  import { tirerQuestion, type Question } from '../../quiz/tirage';
-  import { verifierMode1 } from '../../quiz/validation';
-  import Manche, { type Marque } from '../composants/Manche.svelte';
-  import ReglagesQuiz from '../composants/ReglagesQuiz.svelte';
-  import ScoreSession from '../composants/ScoreSession.svelte';
+  import { exporterJournal, nomFichierJournal, type PartieJournal } from '../../jeu/journal';
+  import type { EvenementPartie, Partie } from '../../jeu/partie';
+  import type { RecordJeu } from '../../progression/modele';
+  import FinJeu from '../composants/FinJeu.svelte';
+  import PartieJeu from '../composants/PartieJeu.svelte';
+  import { telecharger } from '../telecharger';
   import { TEXTES } from '../textes';
 
-  /** Délai avant la question suivante (spec §5.1). */
-  const DELAI_SUIVANTE_MS = 1000;
+  // Mode 1 (spec §5.1) : le jeu « Notes qui tombent » au toucher, mode progressif du POC. Départ (reprise au niveau
+  // atteint, records, journal), partie, fin. Chaque réponse met à jour la statistique de sa position ; le niveau et
+  // les notes sont enregistrés à chaque passage de niveau et à la fin, les records à la fin.
 
   interface Props {
     etat: EtatApp;
@@ -24,140 +19,175 @@
     hasard?: () => number;
   }
 
-  let { etat, onQuitter, hasard = Math.random }: Props = $props();
+  let { etat, onQuitter, hasard }: Props = $props();
 
-  // On joue au niveau atteint dans ce mode, ou à un niveau inférieur pour s'entraîner.
+  let phase = $state<'depart' | 'partie' | 'fin'>('depart');
+  /** Numéro de la partie : une nouvelle partie recrée l'écran de jeu. */
+  let numeroPartie = $state(0);
+  let confirmation = $state(false);
+  /** Records avant la partie : un niveau validé pendant la partie les met à jour avant la fin. */
+  let recordAvant: RecordJeu = { score: 0, niveau: 0 };
+  let fin = $state.raw<{ journal: PartieJournal; nouveauRecord: boolean } | null>(null);
+  let journalOk = $state(true);
   // svelte-ignore state_referenced_locally
-  let niveau = $state<Niveau>(etat.progression.avancement[1].niveauAtteint);
-  const caseMax = $derived(contenuNiveau(niveau).caseMax);
-  let question = $state<Question>(nouvelleQuestion());
-  let debut = performance.now();
-  let score = $state({ ...SCORE_INITIAL });
-  let marques = $state<Record<string, Marque>>({});
-  let retour = $state<{ juste: boolean; texte: string } | null>(null);
-  /** Message du dernier niveau débloqué pendant la session. */
-  let annonce = $state<string | null>(null);
-  let minuteur: ReturnType<typeof setTimeout> | undefined;
+  let partiesJournal = $state(etat.journal().length);
+
+  const jeu = $derived(etat.progression.jeu);
   const notation = $derived(etat.progression.reglages.notation);
 
-  function nouvelleQuestion(precedente?: Question): Question {
-    const poids = poidsDuMode(etat.progression.statistiques, 1);
-    return tirerQuestion(positionsDuNiveau(niveau), { ...contenuNiveau(niveau), poids }, hasard, precedente);
+  function jouer(): void {
+    confirmation = false;
+    fin = null;
+    recordAvant = { ...jeu.record };
+    numeroPartie++;
+    phase = 'partie';
   }
 
-  /** Nouvelle question ; sans reposer la précédente quand on reste au même niveau. */
-  function suivante(precedente?: Question): void {
-    clearTimeout(minuteur);
-    minuteur = undefined;
-    question = nouvelleQuestion(precedente);
-    marques = {};
-    retour = null;
-    debut = performance.now();
+  function recommencer(): void {
+    etat.recommencerJeu();
+    jouer();
   }
 
-  function toucher(touchee: Position): void {
-    if (retour) return;
-    const tempsMs = performance.now() - debut;
-    const { juste, positionsCorrectes } = verifierMode1(question, touchee);
-    marques = juste
-      ? { [`${touchee.corde}-${touchee.case}`]: 'juste' }
-      : {
-          ...Object.fromEntries(positionsCorrectes.map((p) => [`${p.corde}-${p.case}`, 'attendue' as const])),
-          [`${touchee.corde}-${touchee.case}`]: 'faux',
-        };
-    retour = {
+  /** Statistique de la position : juste sur la case touchée, erreur sur la position tirée (spec §5.1). */
+  function surEvenement(evenement: EvenementPartie): void {
+    if (evenement.type !== 'resultat' && evenement.type !== 'fausse') return;
+    const juste = evenement.type === 'resultat' && evenement.resultat === 'juste';
+    etat.enregistrer({
+      mode: 1,
+      position: juste && evenement.touchee ? evenement.touchee : evenement.note.question.position,
       juste,
-      texte: juste
-        ? TEXTES.mode1.juste
-        : TEXTES.mode1.faux(nomAffiche(question.nom, notation), positionsCorrectes, question.cordeDemandee),
-    };
-    score = noter(score, juste);
-    // Juste : la position touchée est connue (E sur la corde 1, ou la case 12) ; faux : la position tirée.
-    const reponse = {
-      mode: 1 as const,
-      position: juste ? touchee : question.position,
-      juste,
-      tempsMs,
+      tempsMs: evenement.tempsReponseMs,
       date: new Date(),
-    };
-    const debloque = etat.repondre(reponse, niveau);
-    if (debloque) annonce = TEXTES.quiz.debloque(debloque, TEXTES.niveaux[debloque]!);
-    const precedente = question;
-    minuteur = setTimeout(() => {
-      // Le nouveau niveau commence à la question suivante, après l'affichage de la réponse.
-      if (debloque) niveau = debloque;
-      suivante(precedente);
-    }, DELAI_SUIVANTE_MS);
+    });
   }
 
-  onDestroy(() => clearTimeout(minuteur));
+  function record(score: number, niveau: number): RecordJeu {
+    return { score: Math.max(jeu.record.score, score), niveau: Math.max(jeu.record.niveau, niveau) };
+  }
+
+  /** Niveau validé : la reprise part de là, même si la partie n'est pas terminée. */
+  function surNiveau(partie: Partie): void {
+    etat.sauverJeu({ niveau: partie.niveau, positions: [...partie.positions], record: record(0, partie.niveau) });
+  }
+
+  function surFin(journal: PartieJournal, partie: Partie): void {
+    const { score, niveauAtteint, essais } = journal.resume;
+    const nouveauRecord = essais > 0 && (score > recordAvant.score || niveauAtteint > recordAvant.niveau);
+    etat.sauverJeu({ niveau: partie.niveau, positions: [...partie.positions], record: record(score, niveauAtteint) });
+    if (essais > 0) {
+      journalOk = etat.ajouterAuJournal(journal);
+      partiesJournal = etat.journal().length;
+    }
+    fin = { journal, nouveauRecord };
+    phase = 'fin';
+  }
+
+  function exporter(): void {
+    const date = new Date();
+    telecharger(nomFichierJournal(date), exporterJournal(etat.journal(), date));
+  }
 </script>
 
-<header class="barre">
-  <h1>{TEXTES.mode1.titre}</h1>
-  <button type="button" class="secondaire" onclick={onQuitter}>{TEXTES.arreter}</button>
-</header>
-
-{#if annonce}<p class="annonce" aria-live="polite">{annonce}</p>{/if}
-
-<ReglagesQuiz
-  {niveau}
-  avancement={etat.progression.avancement[1]}
-  onNiveau={(n) => {
-    niveau = n;
-    annonce = null;
-    suivante();
-  }}
->
-  <label>
-    <input
-      type="checkbox"
-      checked={etat.progression.reglages.afficherNotes}
-      onchange={(e) => etat.definirReglage('afficherNotes', e.currentTarget.checked)}
+{#if phase === 'partie'}
+  {#key numeroPartie}
+    <PartieJeu
+      niveau={jeu.niveau}
+      positions={jeu.positions}
+      {notation}
+      onEvenement={surEvenement}
+      onNiveau={surNiveau}
+      onFin={surFin}
+      onAnnuler={() => (phase = 'depart')}
+      {hasard}
     />
-    {TEXTES.mode1.afficherNotes}
-  </label>
-</ReglagesQuiz>
+  {/key}
+{:else if phase === 'fin' && fin}
+  <FinJeu
+    journal={fin.journal}
+    nouveauRecord={fin.nouveauRecord}
+    onContinuer={jouer}
+    onAccueil={onQuitter}
+    onExporter={exporter}
+  />
+  {#if !journalOk}<p class="alerte">{TEXTES.mode1.journalNonEnregistre}</p>{/if}
+{:else}
+  <header class="barre">
+    <h1>{TEXTES.mode1.titre}</h1>
+    <button type="button" class="secondaire" onclick={onQuitter}>{TEXTES.retour}</button>
+  </header>
 
-<p class="question" aria-live="polite">
-  {TEXTES.mode1.question} <strong class="nom">{nomAffiche(question.nom, notation)}</strong>
-  {#if question.cordeDemandee}{TEXTES.mode1.surLaCorde} <strong>{question.position.corde}</strong>{/if}
-</p>
+  <p class="regles">{TEXTES.mode1.regles}</p>
 
-<p class="retour" class:juste={retour?.juste} class:faux={retour && !retour.juste} role="status">
-  {#if retour}<span aria-hidden="true">{retour.juste ? '✓' : '✗'}</span> {retour.texte}{/if}
-</p>
+  <div class="boutons">
+    <button type="button" class="principal" onclick={jouer}>
+      {jeu.niveau > 1 ? TEXTES.mode1.reprendre(jeu.niveau, jeu.positions.length) : TEXTES.mode1.commencer}
+    </button>
+    {#if jeu.niveau > 1}
+      <button type="button" class="secondaire" onclick={() => (confirmation = true)}>
+        {TEXTES.mode1.recommencer}
+      </button>
+    {/if}
+  </div>
 
-<Manche
-  {caseMax}
-  afficherNotes={etat.progression.reglages.afficherNotes}
-  {notation}
-  cordeEnEvidence={question.cordeDemandee ? question.position.corde : null}
-  {marques}
-  onToucher={toucher}
-/>
+  {#if confirmation}
+    <div class="confirmation" role="alertdialog" aria-labelledby="question-recommencer">
+      <p id="question-recommencer">{TEXTES.mode1.confirmerRecommencer(jeu.niveau)}</p>
+      <div class="boutons">
+        <button type="button" class="principal" onclick={recommencer}>{TEXTES.mode1.confirmer}</button>
+        <button type="button" class="secondaire" onclick={() => (confirmation = false)}>
+          {TEXTES.mode1.annuler}
+        </button>
+      </div>
+    </div>
+  {/if}
 
-<ScoreSession {score} />
+  <section aria-labelledby="titre-records">
+    <h2 id="titre-records">{TEXTES.mode1.records}</h2>
+    <p class="records">
+      {jeu.record.niveau > 0
+        ? TEXTES.mode1.recordValeurs(jeu.record.score, jeu.record.niveau)
+        : TEXTES.mode1.aucunRecord}
+    </p>
+  </section>
 
-{#if !etat.sauvegardeOk}<p class="alerte">{TEXTES.sauvegardeImpossible}</p>{/if}
+  <section aria-labelledby="titre-journal">
+    <h2 id="titre-journal">{TEXTES.mode1.journal}</h2>
+    <button type="button" class="secondaire" disabled={partiesJournal === 0} onclick={exporter}>
+      {TEXTES.mode1.exporter(partiesJournal)}
+    </button>
+  </section>
+
+  {#if !etat.sauvegardeOk}<p class="alerte">{TEXTES.sauvegardeImpossible}</p>{/if}
+{/if}
 
 <style>
-  .question {
-    margin: 0.5rem 0 0;
-    font-size: 1.25rem;
+  .regles {
+    margin: 1rem 0;
   }
-  .nom {
-    font-size: 1.75rem;
+  .boutons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
-  .retour {
-    min-height: 1.75rem;
-    margin: 0.25rem 0 0.5rem;
+  .confirmation {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border: 2px solid var(--faux);
+    border-radius: 8px;
+  }
+  .confirmation p {
+    margin: 0 0 0.75rem;
+  }
+  h2 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1.125rem;
+  }
+  .records {
+    margin: 0;
     font-weight: 600;
   }
-  .retour.juste {
-    color: var(--juste);
-  }
-  .retour.faux {
-    color: var(--faux);
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
   }
 </style>

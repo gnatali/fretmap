@@ -3,12 +3,12 @@
 </script>
 
 <script lang="ts">
-  import type { Mode, Niveau } from '../../progression/modele';
+  import type { Mode } from '../../progression/modele';
   import { TEXTES } from '../textes';
 
   interface Props {
-    /** Niveau atteint dans chaque mode. */
-    niveaux: Record<Mode, Niveau>;
+    /** Niveau atteint dans chaque mode (mode 1 : niveau du jeu). */
+    niveaux: Record<Mode, number>;
     onAller: (destination: Destination) => void;
   }
 

@@ -43,22 +43,30 @@
 </header>
 
 {#each resumes as { mode, parPosition, tentatives, reussites, tempsMoyen } (mode)}
-  {@const avancement = etat.progression.avancement[mode]}
+  {@const avancement = etat.progression.avancement[2]}
   {@const passage = etatPassage(avancement)}
+  {@const jeu = etat.progression.jeu}
   <section aria-labelledby="stats-mode-{mode}">
     <h2 id="stats-mode-{mode}">{TEXTES.statistiques.mode[mode]}</h2>
-    <p class="avancement">
-      {TEXTES.statistiques.niveauAtteint(avancement.niveauAtteint, TEXTES.niveaux[avancement.niveauAtteint]!)}
-      {passage
-        ? TEXTES.quiz.versNiveau(
-            avancement.niveauAtteint + 1,
-            Math.round(TAUX_PASSAGE * 100),
-            passage.requises,
-            passage.reussites,
-            passage.reponses,
-          )
-        : TEXTES.quiz.dernierNiveau}
-    </p>
+    {#if mode === 1}
+      <p class="avancement">
+        {TEXTES.statistiques.jeu(jeu.niveau, jeu.positions.length)}
+        {#if jeu.record.niveau > 0}{TEXTES.statistiques.record(jeu.record.score, jeu.record.niveau)}{/if}
+      </p>
+    {:else}
+      <p class="avancement">
+        {TEXTES.statistiques.niveauAtteint(avancement.niveauAtteint, TEXTES.niveaux[avancement.niveauAtteint]!)}
+        {passage
+          ? TEXTES.quiz.versNiveau(
+              avancement.niveauAtteint + 1,
+              Math.round(TAUX_PASSAGE * 100),
+              passage.requises,
+              passage.reussites,
+              passage.reponses,
+            )
+          : TEXTES.quiz.dernierNiveau}
+      </p>
+    {/if}
     {#if tentatives === 0}
       <p>{TEXTES.statistiques.aucune(mode)}</p>
     {:else}

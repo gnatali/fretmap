@@ -29,7 +29,7 @@ describe('accueil', () => {
   it('ouvre chaque écran puis revient à l’accueil', async () => {
     render(App, { stockage: stockageMemoire() });
     const ecrans = [
-      { titre: TEXTES.mode1.titre, sortie: TEXTES.arreter },
+      { titre: TEXTES.mode1.titre, sortie: TEXTES.retour },
       { titre: TEXTES.mode2.titre, sortie: TEXTES.arreter },
       { titre: TEXTES.accordeur.titre, sortie: TEXTES.arreter },
       { titre: TEXTES.statistiques.titre, sortie: TEXTES.retour },

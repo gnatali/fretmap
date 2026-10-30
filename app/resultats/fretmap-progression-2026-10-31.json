@@ -1,0 +1,430 @@
+{
+  "version": 2,
+  "avancement": {
+    "1": {
+      "niveauAtteint": 4,
+      "dernieresReponses": []
+    },
+    "2": {
+      "niveauAtteint": 1,
+      "dernieresReponses": []
+    }
+  },
+  "statistiques": [
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 0,
+      "tentatives": 12,
+      "reussites": 11,
+      "tempsMoyenMs": 6646.433333335444,
+      "derniereDate": "2026-10-30T23:16:10.154Z"
+    },
+    {
+      "mode": 1,
+      "corde": 2,
+      "case": 0,
+      "tentatives": 7,
+      "reussites": 7,
+      "tempsMoyenMs": 3521.742857132639,
+      "derniereDate": "2026-10-30T23:13:44.052Z"
+    },
+    {
+      "mode": 1,
+      "corde": 3,
+      "case": 0,
+      "tentatives": 12,
+      "reussites": 10,
+      "tempsMoyenMs": 2206.3166666620723,
+      "derniereDate": "2026-10-30T23:18:22.669Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 0,
+      "tentatives": 5,
+      "reussites": 5,
+      "tempsMoyenMs": 1257.8999999880791,
+      "derniereDate": "2026-10-30T23:14:31.795Z"
+    },
+    {
+      "mode": 1,
+      "corde": 5,
+      "case": 0,
+      "tentatives": 9,
+      "reussites": 9,
+      "tempsMoyenMs": 1354.0111111054819,
+      "derniereDate": "2026-10-30T23:18:05.763Z"
+    },
+    {
+      "mode": 1,
+      "corde": 6,
+      "case": 0,
+      "tentatives": 9,
+      "reussites": 9,
+      "tempsMoyenMs": 1485.811111100846,
+      "derniereDate": "2026-10-30T23:17:28.747Z"
+    },
+    {
+      "mode": 2,
+      "corde": 4,
+      "case": 0,
+      "tentatives": 4,
+      "reussites": 3,
+      "tempsMoyenMs": 2244.5499999970198,
+      "derniereDate": "2026-10-27T12:37:48.661Z"
+    },
+    {
+      "mode": 2,
+      "corde": 2,
+      "case": 0,
+      "tentatives": 3,
+      "reussites": 2,
+      "tempsMoyenMs": 3148.3999999960265,
+      "derniereDate": "2026-10-27T12:37:57.274Z"
+    },
+    {
+      "mode": 2,
+      "corde": 6,
+      "case": 0,
+      "tentatives": 5,
+      "reussites": 5,
+      "tempsMoyenMs": 2191.739999985695,
+      "derniereDate": "2026-10-27T12:44:39.556Z"
+    },
+    {
+      "mode": 2,
+      "corde": 3,
+      "case": 0,
+      "tentatives": 5,
+      "reussites": 4,
+      "tempsMoyenMs": 4160.5,
+      "derniereDate": "2026-10-27T12:40:17.357Z"
+    },
+    {
+      "mode": 2,
+      "corde": 5,
+      "case": 0,
+      "tentatives": 6,
+      "reussites": 6,
+      "tempsMoyenMs": 2953.86666666468,
+      "derniereDate": "2026-10-27T12:44:22.236Z"
+    },
+    {
+      "mode": 2,
+      "corde": 5,
+      "case": 2,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 12605.699999988079,
+      "derniereDate": "2026-10-27T12:39:58.621Z"
+    },
+    {
+      "mode": 2,
+      "corde": 1,
+      "case": 5,
+      "tentatives": 4,
+      "reussites": 3,
+      "tempsMoyenMs": 1877.5249999761581,
+      "derniereDate": "2026-10-27T12:42:38.591Z"
+    },
+    {
+      "mode": 2,
+      "corde": 3,
+      "case": 5,
+      "tentatives": 2,
+      "reussites": 1,
+      "tempsMoyenMs": 6945.1500000059605,
+      "derniereDate": "2026-10-27T12:40:39.492Z"
+    },
+    {
+      "mode": 2,
+      "corde": 1,
+      "case": 7,
+      "tentatives": 3,
+      "reussites": 3,
+      "tempsMoyenMs": 7056.466666658719,
+      "derniereDate": "2026-10-27T12:44:17.156Z"
+    },
+    {
+      "mode": 2,
+      "corde": 3,
+      "case": 7,
+      "tentatives": 2,
+      "reussites": 1,
+      "tempsMoyenMs": 7653.449999988079,
+      "derniereDate": "2026-10-27T12:42:54.914Z"
+    },
+    {
+      "mode": 2,
+      "corde": 6,
+      "case": 3,
+      "tentatives": 2,
+      "reussites": 1,
+      "tempsMoyenMs": 4455.3499999940395,
+      "derniereDate": "2026-10-27T12:43:04.840Z"
+    },
+    {
+      "mode": 2,
+      "corde": 3,
+      "case": 4,
+      "tentatives": 3,
+      "reussites": 2,
+      "tempsMoyenMs": 4447.033333341281,
+      "derniereDate": "2026-10-27T12:44:33.729Z"
+    },
+    {
+      "mode": 2,
+      "corde": 2,
+      "case": 3,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 6211.900000035763,
+      "derniereDate": "2026-10-27T12:44:46.784Z"
+    },
+    {
+      "mode": 2,
+      "corde": 6,
+      "case": 5,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 3896.100000023842,
+      "derniereDate": "2026-10-27T12:44:51.697Z"
+    },
+    {
+      "mode": 2,
+      "corde": 5,
+      "case": 7,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 4679.900000035763,
+      "derniereDate": "2026-10-27T12:44:57.393Z"
+    },
+    {
+      "mode": 2,
+      "corde": 4,
+      "case": 3,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 4995.5,
+      "derniereDate": "2026-10-27T12:45:03.405Z"
+    },
+    {
+      "mode": 1,
+      "corde": 3,
+      "case": 4,
+      "tentatives": 7,
+      "reussites": 5,
+      "tempsMoyenMs": 9475.085714283798,
+      "derniereDate": "2026-10-30T23:18:25.347Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 3,
+      "tentatives": 4,
+      "reussites": 4,
+      "tempsMoyenMs": 2166.574999999255,
+      "derniereDate": "2026-10-30T23:17:42.497Z"
+    },
+    {
+      "mode": 1,
+      "corde": 6,
+      "case": 3,
+      "tentatives": 3,
+      "reussites": 3,
+      "tempsMoyenMs": 1916.8666666671634,
+      "derniereDate": "2026-10-30T23:16:00.278Z"
+    },
+    {
+      "mode": 1,
+      "corde": 5,
+      "case": 5,
+      "tentatives": 3,
+      "reussites": 3,
+      "tempsMoyenMs": 2233.7333333343267,
+      "derniereDate": "2026-10-30T23:16:29.530Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 5,
+      "tentatives": 3,
+      "reussites": 3,
+      "tempsMoyenMs": 2700.1333333328366,
+      "derniereDate": "2026-10-30T23:16:43.339Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 1,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 1723.8999999985099,
+      "derniereDate": "2026-10-30T23:14:38.854Z"
+    },
+    {
+      "mode": 1,
+      "corde": 5,
+      "case": 2,
+      "tentatives": 4,
+      "reussites": 3,
+      "tempsMoyenMs": 3748,
+      "derniereDate": "2026-10-30T23:16:32.567Z"
+    },
+    {
+      "mode": 1,
+      "corde": 2,
+      "case": 5,
+      "tentatives": 1,
+      "reussites": 0,
+      "tempsMoyenMs": 1766.6000000014901,
+      "derniereDate": "2026-10-30T23:14:51.786Z"
+    },
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 5,
+      "tentatives": 4,
+      "reussites": 2,
+      "tempsMoyenMs": 3365.0499999988824,
+      "derniereDate": "2026-10-30T23:16:07.506Z"
+    },
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 2,
+      "tentatives": 2,
+      "reussites": 2,
+      "tempsMoyenMs": 4516.349999997765,
+      "derniereDate": "2026-10-30T23:16:26.809Z"
+    },
+    {
+      "mode": 1,
+      "corde": 2,
+      "case": 3,
+      "tentatives": 2,
+      "reussites": 2,
+      "tempsMoyenMs": 7424.75,
+      "derniereDate": "2026-10-30T23:18:47.162Z"
+    },
+    {
+      "mode": 1,
+      "corde": 5,
+      "case": 4,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 3655.9000000059605,
+      "derniereDate": "2026-10-30T23:16:20.247Z"
+    },
+    {
+      "mode": 1,
+      "corde": 5,
+      "case": 3,
+      "tentatives": 2,
+      "reussites": 2,
+      "tempsMoyenMs": 1548.6500000022352,
+      "derniereDate": "2026-10-30T23:17:26.252Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 4,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 1785.1999999955297,
+      "derniereDate": "2026-10-30T23:16:35.358Z"
+    },
+    {
+      "mode": 1,
+      "corde": 2,
+      "case": 2,
+      "tentatives": 1,
+      "reussites": 0,
+      "tempsMoyenMs": 3042.3000000044703,
+      "derniereDate": "2026-10-30T23:16:39.407Z"
+    },
+    {
+      "mode": 1,
+      "corde": 1,
+      "case": 2,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 2647.60000000149,
+      "derniereDate": "2026-10-30T23:17:12.537Z"
+    },
+    {
+      "mode": 1,
+      "corde": 2,
+      "case": 1,
+      "tentatives": 3,
+      "reussites": 3,
+      "tempsMoyenMs": 2138.1666666666665,
+      "derniereDate": "2026-10-30T23:18:28.322Z"
+    },
+    {
+      "mode": 1,
+      "corde": 6,
+      "case": 2,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 1603.1999999955297,
+      "derniereDate": "2026-10-30T23:17:31.356Z"
+    },
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 3,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 10950,
+      "derniereDate": "2026-10-30T23:17:54.453Z"
+    },
+    {
+      "mode": 1,
+      "corde": 3,
+      "case": 3,
+      "tentatives": 2,
+      "reussites": 2,
+      "tempsMoyenMs": 4341.199999999255,
+      "derniereDate": "2026-10-30T23:18:09.470Z"
+    },
+    {
+      "mode": 1,
+      "corde": 3,
+      "case": 5,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 2424.60000000149,
+      "derniereDate": "2026-10-30T23:18:31.752Z"
+    },
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 1,
+      "tentatives": 1,
+      "reussites": 1,
+      "tempsMoyenMs": 3559.39999999851,
+      "derniereDate": "2026-10-30T23:18:36.318Z"
+    },
+    {
+      "mode": 1,
+      "corde": 4,
+      "case": 4,
+      "tentatives": 1,
+      "reussites": 0,
+      "tempsMoyenMs": 10574,
+      "derniereDate": "2026-10-30T23:18:58.743Z"
+    }
+  ],
+  "reglages": {
+    "tolerance": 50,
+    "octaveStricte": false,
+    "afficherNotes": false,
+    "afficherCaseMode2": true,
+    "a4": 440,
+    "seuilSilenceDb": -67.9,
+    "retourSonore": false,
+    "notation": "les-deux"
+  }
+}

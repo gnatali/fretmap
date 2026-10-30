@@ -1,5 +1,8 @@
 // Tous les textes de l'interface (spec §13) : un seul fichier pour faciliter une future traduction.
-import type { Notation } from '../music/notation';
+import type { Position } from '../music/manche';
+import { nomAffiche, type Notation } from '../music/notation';
+import type { NomNote } from '../music/notes';
+import type { Question } from '../quiz/tirage';
 
 /** « la corde 6 ou la corde 1 ». */
 function listeCordes(cordes: readonly number[]): string {
@@ -21,6 +24,11 @@ function emplacement(
   return cordeDemandee
     ? `${nom} est ${listeCases(positions.map((p) => p.case))}`
     : `${nom} est ${listeCordes(positions.map((p) => p.corde))}, à vide`;
+}
+
+/** « 1 note », « 9 notes ». */
+function pluriel(n: number, mot: string): string {
+  return `${n} ${mot}${n > 1 ? 's' : ''}`;
 }
 
 /** Écart en cents signé : « +3 cents », « −12 cents », « 0 cent ». */
@@ -47,7 +55,7 @@ export const TEXTES = {
   lienPoc: 'Essayer la détection de notes (POC)',
   niveauxAtteints: (mode1: number, mode2: number) => `Niveau atteint : ${mode1} en mode 1, ${mode2} en mode 2`,
   entrees: {
-    mode1: { titre: 'Mode 1', description: 'Trouver la note sur le manche, sans guitare' },
+    mode1: { titre: 'Mode 1', description: 'Notes qui tombent : touchez la case, sans guitare' },
     mode2: { titre: 'Mode 2', description: 'Jouer la note demandée sur sa guitare' },
     accordeur: { titre: 'Accordeur', description: 'Accorder les six cordes' },
     statistiques: { titre: 'Statistiques', description: 'Réussite case par case' },
@@ -72,12 +80,68 @@ export const TEXTES = {
   },
   mode1: {
     titre: 'Mode 1',
-    afficherNotes: 'Afficher les notes',
-    question: 'Trouvez',
-    surLaCorde: 'sur la corde',
-    juste: 'Juste',
-    faux: (nom: string, positions: readonly { corde: number; case: number }[], cordeDemandee: boolean) =>
-      `Faux : ${emplacement(nom, positions, cordeDemandee)}`,
+    regles:
+      'Les notes tombent le long de leur corde : touchez la case qui donne la note avant qu’elle n’arrive en bas. ' +
+      'Une corde à vide ne donne que le nom : touchez la corde à vide. Chaque case fausse coûte 50 points ; ' +
+      'à la 3e, la note est perdue. La vitesse monte avec la réussite ; quand chaque note est assez réussie, ' +
+      'le niveau passe et 3 notes s’ajoutent.',
+    commencer: 'Commencer aux cordes à vide',
+    reprendre: (niveau: number, notes: number) => `Reprendre au niveau ${niveau} (${pluriel(notes, 'note')})`,
+    recommencer: 'Recommencer aux cordes à vide',
+    confirmerRecommencer: (niveau: number) =>
+      `Repartir des cordes à vide ? Le niveau ${niveau} atteint est remplacé ; les records et les statistiques sont gardés.`,
+    confirmer: 'Recommencer',
+    annuler: 'Annuler',
+    records: 'Records',
+    recordValeurs: (score: number, niveau: number) => `${score} points · niveau ${niveau}`,
+    aucunRecord: 'Pas encore de partie.',
+    journal: 'Journal des parties',
+    exporter: (parties: number) => `Exporter le journal (${pluriel(parties, 'partie')})`,
+    journalNonEnregistre: 'Partie non enregistrée dans le journal : le stockage du navigateur est plein.',
+    retour: 'Accueil',
+  },
+  partie: {
+    score: 'Score',
+    niveau: 'Niveau',
+    reussite: 'Réussite',
+    vitesse: 'Vitesse',
+    arreter: 'Arrêter',
+    pause: 'Pause',
+    enPause: 'Pause',
+    reprendre: 'Reprendre',
+    compteARebours: 'Départ dans',
+    repriseDans: 'Reprise dans',
+    niveauValide: (niveau: number, bonus: number) => `Niveau ${niveau} validé ! +${bonus}`,
+    nouvellesNotes: 'Nouvelles notes :',
+    mancheComplet: 'Tout le manche est validé !',
+    repriseNiveau: (secondes: number) => `Reprise dans ${secondes} s, à vitesse 0`,
+    plafond: (vitesse: string) => `Vitesse max du niveau : ${vitesse}`,
+    qualites: { parfait: 'Parfait', bien: 'Bien', juste: 'Juste' },
+    fausse: 'Case fausse',
+    perdue: 'Perdue',
+    ratee: 'Ratée',
+  },
+  fin: {
+    titre: 'Fin de partie',
+    nouveauRecord: 'Nouveau record !',
+    score: 'Score',
+    niveaux: 'Niveau',
+    niveauxValeurs: (depart: number, atteint: number) => (depart === atteint ? `${atteint}` : `${depart} → ${atteint}`),
+    essais: 'Notes jouées',
+    justes: 'Notes justes',
+    fausses: 'Cases fausses',
+    perdues: 'Notes perdues (3 cases fausses)',
+    ratees: 'Notes ratées',
+    meilleureSerie: 'Meilleure série',
+    vitesseMax: 'Vitesse la plus haute',
+    delaiMedian: 'Temps de réponse médian',
+    reussiteNiveau: 'Réussite du niveau',
+    notesDuNiveau: 'Notes du niveau',
+    colonneNote: 'Note',
+    colonneEssais: 'Essais',
+    colonneReussite: 'Réussite',
+    continuer: (niveau: number) => `Continuer au niveau ${niveau}`,
+    exporter: 'Exporter le journal',
   },
   mode2: {
     titre: 'Mode 2',
@@ -135,7 +199,6 @@ export const TEXTES = {
     titre: 'Réglages',
     affichage: 'Affichage',
     notation: 'Notation des notes',
-    afficherNotes: 'Afficher les notes sur le manche (mode 1)',
     mode2: 'Mode 2',
     tolerance: 'Justesse demandée',
     tolerances: { 50: 'Demi-ton (par défaut)', 30: '±30 cents', 20: '±20 cents' } as Record<number, string>,
@@ -205,6 +268,8 @@ export const TEXTES = {
     mode: { 1: 'Mode 1 : réussite par position', 2: 'Mode 2 : réussite par position demandée' },
     aucune: (mode: number) => `Aucune réponse enregistrée pour l’instant : jouez au mode ${mode}.`,
     niveauAtteint: (niveau: number, description: string) => `Niveau atteint : ${niveau} (${description}).`,
+    jeu: (niveau: number, notes: number) => `Jeu au niveau ${niveau} (${pluriel(notes, 'note')}).`,
+    record: (score: number, niveau: number) => `Record : ${score} points, niveau ${niveau}.`,
     tentatives: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,
     reussite: (p: number) => `${p} % de réussite`,
     tempsMoyen: (ms: number) => `temps moyen ${(ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s`,
@@ -215,3 +280,53 @@ export const TEXTES = {
     legende: 'Rouge : moins de 50 %. Orange : moins de 80 %. Vert : 80 % ou plus. Gris : pas encore jouée.',
   },
 } as const;
+
+/** Part de 0 à 1 en pourcentage arrondi : « 65 % ». */
+export function pourcent(valeur: number): string {
+  return `${Math.round(valeur * 100)} %`;
+}
+
+/** Durée en secondes, une décimale : « 1,6 s ». */
+export function duree(ms: number): string {
+  const secondes = (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return `${secondes} s`;
+}
+
+/** Position : « Fa (F) · corde 6, case 1 », « Mi (E) · corde 6, à vide ». */
+export function nomPosition(p: Position, nom: NomNote, notation: Notation): string {
+  return `${nomAffiche(nom, notation)} · ${position(p.corde, p.case).toLowerCase()}`;
+}
+
+/** Note à toucher : « Sol (G) · corde 3 » ; corde à vide, « Mi (E) · à vide ». */
+export function consigne(question: Question, notation: Notation): string {
+  const nom = nomAffiche(question.nom, notation);
+  return question.cordeDemandee ? `${nom} · corde ${question.position.corde}` : `${nom} · à vide`;
+}
+
+/** Qualité d'une note juste, d'après son score d'essai (affichage seulement, comme le POC). */
+function qualite(score: number): keyof typeof TEXTES.partie.qualites {
+  if (score >= 0.85) return 'parfait';
+  if (score >= 0.65) return 'bien';
+  return 'juste';
+}
+
+/** Retour d'un essai : « Parfait ! +190 », « Perdue : Fa (F) est à la case 1 · −150 », « Ratée : … · −150 ». */
+export function retourEssai(
+  resultat: { resultat: 'juste' | 'perdue' | 'ratee'; points: number; scoreEssai: number; question: Question },
+  notation: Notation,
+): string {
+  if (resultat.resultat === 'juste')
+    return `${TEXTES.partie.qualites[qualite(resultat.scoreEssai)]} ! +${resultat.points}`;
+  const { nom, positionsCorrectes, cordeDemandee } = resultat.question;
+  const texte = `${resultat.resultat === 'perdue' ? TEXTES.partie.perdue : TEXTES.partie.ratee} : ${emplacement(
+    nomAffiche(nom, notation),
+    positionsCorrectes,
+    cordeDemandee,
+  )}`;
+  return resultat.points < 0 ? `${texte} · −${-resultat.points}` : texte;
+}
+
+/** Case fausse : « Case fausse · −50 », sans pénalité si le score était à 0. */
+export function retourFausse(penalite: number): string {
+  return penalite > 0 ? `${TEXTES.partie.fausse} · −${penalite}` : TEXTES.partie.fausse;
+}
