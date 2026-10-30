@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 1.5** (30/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Version 1.5 : pause (bouton, touche P), manche masqué pendant la pause, pause automatique quand l'onglet passe en arrière-plan (au lieu de l'arrêt), temps du jeu sans les pauses (30/10/2026). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 2.0** (30/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Version 1.5 : pause (bouton, touche P), manche masqué pendant la pause, pause automatique quand l'onglet passe en arrière-plan (au lieu de l'arrêt), temps du jeu sans les pauses (30/10/2026). Version 2.0 : **mode progressif** (§16, annexe B), des cordes à vide au manche entier, devenu le mode par défaut ; le jeu des sections 6.1 à 6.10 devient le « mode classique » (30/10/2026). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -97,11 +97,14 @@ poc-chute/
       points.ts              barème
       partie.ts              déroulement d'une partie : note attendue, résultats, série, fin
       journal.ts             format du journal, mesures d'images, export
-      stockage.ts            localStorage : réglages, seuil, statistiques par position, journal des parties
+      stockage.ts            localStorage : mode, réglages, seuil, statistiques par position, progression, journal
+      horloge.ts             temps du jeu, sans les pauses
+      progressif/            mode progressif (§16) : reglages, difficulte, reussite, partie-progressive, journal
     ui/
       textes.ts              tous les textes de l'interface
-      ecrans/                Depart.svelte, Partie.svelte, Fin.svelte
-      composants/            MancheChute.svelte (manche, notes qui tombent, ligne de jeu), Indicateur.svelte
+      ecrans/                Depart.svelte, Partie.svelte (les deux modes), Fin.svelte, FinProgressif.svelte
+      composants/            MancheChute.svelte (manche, notes qui tombent, ligne de jeu), Indicateur.svelte,
+                             ReglagesProgressif.svelte
   tests/
     unit/*.test.ts
     e2e/*.spec.ts            son.ts : fichier WAV du micro simulé (repris de app/tests/e2e/son.ts)
@@ -115,7 +118,8 @@ poc-chute/
 ## 6. Spécifications fonctionnelles
 
 ### 6.1 Écran de départ
-- Choix du niveau, parmi les 7 niveaux de l'application, tous ouverts (Q16). Rappel du contenu du niveau (ex. « Cases 0 à 5, notes naturelles »).
+- **Mode de jeu** (version 2.0) : « Progressif » (défaut, §16) ou « Classique » (cette section 6). Le mode progressif remplace le niveau, la durée de chute et la règle de la fausse note par ses propres réglages (§16.5) ; la notation et « Afficher la case » valent pour les deux modes.
+- Mode classique : choix du niveau, parmi les 7 niveaux de l'application, tous ouverts (Q16). Rappel du contenu du niveau (ex. « Cases 0 à 5, notes naturelles »).
 - Durée de chute initiale : curseur de 1 à 10 s, par pas de 0,5 s, 6 s par défaut (Q11).
 - Notation des notes : anglo-saxonne, française, les deux (défaut), comme dans l'application.
 - **Fausse note** (6.4) : « Coûte 50 points (la note reste à jouer) » (défaut) ou « Détruit la note (on passe à la suivante) ». La règle choisie est notée dans le journal.
@@ -294,6 +298,8 @@ Dans `src/jeu/`, nommées en majuscules et commentées avec leur valeur initiale
 | `PARTIES_GARDEES` | 50 | proposition |
 | `DT_MAX_MS` | 100 | proposition (version 1.1) |
 
+Mode progressif : réglages et constantes en §16.5.
+
 ---
 
 ## 8. Hypothèses à valider
@@ -319,6 +325,7 @@ Seuils proposés, à confirmer à la relecture.
 2. **S2, jeu facile** : niveau 2, vitesse adaptative, départ à 6 s, 3 parties.
 3. **S3, jeu difficile** : niveau 5, vitesse adaptative, départ à 6 s, 3 parties.
 4. **S4, pédagogie** : une partie par jour pendant 5 jours, au même niveau (le niveau 5, ou celui où l'utilisateur fait encore des erreurs), vitesse adaptative, départ à 6 s. À la fin, l'utilisateur note son ressenti : plaisir, difficulté, envie de rejouer, impression d'apprendre.
+5. **S5, mode progressif** (version 2.0) : une partie par jour, en reprenant au niveau atteint, avec les méthodes par défaut ; changer de méthode d'un jour à l'autre si l'une semble mal suivre le jeu. Le journal note toutes les méthodes à chaque essai : l'analyse compare celles qui suivent le mieux les progrès (niveaux passés, temps de réponse, erreurs) et le ressenti.
 
 Exporter le journal après chaque série de parties et l'ajouter à `poc-chute/resultats/`. L'analyse se fait comme pour le premier POC ; un skill d'analyse propre à ce journal sera écrit avec le premier journal reçu.
 
@@ -375,7 +382,8 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 | 2 | `src/jeu/` (chute, vitesse, points, partie, journal) et tests unitaires |
 | 3 | Tout ce qui ne dépend pas du micro : écrans en portrait (départ, partie, fin), animation, retours visuels, mode simulation, réglages, statistiques et journal enregistrés, mesure des images, export et vidage du journal, tests de bout en bout |
 | 4 | Branchement du micro : `Ecoute`, calibrage, `traiterDetection` (`SuiviMode2`), indicateur en direct, messages « Jouez la note… » et « Note non reconnue », seuil et traitements dans le journal, test de bout en bout avec un micro simulé (fichier WAV, comme `app/`) |
-| 5 | Campagne sur Android (S1 à S4), analyse des journaux, `SYNTHESE.md`, décision |
+| 5 | Campagne sur Android (S1 à S5), analyse des journaux, `SYNTHESE.md`, décision |
+| entre 4 et 5 | À la demande de l'utilisateur : règle de la fausse note (version 1.4), pause (1.5), mode progressif (2.0, §16) |
 
 ---
 
@@ -400,6 +408,87 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 - Tous les textes de l'interface dans `ui/textes.ts`, en français ; cibles tactiles d'au moins 44 px ; couleurs par variables (clair et sombre).
 - Documenter chaque constante de 7 avec sa valeur initiale et son origine.
 - Ne rien ajouter hors périmètre (pas de son, pas de déblocage de niveaux, pas de meilleurs scores).
+
+---
+
+## 16. Mode progressif (version 2.0)
+
+Demande de l'utilisateur après ses essais (30/10/2026) : le jeu classique n'est pas assez progressif pour apprendre. Le mode progressif commence par les cordes à vide et ajoute quelques notes à chaque niveau ; la vitesse suit la réussite. Plusieurs méthodes de calcul de la réussite sont proposées, pour déterminer la plus efficace. Réponses de l'utilisateur : annexe B. Code : `src/jeu/progressif/`.
+
+### 16.1 Notes et niveaux
+- Les notes sont des **positions** (corde, case 0 à 12) ; la question donne le nom et la corde, la case est à trouver (Q6).
+- **Niveau 1** : les 6 cordes à vide.
+- **Difficulté** d'une position : sa case (une note proche des cordes à vide est plus facile), plus le poids d'une altération si la note est altérée (les notes naturelles sont plus faciles ; 3 cases par défaut).
+- **Passage de niveau** : on ajoute `notesAjoutees` positions (3 par défaut), celles dont la difficulté est la plus proche de la difficulté moyenne des notes du niveau validé ; à égalité, la plus facile, puis de la corde 6 à la corde 1, puis la case la plus basse. Niveau 2 : Fa corde 6, Do corde 2, Fa corde 1 (case 1) ; niveau 3 : Si, Mi, La (case 2), etc. Quand tout le manche est dans le niveau, le dernier passage donne son bonus, puis il n'y a plus de passage.
+- Le manche affiché va de la case 0 à la plus haute case des notes du niveau.
+
+### 16.2 Essais et réussite
+- Un **essai** est une note qui tombe, du début à la fin : jouée juste (après 0 à 2 fausses notes), **perdue** à la 3e fausse note, ou **ratée** en arrivant en bas.
+- Données de chaque essai :
+  - **justesse** (B2) : 1 du premier coup, 0,5 après une fausse note, 0,25 après deux, 0 si la note disparaît ;
+  - **délai après apparition** : de l'arrivée de la note en haut de l'écran à la bonne note ;
+  - **délai depuis la note précédente** (B3) : de la fin de la note précédente (jouée ou disparue) à la bonne note.
+- **Rapidité** d'un délai : 1 jusqu'au temps « rapide », 0 à partir du temps « lent », linéaire entre les deux (par défaut 1,5 s et 6 s depuis la note précédente ; 2 s et 10 s après apparition).
+- **Score d'essai** = justesse × (0,5 + 0,5 × moyenne des deux rapidités) : une note juste mais lente vaut 0,5.
+- **Réussite d'une note** (B4), sur ses `essaisNote` derniers essais (5) ; 0 sans essai :
+  - « score » (défaut) : moyenne des scores d'essai ;
+  - « taux » : part des réponses justes, chaque fausse note et chaque note ratée comptant comme une réponse fausse (comme l'application) ;
+  - « temps » : moyenne des rapidités depuis la note précédente, 0 pour un essai qui n'est pas juste.
+- **Réussite du niveau** (B5) :
+  - « moyenne » (défaut) : moyenne des réussites des notes du niveau ;
+  - « pondérée » : même moyenne, chaque note pesant 1 + sa difficulté ;
+  - « derniers » : la méthode de note appliquée aux `essaisGlobaux` derniers essais (10), toutes notes confondues.
+- Les méthodes choisies au départ mènent le jeu (tirage, passage, affichage) ; **toutes** sont calculées et notées dans le journal à chaque essai (16.6).
+
+### 16.3 Déroulement
+- **Départ** : niveau 1 (ou reprise), **vitesse 0** : la note reste immobile en haut jusqu'à être jouée, une seule note à l'écran (B1).
+- **Tirage** : poids = 1 + 3 × (1 − réussite de la note) : une note peu réussie revient jusqu'à 4 fois plus souvent ; jamais la même position deux fois de suite.
+- **Vitesse** v, de 0 à 1, en part de la vitesse max : durée de chute = durée de chute la plus courte (« vitesse max », 3 s par défaut) / v.
+  - une note juste la fait monter de `acceleration` (10 % de la vitesse max) × son score d'essai ;
+  - chaque fausse note, note perdue ou ratée la fait baisser de `ralentissement` (15 %).
+- **Points** :
+  - note juste : 100 × score d'essai × (1 + v) × multiplicateur de série (§6.6), arrondi ;
+  - fausse note : −50 (`penaliteFausse`), la note reste à jouer, la série est cassée ;
+  - note perdue (3 fausses notes) ou ratée : −150 (`penalitePerdue`) ;
+  - passage de niveau : + 500 (`bonusNiveau`) × numéro du niveau validé ;
+  - le score ne descend jamais sous 0.
+- Règles du micro inchangées (§6.4) : ancienne note ignorée une fois, note non reconnue, latence mesurée. La pause (§6.2) et la simulation au clavier marchent aussi.
+
+### 16.4 Passage de niveau
+- Vérifié après chaque essai : chaque note du niveau a au moins `essaisMinimum` essais (3) et une réussite ≥ `seuilNote` (60 %) ; la réussite du niveau est ≥ `seuilGlobal` (80 %) ; la vitesse est ≥ `vitesseRequise` (50 % de la vitesse max).
+- Au passage (B6) : bonus, notes ajoutées, notes encore à l'écran retirées sans compter, **pause de 6 s** (`DUREE_PAUSE_NIVEAU_MS`) avec le bilan « Niveau N validé ! +bonus » et les nouvelles notes, nommées et entourées sur le manche ; la partie reprend d'elle-même **à vitesse 0**. Les réussites des notes déjà connues sont gardées pendant la partie.
+- Une partie se termine quand le joueur l'arrête (B7) ; l'écran de fin donne le résumé et les notes du niveau avec leur réussite, de la moins réussie à la mieux réussie.
+- **Reprise** (B8) : la progression (niveau et notes) est enregistrée à chaque passage et à la fin. « Reprendre au niveau N » repart de ces notes, réussites remises à zéro ; « Recommencer aux cordes à vide » demande confirmation.
+
+### 16.5 Paramètres
+Réglables sur l'écran de départ ; les principaux visibles, les autres dans « Réglages avancés » (bouton « Valeurs par défaut »). Valeurs par défaut, proposées le 30/10/2026, à ajuster d'après les mesures (`jeu/progressif/reglages.ts`, avec leurs bornes) :
+
+| Réglage | Défaut | Bornes |
+|---|---|---|
+| Méthode de réussite d'une note, du niveau | score, moyenne | 16.2 |
+| Réussite minimale de chaque note (`seuilNote`) | 60 % | 30 à 100 % |
+| Réussite minimale du niveau (`seuilGlobal`) | 80 % | 30 à 100 % |
+| Vitesse max : durée de chute la plus courte (`dureeChuteMinMs`) | 3 s | 1 à 10 s |
+| Vitesse requise pour passer (`vitesseRequise`) | 50 % | 0 à 100 % |
+| Notes ajoutées à chaque niveau (`notesAjoutees`) | 3 | 1 à 6 |
+| Essais pris en compte pour une note, pour « derniers » (`essaisNote`, `essaisGlobaux`) | 5, 10 | 2 à 20, 5 à 50 |
+| Essais minimum de chaque note (`essaisMinimum`) | 3 | 1 à 10 |
+| Difficulté d'une altération (`poidsAlteration`) | 3 cases | 0 à 12 |
+| Rapide / lent depuis la note précédente | 1,5 s / 6 s | 0,5 à 10 s / 1 à 20 s |
+| Rapide / lent après apparition | 2 s / 10 s | 0,5 à 10 s / 1 à 30 s |
+| Accélération par note juste, ralentissement par erreur | 10 %, 15 % | 1 à 50 %, 0 à 50 % |
+| Pénalités : fausse note, note perdue ou ratée | 50, 150 | 0 à 200, 0 à 500 |
+| Bonus de passage (× niveau) | 500 | 0 à 2000 |
+
+Constantes fixes (`jeu/progressif/partie-progressive.ts`) : `ERREURS_AVANT_PERTE` = 3 (demande de l'utilisateur), `DUREE_PAUSE_NIVEAU_MS` = 6000, `POIDS_ECHEC_TIRAGE` = 3 (proposition).
+
+### 16.6 Journal
+Une partie progressive est notée `"mode": "progressif"` (les parties classiques, `"mode": "classique"`, ou sans `mode` avant la version 2.0). Elle contient : réglages (avec notation et case affichée), niveau et positions de départ, `passages` (`tMs`, nouveau niveau, bonus, positions ajoutées), `resume` (score, niveaux de départ et atteint, essais, justes, fausses, perdues, ratées, meilleure série, vitesse max atteinte, délai médian depuis la note précédente, réussite du niveau), `bilanNotes` (notes du niveau avec difficulté, essais et réussite), le contexte (navigateur, seuil, traitements, images, pauses) et `essais`. Chaque essai donne :
+- ses données brutes : position, nom, midi, niveau, temps (apparition, attendue, résultat, attaque), résultat, erreurs, justesse, délais, score d'essai, vitesse, points, série, note jouée, événements (fausses notes pénalisées, anciennes notes, notes non reconnues) ;
+- `reussites` : la réussite de la note après l'essai, par méthode (score, taux, temps) ;
+- `globales` : la réussite du niveau après l'essai, pour chaque méthode de note et chaque méthode globale (3 × 3).
+
+Les données brutes permettent aussi de recalculer d'autres méthodes après coup.
 
 ---
 
@@ -444,6 +533,23 @@ Une phase par session, avec push et vérification de la CI et du déploiement Pa
 |---|---|---|
 | Q26 | Que voit-on pendant la pause ? | Le manche est masqué |
 | Q27 | Onglet en arrière-plan | Pause automatique (micro coupé, relancé par « Reprendre ») |
+
+## Annexe B : mode progressif (30/10/2026)
+
+Demande de l'utilisateur, résumée : après test, le jeu n'est pas assez progressif pour apprendre. Nouveau mode : on commence avec les cordes à vide, puis on ajoute quelques notes au passage de niveau. Chaque note doit dépasser un pourcentage de réussite et la réussite globale doit dépasser un niveau à une vitesse donnée ; les notes les moins réussies apparaissent plus souvent. Les notes naturelles et les notes proches des cordes à vide sont plus faciles. La réussite d'une note dépend de la justesse, du délai après apparition et du délai entre les notes. Plusieurs méthodes de calcul de la réussite d'une note et de la réussite globale, pour déterminer la plus efficace. Premier niveau aux cordes à vide, vitesse de chute à 0 ; la vitesse augmente avec la réussite et diminue en cas d'erreur ; la réussite fait gagner des points ; une mauvaise note fait perdre des points et diminue la réussite sans faire disparaître la note ; la note disparaît si elle arrive en bas ou après 3 erreurs, avec une forte pénalité. Passage de niveau récompensé ; on ajoute des notes de difficulté proche de la moyenne du niveau validé. Le joueur peut reprendre au dernier niveau joué ; les paramètres (niveaux de réussite, vitesse max, nombre de notes ajoutées…) sont à définir au début.
+
+| # | Question | Réponse de l'utilisateur |
+|---|---|---|
+| B1 | « Vitesse de chute à 0 » au début | Note immobile jusqu'à être jouée, la vitesse monte avec la réussite |
+| B2 | Justesse | Selon les essais : 1 du premier coup, 0,5 après 1 erreur, 0,25 après 2, 0 si la note disparaît |
+| B3 | Délai entre les notes | Depuis la fin de la note précédente jusqu'à la bonne note |
+| B4 | Méthodes de réussite d'une note | Taux de juste, score d'essai moyen, temps de réponse |
+| B5 | Méthodes de réussite globale | Moyenne des notes, pondérée par la difficulté, derniers essais |
+| B6 | Passage de niveau à l'écran | Pause, bilan et nouvelles notes, reprise à vitesse 0 |
+| B7 | Fin d'une partie | Quand le joueur arrête |
+| B8 | Reprise | Niveau seul : mêmes notes, réussites remises à zéro |
+
+**Choix de la rédaction, à valider** : le mode progressif est le mode par défaut (c'est celui demandé pour apprendre) ; formules et valeurs par défaut de 16.2 à 16.5 (score d'essai, poids du tirage, vitesse, points, bonus) ; positions comme notes du niveau (nom et corde donnés, case à trouver) ; pause de 6 s au passage.
 
 **Choix ajoutés à la rédaction, à valider à la relecture** :
 - Une fausse note a le même effet qu'une note ratée : série cassée et ralentissement (Q12 et Q14), dans les deux modes (Q23).

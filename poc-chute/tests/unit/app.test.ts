@@ -12,10 +12,13 @@ import { stockageMemoire } from './memoire';
 import { microFactice } from './micro';
 
 const titre = () => screen.queryByRole('heading', { level: 1 })?.textContent;
+/** Stockage où le dernier mode choisi est le mode classique (le mode progressif est le défaut). */
+const classique = () => stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ version: 1, modeJeu: 'classique' }) });
+const donnees = (stockage: ReturnType<typeof stockageMemoire>) => JSON.parse(stockage.donnees[CLE_STOCKAGE]!);
 
-describe('écran de départ', () => {
+describe('écran de départ, mode classique', () => {
   it('enregistre chaque réglage dès qu’il change', async () => {
-    const stockage = stockageMemoire();
+    const stockage = classique();
     render(App, { stockage, simulation: true });
     await fireEvent.change(screen.getByLabelText(TEXTES.depart.niveau), { target: { value: '5' } });
     await fireEvent.input(screen.getByRole('slider'), { target: { value: '4500' } });
@@ -33,7 +36,7 @@ describe('écran de départ', () => {
   });
 
   it('« Arrêter » pendant le compte à rebours revient au départ sans rien enregistrer', async () => {
-    const stockage = stockageMemoire();
+    const stockage = classique();
     render(App, { stockage, simulation: true });
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrerSimulation }));
     expect(document.querySelector('.compte')!.textContent).toContain('3');
@@ -43,9 +46,60 @@ describe('écran de départ', () => {
   });
 });
 
+describe('écran de départ, mode progressif', () => {
+  it('est le mode par défaut ; ses réglages sont enregistrés dès qu’ils changent', async () => {
+    const stockage = stockageMemoire();
+    render(App, { stockage, simulation: true });
+    expect((screen.getByLabelText(TEXTES.depart.modeJeu) as HTMLSelectElement).value).toBe('progressif');
+    expect(screen.queryByLabelText(TEXTES.depart.niveau)).toBeNull();
+    await fireEvent.change(screen.getByLabelText(TEXTES.progressif.methodeNote), { target: { value: 'temps' } });
+    await fireEvent.input(screen.getByLabelText(new RegExp(TEXTES.progressif.reglages.seuilNote)), {
+      target: { value: '0.75' },
+    });
+    expect(donnees(stockage).reglagesProgressif).toMatchObject({ methodeNote: 'temps', seuilNote: 0.75 });
+    expect(document.querySelector('[data-cle="seuilNote"]')!.textContent).toBe('75 %');
+
+    await fireEvent.change(screen.getByLabelText(TEXTES.depart.modeJeu), { target: { value: 'classique' } });
+    expect(donnees(stockage).modeJeu).toBe('classique');
+    expect(screen.getByLabelText(TEXTES.depart.niveau)).toBeTruthy();
+  });
+
+  it('commence aux cordes à vide, avec la barre du haut du mode progressif', async () => {
+    render(App, { stockage: stockageMemoire(), simulation: true });
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.commencer(true) }));
+    expect(document.querySelector('.niveau')!.textContent).toBe('1');
+    expect(document.querySelector('.vitesse')!.textContent).toBe('0 %');
+    expect(document.querySelector('.compte')!.textContent).toContain('3');
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    expect(titre()).toBe(TEXTES.titre);
+  });
+
+  it('propose de reprendre au niveau enregistré, ou de recommencer après confirmation', async () => {
+    const progressif = {
+      niveau: 3,
+      positions: [
+        { corde: 6, case: 0 },
+        { corde: 6, case: 1 },
+        { corde: 5, case: 2 },
+      ],
+    };
+    const stockage = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ version: 1, progressif }) });
+    render(App, { stockage, simulation: true });
+    expect(screen.getByRole('button', { name: TEXTES.depart.reprendre(3, 3, true) })).toBeTruthy();
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.recommencer }));
+    const dialogue = screen.getByRole('alertdialog');
+    expect(dialogue.textContent).toContain(TEXTES.depart.confirmerRecommencer(3));
+
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.reprendre(3, 3, true) }));
+    expect(document.querySelector('.niveau')!.textContent).toBe('3');
+    // Manche du niveau : cases 0 à 2.
+    expect(document.querySelectorAll('.case')).toHaveLength(3);
+  });
+});
+
 describe('démarrage au micro', () => {
   it('Démarrer lance le micro, la mesure du bruit ambiant, puis le compte à rebours ; le seuil est enregistré', async () => {
-    const stockage = stockageMemoire();
+    const stockage = classique();
     const { dependances, analyser } = microFactice();
     render(App, { stockage, simulation: false, micro: dependances });
     expect(screen.getByText(TEXTES.micro.explication)).toBeTruthy();
@@ -66,7 +120,7 @@ describe('démarrage au micro', () => {
 
   it('un refus d’accès au micro ramène au départ avec le message', async () => {
     const refus = new ErreurMicro('Accès au micro refusé.');
-    render(App, { stockage: stockageMemoire(), simulation: false, micro: microFactice(refus).dependances });
+    render(App, { stockage: classique(), simulation: false, micro: microFactice(refus).dependances });
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrer }));
     expect((await screen.findByRole('alert')).textContent).toBe('Accès au micro refusé.');
     expect(titre()).toBe(TEXTES.titre);
@@ -74,7 +128,7 @@ describe('démarrage au micro', () => {
 
   it('« Arrêter » pendant la mesure du bruit ambiant revient au départ et coupe le micro', async () => {
     const { dependances, session } = microFactice();
-    render(App, { stockage: stockageMemoire(), simulation: false, micro: dependances });
+    render(App, { stockage: classique(), simulation: false, micro: dependances });
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.demarrer }));
     await screen.findByText(TEXTES.micro.calibrage);
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));

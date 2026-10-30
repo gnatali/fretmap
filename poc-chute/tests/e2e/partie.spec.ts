@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { debordants } from './outils';
 
-// Parties au clavier (mode simulation, spec §6.9) : Espace = note juste, F = fausse note.
+// Parties du mode classique au clavier (mode simulation, spec §6.9) : Espace = note juste, F = fausse note.
 
 interface Options {
   niveau?: string;
@@ -18,6 +18,7 @@ async function demarrer(
   { niveau = '2', dureeMs = 10000, vitesseFixe = false, fausseNote = 'penalite' }: Options = {},
 ) {
   await page.goto('/?simulation');
+  await page.getByLabel('Mode de jeu').selectOption('classique');
   await page.getByLabel('Niveau').selectOption(niveau);
   await page.getByRole('slider').fill(String(dureeMs));
   await page.getByLabel('Fausse note').selectOption(fausseNote);
@@ -156,6 +157,7 @@ test('une note qui touche la ligne sans être jouée est ratée', async ({ page 
 
 test('les réglages sont repris à la visite suivante', async ({ page }) => {
   await page.goto('/?simulation');
+  await page.getByLabel('Mode de jeu').selectOption('classique');
   await page.getByLabel('Niveau').selectOption('5');
   await page.getByRole('slider').fill('4500');
   await page.getByLabel('Notation des notes').selectOption('francaise');

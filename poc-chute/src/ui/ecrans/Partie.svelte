@@ -1,32 +1,50 @@
+<script lang="ts" module>
+  import type { Partie } from '../../jeu/partie';
+  import type { PartieProgressive } from '../../jeu/progressif/partie-progressive';
+  import type { Notation } from '../../music/notation';
+
+  /** Partie en cours : mode classique (30 notes) ou progressif. */
+  export type Jeu = Partie | PartieProgressive;
+
+  /** Ce que l'écran affiche avant la création du jeu (barre du haut, manche vide), selon le mode. */
+  export type ConfigEcran = { notation: Notation; afficherCase: boolean; caseMax: number } & (
+    { mode: 'classique'; dureeChuteMs: number } | { mode: 'progressif'; niveau: number }
+  );
+
+  /** Création du jeu à la fin du compte à rebours, sur le temps du jeu. */
+  export interface OptionsJeu {
+    debutMs: number;
+    date: Date;
+    hasard?: () => number;
+    simulation: boolean;
+  }
+</script>
+
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import type { EtatDetection } from '../../audio/pitch';
   import type { Ecoute } from '../../ecoute.svelte';
   import { HorlogeJeu } from '../../jeu/horloge';
-  import { MesureImages, type PartieJournal } from '../../jeu/journal';
+  import { MesureImages, type JournalPartie } from '../../jeu/journal';
+  import { DUREE_RAPPEL_CASE_MS, FAUSSES_AVANT_RAPPEL, NOTES_PAR_PARTIE, type EvenementPartie } from '../../jeu/partie';
   import {
-    DUREE_RAPPEL_CASE_MS,
-    FAUSSES_AVANT_RAPPEL,
-    NOTES_PAR_PARTIE,
-    Partie,
-    type EvenementPartie,
-    type ReglagesPartie,
-  } from '../../jeu/partie';
-  import { bornerDuree } from '../../jeu/vitesse';
-  import type { Position } from '../../music/manche';
+    DUREE_PAUSE_NIVEAU_MS,
+    PartieProgressive as ClassePartieProgressive,
+    type EvenementProgressif,
+  } from '../../jeu/progressif/partie-progressive';
+  import { noteDePosition, type Position } from '../../music/manche';
   import { nomAffiche } from '../../music/notation';
   import type { NoteDetectee } from '../../music/notes';
-  import type { Statistique } from '../../progression/modele';
-  import { caseMaxDuNiveau } from '../../progression/niveaux';
   import Indicateur from '../composants/Indicateur.svelte';
   import MancheChute, { type Effet, type NoteAffichee } from '../composants/MancheChute.svelte';
-  import { TEXTES, consigne, duree, retour, retourFausse } from '../textes';
+  import { TEXTES, consigne, duree, nomPosition, pourcent, retour, retourFausse, retourProgressif } from '../textes';
 
   // Écran de jeu (spec §6.2 à §6.4) : calibrage du micro, compte à rebours, puis une image par
   // requestAnimationFrame. La partie (jeu/partie.ts) décide de tout ; l'écran copie son état à chaque image,
   // lui transmet les détections du micro et affiche les retours. Le micro est démarré et arrêté par App.svelte,
   // sauf après une pause en arrière-plan : il est alors coupé ici, et relancé par « Reprendre » (geste).
-  // Tous les temps donnés à la partie passent par l'horloge du jeu, qui retire les pauses.
+  // Tous les temps donnés à la partie passent par l'horloge du jeu, qui retire les pauses. Le même écran sert aux
+  // deux modes : la barre du haut et le calque de passage de niveau (mode progressif) en dépendent.
 
   /** Compte à rebours avant la première note, en secondes : 3 (spec §6.1). */
   const COMPTE_A_REBOURS_S = 3;
@@ -34,22 +52,27 @@
   const DUREE_EFFET_MS = 600;
 
   interface Props {
-    reglages: ReglagesPartie;
-    statistiques: readonly Statistique[];
+    config: ConfigEcran;
+    /** Crée le jeu (classique ou progressif) au début de la partie. */
+    creerJeu: (options: OptionsJeu) => Jeu;
     /** Écoute du micro, déjà démarrée ; null en mode simulation (partie au clavier, spec §6.9). */
     ecoute: Ecoute | null;
-    onFin: (journal: PartieJournal, statistiques: readonly Statistique[]) => void;
+    onFin: (journal: JournalPartie, jeu: Jeu) => void;
     /** « Arrêter » avant le début de la partie (calibrage, compte à rebours) : rien n'est enregistré. */
     onAnnuler: () => void;
+    /** Mode progressif : niveau validé (la progression est enregistrée). */
+    onNiveau?: (jeu: PartieProgressive) => void;
     /** Nombre dans [0, 1[ pour le tirage (injectable pour les tests). */
     hasard?: () => number;
   }
 
-  let { reglages, statistiques, ecoute, onFin, onAnnuler, hasard }: Props = $props();
+  let { config, creerJeu, ecoute, onFin, onAnnuler, onNiveau, hasard }: Props = $props();
 
   // svelte-ignore state_referenced_locally
   const simulation = ecoute === null;
-  const caseMax = $derived(caseMaxDuNiveau(reglages.niveau, 2));
+  const { notation, afficherCase } = $derived(config);
+  // svelte-ignore state_referenced_locally
+  let caseMax = $state(config.caseMax);
   /** Micro calibré (ou simulation) : le compte à rebours peut partir. */
   const pret = $derived(ecoute === null || ecoute.statut === 'actif');
   /**
@@ -60,7 +83,7 @@
   let compte = $state(COMPTE_A_REBOURS_S);
   /** Micro coupé par une pause en arrière-plan : « Reprendre » le relance. */
   let microCoupe = $state(false);
-  let partie: Partie | null = null;
+  let partie: Jeu | null = null;
   let enPartie = $state(false);
   const horloge = new HorlogeJeu();
   /** Temps du jeu au début de la partie (origine des pauses du journal). */
@@ -75,9 +98,18 @@
   let score = $state(0);
   let serie = $state(0);
   let multiplicateur = $state(1);
+  // Mode classique.
   let restantes = $state(NOTES_PAR_PARTIE);
   // svelte-ignore state_referenced_locally
-  let dureeChute = $state(bornerDuree(reglages.dureeInitialeMs));
+  let dureeChute = $state(config.mode === 'classique' ? config.dureeChuteMs : 0);
+  // Mode progressif.
+  // svelte-ignore state_referenced_locally
+  let niveau = $state(config.mode === 'progressif' ? config.niveau : 1);
+  let reussite = $state(0);
+  let vitesse = $state(0);
+  /** Passage de niveau : bilan affiché pendant la pause du jeu (temps du jeu de la reprise). */
+  let passage = $state.raw<{ niveau: number; bonus: number; ajoutees: Position[]; reprise: number } | null>(null);
+  let resteAvantReprise = $state(0);
   let dernierRetour = $state<{ texte: string; juste: boolean } | null>(null);
   /** Bonne case montrée sur le manche, pour la note `index` (sans échéance après 3 fausses notes sur elle). */
   let rappel = $state.raw<{ index: number; positions: readonly Position[]; jusqua: number } | null>(null);
@@ -115,7 +147,7 @@
   function commencer(): void {
     const t = horloge.jeu(performance.now());
     debutJeu = t;
-    partie = new Partie(reglages, statistiques, { debutMs: t, date: new Date(), hasard, simulation });
+    partie = creerJeu({ debutMs: t, date: new Date(), hasard, simulation });
     enPartie = true;
     phase = 'jeu';
     rafraichir(t);
@@ -182,13 +214,14 @@
     silence = partie.silenceProlonge(tJeu);
   }
 
-  function traiter(evenements: EvenementPartie[], t: number): void {
+  function traiter(evenements: (EvenementPartie | EvenementProgressif)[], t: number): void {
     for (const evenement of evenements) {
       if (evenement.type === 'resultat') {
         const juste = evenement.resultat === 'juste';
         const { question, progression } = evenement.note;
         info = null;
-        dernierRetour = { texte: retour(evenement, reglages.notation), juste };
+        const texte = 'timing' in evenement ? retour(evenement, notation) : retourProgressif(evenement, notation);
+        dernierRetour = { texte, juste };
         effets = [...effets, { id: ++numeroEffet, question, progression, juste, jusqua: t + DUREE_EFFET_MS }];
         const index = evenement.note.index;
         if (!juste) rappel = { index, positions: question.positionsCorrectes, jusqua: t + DUREE_RAPPEL_CASE_MS };
@@ -198,7 +231,7 @@
         const { index, question } = evenement.note;
         info = null;
         dernierRetour = {
-          texte: retourFausse(evenement.detectee, evenement.penalite, reglages.notation),
+          texte: retourFausse(evenement.detectee, evenement.penalite, notation),
           juste: false,
         };
         faute = { index, jusqua: t + DUREE_EFFET_MS };
@@ -209,7 +242,13 @@
         info = TEXTES.indicateur.nonReconnue;
       } else if (evenement.type === 'ancienneNote') {
         const { nom, octave } = evenement.detectee;
-        info = TEXTES.indicateur.ancienneNote(nomAffiche(nom, reglages.notation, octave));
+        info = TEXTES.indicateur.ancienneNote(nomAffiche(nom, notation, octave));
+      } else if (evenement.type === 'niveau') {
+        // Mode progressif : bilan et nouvelles notes, entourées sur le manche pendant la pause du jeu.
+        const { niveau: nouveau, bonus, ajoutees } = evenement;
+        passage = { niveau: nouveau - 1, bonus, ajoutees, reprise: t + DUREE_PAUSE_NIVEAU_MS };
+        rappel = { index: -1, positions: ajoutees, jusqua: t + DUREE_PAUSE_NIVEAU_MS };
+        if (partie instanceof ClassePartieProgressive) onNiveau?.(partie);
       } else if (evenement.type === 'fin') {
         terminer();
       }
@@ -228,8 +267,17 @@
     score = partie.score;
     serie = partie.serie;
     multiplicateur = partie.multiplicateur;
-    restantes = partie.notesRestantes;
-    dureeChute = partie.dureeChuteMs;
+    caseMax = partie.caseMax;
+    if (partie instanceof ClassePartieProgressive) {
+      niveau = partie.niveau;
+      reussite = partie.reussiteGlobale;
+      vitesse = partie.vitesse;
+      if (passage && !partie.enPause) passage = null;
+      if (passage) resteAvantReprise = Math.max(1, Math.ceil((passage.reprise - t) / 1000));
+    } else {
+      restantes = partie.notesRestantes;
+      dureeChute = partie.dureeChuteMs;
+    }
     if (effets.some((e) => e.jusqua <= t)) effets = effets.filter((e) => e.jusqua > t);
     if (rappel && rappel.jusqua <= t) rappel = null;
   }
@@ -244,7 +292,7 @@
       images: mesure.resultat(),
       pauses: horloge.pauses(debutJeu, performance.now()),
     });
-    onFin(journal, partie.statistiques);
+    onFin(journal, partie);
   }
 
   /** Mode simulation : joue la note attendue, juste ou un demi-ton au-dessus. */
@@ -310,22 +358,41 @@
 <div class="ecran">
   <header class="barre-jeu">
     <dl class="compteurs">
-      <div>
-        <dt>{TEXTES.partie.score}</dt>
-        <dd class="score">{score}</dd>
-      </div>
-      <div>
-        <dt>{TEXTES.partie.serie}</dt>
-        <dd class="serie">{serie} <span class="multiplicateur">×{multiplicateur}</span></dd>
-      </div>
-      <div>
-        <dt>{TEXTES.partie.restantes}</dt>
-        <dd class="restantes">{restantes}</dd>
-      </div>
-      <div>
-        <dt>{TEXTES.partie.chute}</dt>
-        <dd class="chute">{duree(dureeChute)}</dd>
-      </div>
+      {#if config.mode === 'classique'}
+        <div>
+          <dt>{TEXTES.partie.score}</dt>
+          <dd class="score">{score}</dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.serie}</dt>
+          <dd class="serie">{serie} <span class="multiplicateur">×{multiplicateur}</span></dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.restantes}</dt>
+          <dd class="restantes">{restantes}</dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.chute}</dt>
+          <dd class="chute">{duree(dureeChute)}</dd>
+        </div>
+      {:else}
+        <div>
+          <dt>{TEXTES.partie.score}</dt>
+          <dd class="score">{score} <span class="multiplicateur">×{multiplicateur}</span></dd>
+        </div>
+        <div>
+          <dt>{TEXTES.progressif.niveau}</dt>
+          <dd class="niveau">{niveau}</dd>
+        </div>
+        <div>
+          <dt>{TEXTES.progressif.reussite}</dt>
+          <dd class="reussite">{pourcent(reussite)}</dd>
+        </div>
+        <div>
+          <dt>{TEXTES.progressif.vitesse}</dt>
+          <dd class="vitesse">{pourcent(vitesse)}</dd>
+        </div>
+      {/if}
     </dl>
     <div class="actions">
       {#if enPartie}
@@ -349,11 +416,27 @@
     <MancheChute
       {caseMax}
       {notes}
-      notation={reglages.notation}
-      afficherCase={reglages.afficherCase}
-      rappel={rappel?.positions ?? []}
+      {notation}
+      {afficherCase}
+      rappel={(rappel?.positions ?? []).filter((p) => p.case <= caseMax)}
       {effets}
     />
+    {#if passage && phase === 'jeu'}
+      <div class="passage" aria-live="polite">
+        <p class="titre-passage">{TEXTES.progressif.niveauValide(passage.niveau, passage.bonus)}</p>
+        {#if passage.ajoutees.length === 0}
+          <p>{TEXTES.progressif.mancheComplet}</p>
+        {:else}
+          <p>{TEXTES.progressif.nouvellesNotes}</p>
+          <ul>
+            {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
+              <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
+            {/each}
+          </ul>
+        {/if}
+        <p class="reprise">{TEXTES.progressif.repriseDans(resteAvantReprise)}</p>
+      </div>
+    {/if}
     {#if enPartie && phase !== 'jeu'}
       <!-- Pause et reprise : le manche est masqué, pour ne pas chercher la case hors du temps de jeu. -->
       <div class="cache" role="group" aria-label={TEXTES.partie.enPause}>
@@ -384,7 +467,7 @@
   </div>
 
   <p class="consigne" aria-live="polite">
-    {attendue ? consigne(attendue.question, reglages.notation, reglages.afficherCase) : ''}
+    {attendue ? consigne(attendue.question, notation, afficherCase) : ''}
   </p>
   <p
     class="retour"
@@ -402,7 +485,7 @@
       niveauDbfs={ecoute.detection?.niveauDbfs ?? null}
       seuilDbfs={ecoute.seuilDbfs}
       {message}
-      notation={reglages.notation}
+      {notation}
     />
     {#if ecoute.traitementsActifs.length > 0}
       <p class="alerte">
@@ -475,6 +558,32 @@
     min-width: 12rem;
     min-height: 52px;
     font-size: 1.125rem;
+  }
+  .passage {
+    position: absolute;
+    inset: auto 0.5rem 0.5rem;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    background: var(--surface);
+    border: 2px solid var(--juste);
+    border-radius: 10px;
+  }
+  .passage p,
+  .passage ul {
+    margin: 0.25rem 0;
+  }
+  .passage ul {
+    padding: 0;
+    list-style: none;
+    font-weight: 600;
+  }
+  .titre-passage {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--juste);
+  }
+  .reprise {
+    color: var(--discret);
   }
   .compte-reprise {
     font-size: 4rem;

@@ -14,6 +14,8 @@ import {
   viderJournal,
   type DonneesPoc,
 } from '../../src/jeu/stockage';
+import { PartieProgressive } from '../../src/jeu/progressif/partie-progressive';
+import { REGLAGES_PROGRESSIF_DEFAUT } from '../../src/jeu/progressif/reglages';
 import type { Statistique } from '../../src/progression/modele';
 import { stockageMemoire } from './memoire';
 
@@ -107,6 +109,77 @@ describe('chargement', () => {
       ...donneesInitiales(),
       reglages: { ...REGLAGES_DEPART_DEFAUT, dureeInitialeMs: 10000 },
     });
+  });
+
+  it('normalise le mode de jeu, les réglages du mode progressif et la progression', () => {
+    const stockage = stockageMemoire({
+      [CLE_STOCKAGE]: JSON.stringify({
+        version: 1,
+        modeJeu: 'arcade',
+        reglagesProgressif: {
+          methodeNote: 'temps',
+          methodeGlobale: 'autre',
+          seuilNote: 0.62,
+          dureeChuteMinMs: 99999,
+          notesAjoutees: 'trois',
+        },
+        progressif: {
+          niveau: 3,
+          positions: [
+            { corde: 6, case: 0 },
+            { corde: 6, case: 0 },
+            { corde: 7, case: 0 },
+            { corde: 6, case: 1 },
+          ],
+        },
+      }),
+    });
+    const donnees = charger(stockage);
+    expect(donnees.modeJeu).toBe('progressif');
+    expect(donnees.reglagesProgressif).toEqual({
+      ...REGLAGES_PROGRESSIF_DEFAUT,
+      methodeNote: 'temps',
+      seuilNote: 0.6,
+      dureeChuteMinMs: 10000,
+    });
+    expect(donnees.progressif).toEqual({
+      niveau: 3,
+      positions: [
+        { corde: 6, case: 0 },
+        { corde: 6, case: 1 },
+      ],
+    });
+    for (const progressif of [{ niveau: 0, positions: [{ corde: 6, case: 0 }] }, { niveau: 2, positions: [] }, 'non']) {
+      const autre = stockageMemoire({ [CLE_STOCKAGE]: JSON.stringify({ version: 1, progressif }) });
+      expect(charger(autre).progressif).toBeNull();
+    }
+  });
+
+  it('relit une partie du mode progressif dans le journal', () => {
+    const partie = new PartieProgressive(REGLAGES_PROGRESSIF_DEFAUT, {
+      debutMs: 0,
+      date: new Date('2026-10-30T19:00:00.000Z'),
+      hasard: () => 0,
+      notation: 'les-deux',
+      afficherCase: false,
+    });
+    partie.jouerSimule(true, 800);
+    const journal = partie.journal({
+      navigateur: 'test',
+      seuilSilenceDbfs: null,
+      traitementsActifs: [],
+      images: new MesureImages().resultat(),
+      pauses: [],
+    });
+    const stockage = stockageMemoire();
+    const donnees: DonneesPoc = {
+      ...donneesInitiales(),
+      modeJeu: 'classique',
+      progressif: { niveau: 1, positions: [{ corde: 6, case: 0 }] },
+      parties: [partieJournal(0), journal],
+    };
+    enregistrer(stockage, donnees);
+    expect(charger(stockage)).toEqual(donnees);
   });
 
   it('écarte les statistiques et les parties invalides', () => {

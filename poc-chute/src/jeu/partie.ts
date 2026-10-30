@@ -155,6 +155,11 @@ export class Partie {
     return this.vitesse.dureeMs;
   }
 
+  /** Dernière case du niveau : le manche affiché s'arrête là. */
+  get caseMax(): number {
+    return this.optionsTirage.caseMax;
+  }
+
   /** Multiplicateur de la série en cours. */
   get multiplicateur(): number {
     return multiplicateur(this.serie);
@@ -245,6 +250,7 @@ export class Partie {
     const tempsReponse = justes.map((n) => n.tDetectionMs! - n.tAttendueMs);
     const mediane = quantile(tempsReponse, 0.5);
     return {
+      mode: 'classique',
       debut: this.date.toISOString(),
       navigateur: contexte.navigateur,
       simulation: this.simulation,

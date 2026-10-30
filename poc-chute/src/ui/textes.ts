@@ -2,12 +2,17 @@
 import type { Traitement } from '../ecoute.svelte';
 import type { EvenementPartie, RegleFausseNote } from '../jeu/partie';
 import { PENALITE_FAUSSE_NOTE, type Timing } from '../jeu/points';
+import type { EvenementProgressif } from '../jeu/progressif/partie-progressive';
+import type { CleNumerique } from '../jeu/progressif/reglages';
+import type { MethodeGlobale, MethodeNote } from '../jeu/progressif/reussite';
+import type { ModeJeu } from '../jeu/stockage';
 import type { Position } from '../music/manche';
 import { nomAffiche, type Notation } from '../music/notation';
 import type { NomNote, NoteDetectee } from '../music/notes';
 import type { Question } from '../quiz/tirage';
 
 type Resultat = Extract<EvenementPartie, { type: 'resultat' }>;
+type ResultatProgressif = Extract<EvenementProgressif, { type: 'resultat' }>;
 
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? 's' : ''}`;
 
@@ -29,7 +34,12 @@ export const TEXTES = {
   sousTitre: 'Jouez à la guitare les notes qui descendent le long des cordes, avant qu’elles touchent le bas.',
   lienSpec: 'Lire la spécification du POC',
   lienApplication: 'Retour à l’application',
+  modes: {
+    progressif: 'Progressif : des cordes à vide au manche entier',
+    classique: 'Classique : 30 notes par partie',
+  } as Record<ModeJeu, string>,
   depart: {
+    modeJeu: 'Mode de jeu',
     niveau: 'Niveau',
     dureeChute: 'Durée de chute au départ',
     notation: 'Notation des notes',
@@ -39,6 +49,14 @@ export const TEXTES = {
     vitesseFixe: 'Vitesse fixe (sans accélération ni ralentissement)',
     demarrer: 'Démarrer',
     demarrerSimulation: 'Démarrer (simulation)',
+    /** Mode progressif : boutons de départ (avec « (simulation) » au clavier). */
+    commencer: (simulation: boolean) => `Commencer aux cordes à vide${simulation ? ' (simulation)' : ''}`,
+    reprendre: (niveau: number, notes: number, simulation: boolean) =>
+      `Reprendre au niveau ${niveau} (${pluriel(notes, 'note')})${simulation ? ' (simulation)' : ''}`,
+    recommencer: 'Recommencer aux cordes à vide',
+    confirmerRecommencer: (niveau: number) =>
+      `Repartir des cordes à vide ? Le niveau ${niveau} atteint sera remplacé à la fin de la partie.`,
+    confirmer: 'Recommencer',
     aideSimulation: 'Mode simulation, sans micro : Espace = note juste, F = fausse note, P = pause.',
     accordez: 'Accordez d’abord la guitare avec l’accordeur de l’application.',
     journal: 'Journal des parties',
@@ -112,6 +130,52 @@ export const TEXTES = {
     caseCourte: (numeroCase: number) => `c. ${numeroCase}`,
   },
   timings: { parfait: 'Parfait', bien: 'Bien', juste: 'Juste' } as Record<Timing, string>,
+  progressif: {
+    methodeNote: 'Réussite d’une note',
+    methodeGlobale: 'Réussite du niveau',
+    methodesNote: {
+      score: 'Score d’essai (justesse et rapidité)',
+      taux: 'Taux de notes justes',
+      temps: 'Temps de réponse',
+    } as Record<MethodeNote, string>,
+    methodesGlobales: {
+      moyenne: 'Moyenne des notes',
+      ponderee: 'Moyenne pondérée par la difficulté',
+      derniers: 'Derniers essais, toutes notes',
+    } as Record<MethodeGlobale, string>,
+    reglages: {
+      seuilNote: 'Réussite minimale de chaque note',
+      seuilGlobal: 'Réussite minimale du niveau',
+      dureeChuteMinMs: 'Vitesse max : durée de chute la plus courte',
+      vitesseRequise: 'Vitesse requise pour passer le niveau',
+      notesAjoutees: 'Notes ajoutées à chaque niveau',
+      essaisNote: 'Essais pris en compte pour une note',
+      essaisGlobaux: 'Essais pris en compte pour « derniers essais »',
+      essaisMinimum: 'Essais minimum de chaque note',
+      poidsAlteration: 'Difficulté d’une note altérée, en cases',
+      delaiNoteBonMs: 'Réponse rapide jusqu’à (depuis la note précédente)',
+      delaiNoteLentMs: 'Réponse lente à partir de (depuis la note précédente)',
+      delaiApparitionBonMs: 'Réponse rapide jusqu’à (après apparition)',
+      delaiApparitionLentMs: 'Réponse lente à partir de (après apparition)',
+      acceleration: 'Accélération par note juste',
+      ralentissement: 'Ralentissement par erreur',
+      penaliteFausse: 'Pénalité d’une fausse note',
+      penalitePerdue: 'Pénalité d’une note perdue ou ratée',
+      bonusNiveau: 'Bonus de passage, × numéro du niveau',
+    } as Record<CleNumerique, string>,
+    avances: 'Réglages avancés',
+    defaut: 'Valeurs par défaut',
+    points: (n: number) => `${n} points`,
+    niveau: 'Niveau',
+    reussite: 'Réussite',
+    vitesse: 'Vitesse',
+    niveauValide: (niveau: number, bonus: number) => `Niveau ${niveau} validé ! +${bonus}`,
+    nouvellesNotes: 'Nouvelles notes :',
+    mancheComplet: 'Tout le manche est validé !',
+    repriseDans: (secondes: number) => `Reprise dans ${secondes} s, à vitesse 0`,
+    perdue: 'Perdue',
+    ratee: 'Ratée',
+  },
   fin: {
     titre: 'Fin de partie',
     arretee: 'Partie arrêtée avant la fin.',
@@ -129,8 +193,48 @@ export const TEXTES = {
     rejouer: 'Rejouer',
     changer: 'Changer de niveau',
     exporter: 'Exporter le journal',
+    niveaux: 'Niveau',
+    niveauxValeurs: (depart: number, atteint: number) => (depart === atteint ? `${atteint}` : `${depart} → ${atteint}`),
+    essais: 'Notes jouées',
+    perdues: 'Notes perdues (3 fausses notes)',
+    vitesseMax: 'Vitesse la plus haute',
+    delaiMedian: 'Temps de réponse médian',
+    reussiteNiveau: 'Réussite du niveau',
+    notesDuNiveau: 'Notes du niveau',
+    colonneNote: 'Note',
+    colonneEssais: 'Essais',
+    colonneReussite: 'Réussite',
+    continuer: (niveau: number) => `Continuer au niveau ${niveau}`,
+    reglages: 'Réglages',
   },
 };
+
+/** Part de 0 à 1 en pourcentage arrondi : « 65 % ». */
+export function pourcent(valeur: number): string {
+  return `${Math.round(valeur * 100)} %`;
+}
+
+/** Qualité d'une note juste du mode progressif, d'après son score d'essai (affichage seulement). */
+function qualite(score: number): Timing {
+  if (score >= 0.85) return 'parfait';
+  if (score >= 0.65) return 'bien';
+  return 'juste';
+}
+
+/** Retour d'un essai du mode progressif : « Parfait ! +190 », « Perdue : La (A) · −150 », « Ratée · −150 ». */
+export function retourProgressif(resultat: ResultatProgressif, notation: Notation): string {
+  const perte = resultat.points < 0 ? ` · −${-resultat.points}` : '';
+  if (resultat.resultat === 'juste') return `${TEXTES.timings[qualite(resultat.scoreEssai)]} ! +${resultat.points}`;
+  if (resultat.resultat === 'perdue' && resultat.detectee) {
+    return `${TEXTES.progressif.perdue} : ${nomAffiche(resultat.detectee.nom, notation)}${perte}`;
+  }
+  return `${TEXTES.progressif.ratee}${perte}`;
+}
+
+/** Position à jouer : « Fa (F) · corde 6, case 1 ». */
+export function nomPosition(position: Position, nom: NomNote, notation: Notation): string {
+  return `${nomAffiche(nom, notation)} · corde ${position.corde}, case ${position.case}`;
+}
 
 /** Durée en secondes, une décimale : « 6,0 s ». */
 export function duree(ms: number): string {

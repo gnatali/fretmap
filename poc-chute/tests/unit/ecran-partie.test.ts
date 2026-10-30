@@ -6,7 +6,7 @@ import './resize-observer';
 import { DUREE_CALIBRAGE_MS } from '../../src/audio/niveau';
 import { Ecoute } from '../../src/ecoute.svelte';
 import type { PartieJournal } from '../../src/jeu/journal';
-import type { ReglagesPartie } from '../../src/jeu/partie';
+import { Partie, type ReglagesPartie } from '../../src/jeu/partie';
 import EcranPartie from '../../src/ui/ecrans/Partie.svelte';
 import { TEXTES } from '../../src/ui/textes';
 import { etat, type OptionsEtat } from './detection';
@@ -40,8 +40,16 @@ describe('écran de partie au micro', () => {
       maintenant: () => performance.now(),
     });
     await ecoute.demarrer();
-    const onFin = vi.fn<(journal: PartieJournal) => void>();
-    render(EcranPartie, { reglages: REGLAGES, statistiques: [], ecoute, onFin, onAnnuler: () => {}, hasard: () => 0 });
+    const fin = vi.fn<(journal: PartieJournal) => void>();
+    render(EcranPartie, {
+      config: { mode: 'classique', notation: 'les-deux', afficherCase: false, caseMax: 5, dureeChuteMs: 10000 },
+      creerJeu: (options) => new Partie(REGLAGES, [], options),
+      ecoute,
+      onFin: (journal) => fin(journal as PartieJournal),
+      onAnnuler: () => {},
+      hasard: () => 0,
+    });
+    const onFin = fin;
     /** Laisse passer `ms` millisecondes, puis transmet l'état de détection de cet instant. */
     const envoyer = async (ms: number, options: OptionsEtat = {}) => {
       await vi.advanceTimersByTimeAsync(ms);

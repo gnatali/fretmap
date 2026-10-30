@@ -1,6 +1,7 @@
 // Journal des parties (spec §6.10) : format exporté en JSON, mesure de la fluidité (HC1), nom du fichier d'export.
 import type { Position } from '../music/manche';
 import type { Pause } from './horloge';
+import type { PartieProgressiveJournal } from './progressif/journal';
 import type { NomNote } from '../music/notes';
 import type { ReglagesPartie } from './partie';
 import type { Timing } from './points';
@@ -86,7 +87,9 @@ export interface ContexteJournal {
   pauses: Pause[];
 }
 
+/** Partie du mode classique (30 notes). Les parties enregistrées avant le mode progressif n'ont pas `mode`. */
 export interface PartieJournal extends ContexteJournal {
+  mode?: 'classique';
   /** ISO 8601. */
   debut: string;
   simulation: boolean;
@@ -101,7 +104,14 @@ export interface ExportJournal {
   version: typeof VERSION_JOURNAL;
   /** ISO 8601. */
   exporteLe: string;
-  parties: PartieJournal[];
+  parties: JournalPartie[];
+}
+
+/** Une partie du journal, classique ou progressive. */
+export type JournalPartie = PartieJournal | PartieProgressiveJournal;
+
+export function estProgressive(partie: JournalPartie): partie is PartieProgressiveJournal {
+  return partie.mode === 'progressif';
 }
 
 /** Quantile q (0 à 1) par interpolation linéaire entre les valeurs triées ; null sans valeur. */
@@ -138,7 +148,7 @@ export class MesureImages {
 }
 
 /** Contenu du fichier d'export : toutes les parties gardées. */
-export function exporterJournal(parties: readonly PartieJournal[], date: Date): string {
+export function exporterJournal(parties: readonly JournalPartie[], date: Date): string {
   const contenu: ExportJournal = {
     format: FORMAT_JOURNAL,
     version: VERSION_JOURNAL,

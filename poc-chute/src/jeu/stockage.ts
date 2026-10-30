@@ -1,10 +1,19 @@
-// Données du POC dans localStorage (spec §6.10) : réglages de départ, seuil de silence, statistiques par position
-// (tirage pondéré) et journal des dernières parties. Sur le modèle de app/src/progression/stockage.ts.
-import { estCase, estNumeroCorde } from '../music/manche';
+// Données du POC dans localStorage (spec §6.10, §16) : mode de jeu, réglages de départ des deux modes, seuil de
+// silence, statistiques par position (tirage pondéré du mode classique), progression du mode progressif et journal
+// des dernières parties. Sur le modèle de app/src/progression/stockage.ts.
+import { estCase, estNumeroCorde, type Position } from '../music/manche';
 import { NOTATIONS } from '../music/notation';
 import { NIVEAU_MAX, type Niveau, type Statistique } from '../progression/modele';
-import type { PartieJournal } from './journal';
+import type { JournalPartie } from './journal';
 import { REGLES_FAUSSE_NOTE, type ReglagesPartie } from './partie';
+import {
+  BORNES_PROGRESSIF,
+  REGLAGES_PROGRESSIF_DEFAUT,
+  bornerReglage,
+  type CleNumerique,
+  type ReglagesProgressif,
+} from './progressif/reglages';
+import { METHODES_GLOBALES, METHODES_NOTE } from './progressif/reussite';
 import { DUREE_CHUTE_DEFAUT_MS, bornerDuree } from './vitesse';
 
 /** Clé du stockage, distincte de celle de l'application (fretmap.v1). */
@@ -17,16 +26,32 @@ export const PARTIES_GARDEES = 50;
 
 export type Stockage = Pick<Storage, 'getItem' | 'setItem'>;
 
+/** Mode de jeu : progressif (des cordes à vide au manche entier, défaut) ou classique (30 notes, spec §6). */
+export type ModeJeu = 'progressif' | 'classique';
+export const MODES_JEU: readonly ModeJeu[] = ['progressif', 'classique'];
+
+/** Où reprendre le mode progressif : niveau et notes (les réussites repartent de zéro, spec §16). */
+export interface ProgressionProgressive {
+  niveau: number;
+  positions: Position[];
+}
+
 export interface DonneesPoc {
   version: typeof VERSION_SCHEMA;
-  /** Derniers choix de l'écran de départ. */
+  /** Dernier mode choisi. */
+  modeJeu: ModeJeu;
+  /** Derniers choix de l'écran de départ (mode classique ; notation et case affichée valent pour les deux modes). */
   reglages: ReglagesPartie;
+  /** Réglages du mode progressif. */
+  reglagesProgressif: ReglagesProgressif;
+  /** Dernière progression du mode progressif, ou null avant la première partie. */
+  progressif: ProgressionProgressive | null;
   /** Dernier seuil de silence mesuré, en dBFS ; null avant la première mesure. */
   seuilSilenceDbfs: number | null;
   /** Statistiques par position du POC (mode 2), distinctes de celles de l'application. */
   statistiques: Statistique[];
   /** Journal des dernières parties, de la plus ancienne à la plus récente. */
-  parties: PartieJournal[];
+  parties: JournalPartie[];
 }
 
 export const REGLAGES_DEPART_DEFAUT: Readonly<ReglagesPartie> = {
@@ -42,7 +67,10 @@ export const REGLAGES_DEPART_DEFAUT: Readonly<ReglagesPartie> = {
 export function donneesInitiales(): DonneesPoc {
   return {
     version: VERSION_SCHEMA,
+    modeJeu: 'progressif',
     reglages: { ...REGLAGES_DEPART_DEFAUT },
+    reglagesProgressif: { ...REGLAGES_PROGRESSIF_DEFAUT },
+    progressif: null,
     seuilSilenceDbfs: null,
     statistiques: [],
     parties: [],
@@ -89,6 +117,38 @@ function normaliserReglages(valeur: unknown): ReglagesPartie {
   };
 }
 
+function normaliserReglagesProgressif(valeur: unknown): ReglagesProgressif {
+  const r = estObjet(valeur) ? valeur : {};
+  const d = REGLAGES_PROGRESSIF_DEFAUT;
+  const nombres = Object.fromEntries(
+    (Object.keys(BORNES_PROGRESSIF) as CleNumerique[]).map((cle) => {
+      const v = r[cle];
+      return [cle, typeof v === 'number' ? bornerReglage(cle, v) : d[cle]];
+    }),
+  ) as Record<CleNumerique, number>;
+  return {
+    ...nombres,
+    methodeNote: METHODES_NOTE.find((m) => m === r.methodeNote) ?? d.methodeNote,
+    methodeGlobale: METHODES_GLOBALES.find((m) => m === r.methodeGlobale) ?? d.methodeGlobale,
+  };
+}
+
+/** Progression enregistrée : niveau entier ≥ 1 et positions valides, sans doublon ; sinon null. */
+function normaliserProgression(valeur: unknown): ProgressionProgressive | null {
+  if (!estObjet(valeur) || !Number.isInteger(valeur.niveau) || (valeur.niveau as number) < 1) return null;
+  if (!Array.isArray(valeur.positions)) return null;
+  const vues = new Set<string>();
+  const positions: Position[] = [];
+  for (const p of valeur.positions) {
+    if (!estObjet(p) || !estNumeroCorde(p.corde) || !estCase(p.case)) continue;
+    const cle = `${p.corde}-${p.case}`;
+    if (vues.has(cle)) continue;
+    vues.add(cle);
+    positions.push({ corde: p.corde, case: p.case });
+  }
+  return positions.length === 0 ? null : { niveau: valeur.niveau as number, positions };
+}
+
 function estStatistique(valeur: unknown): valeur is Statistique {
   if (!estObjet(valeur)) return false;
   return (
@@ -104,9 +164,10 @@ function estStatistique(valeur: unknown): valeur is Statistique {
   );
 }
 
-/** Une partie du journal : contrôle léger, le journal est écrit par le POC lui-même. */
-function estPartie(valeur: unknown): valeur is PartieJournal {
-  return estObjet(valeur) && typeof valeur.debut === 'string' && Array.isArray(valeur.notes);
+/** Une partie du journal, classique (notes) ou progressive (essais) : contrôle léger, le POC l'a écrite. */
+function estPartie(valeur: unknown): valeur is JournalPartie {
+  if (!estObjet(valeur) || typeof valeur.debut !== 'string') return false;
+  return valeur.mode === 'progressif' ? Array.isArray(valeur.essais) : Array.isArray(valeur.notes);
 }
 
 /**
@@ -138,7 +199,10 @@ export function charger(stockage: Stockage | null): DonneesPoc {
   const seuil = valeur.seuilSilenceDbfs;
   return {
     version: VERSION_SCHEMA,
+    modeJeu: MODES_JEU.find((m) => m === valeur.modeJeu) ?? 'progressif',
     reglages: normaliserReglages(valeur.reglages),
+    reglagesProgressif: normaliserReglagesProgressif(valeur.reglagesProgressif),
+    progressif: normaliserProgression(valeur.progressif),
     seuilSilenceDbfs: typeof seuil === 'number' && Number.isFinite(seuil) ? seuil : null,
     statistiques: Array.isArray(valeur.statistiques) ? valeur.statistiques.filter(estStatistique) : [],
     parties: Array.isArray(valeur.parties) ? valeur.parties.filter(estPartie).slice(-PARTIES_GARDEES) : [],
@@ -157,7 +221,7 @@ export function enregistrer(stockage: Stockage | null, donnees: DonneesPoc): boo
 }
 
 /** Ajoute une partie au journal, en ne gardant que les PARTIES_GARDEES dernières. */
-export function ajouterPartie(donnees: DonneesPoc, partie: PartieJournal): DonneesPoc {
+export function ajouterPartie(donnees: DonneesPoc, partie: JournalPartie): DonneesPoc {
   return { ...donnees, parties: [...donnees.parties, partie].slice(-PARTIES_GARDEES) };
 }
 
