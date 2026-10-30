@@ -244,6 +244,8 @@
   }
   .reglages {
     display: grid;
+    /* minmax(0, 1fr) : une option longue ne doit pas élargir la colonne au-delà de l'écran (360 px). */
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     margin: 1.5rem 0;
   }
@@ -259,7 +261,7 @@
     font-weight: 400;
   }
   select {
-    max-width: 100%;
+    width: 100%;
     padding: 0 0.5rem;
     color: var(--texte);
     background: var(--surface);

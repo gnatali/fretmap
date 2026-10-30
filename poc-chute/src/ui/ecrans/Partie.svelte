@@ -427,23 +427,6 @@
       rappel={(rappel?.positions ?? []).filter((p) => p.case <= caseAffichee(caseMax))}
       {effets}
     />
-    {#if passage && phase === 'jeu'}
-      <div class="passage" aria-live="polite">
-        <p class="titre-passage">{TEXTES.progressif.niveauValide(passage.niveau, passage.bonus)}</p>
-        {#if passage.ajoutees.length === 0}
-          <p>{TEXTES.progressif.mancheComplet}</p>
-        {:else}
-          <p>{TEXTES.progressif.nouvellesNotes}</p>
-          <ul>
-            {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
-              <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
-            {/each}
-          </ul>
-        {/if}
-        <p class="plafond">{TEXTES.progressif.plafond(pourcent(passage.plafond))}</p>
-        <p class="reprise">{TEXTES.progressif.repriseDans(resteAvantReprise)}</p>
-      </div>
-    {/if}
     {#if enPartie && phase !== 'jeu'}
       <!-- Pause et reprise : le manche est masqué, pour ne pas chercher la case hors du temps de jeu. -->
       <div class="cache" role="group" aria-label={TEXTES.partie.enPause}>
@@ -472,6 +455,25 @@
       </p>
     {/if}
   </div>
+
+  {#if passage && phase === 'jeu'}
+    <!-- Passage de niveau : sous le manche, pour ne pas cacher les nouvelles notes entourées. -->
+    <div class="passage" aria-live="polite">
+      <p class="titre-passage">{TEXTES.progressif.niveauValide(passage.niveau, passage.bonus)}</p>
+      {#if passage.ajoutees.length === 0}
+        <p>{TEXTES.progressif.mancheComplet}</p>
+      {:else}
+        <p>{TEXTES.progressif.nouvellesNotes}</p>
+        <ul>
+          {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
+            <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
+          {/each}
+        </ul>
+      {/if}
+      <p class="plafond">{TEXTES.progressif.plafond(pourcent(passage.plafond))}</p>
+      <p class="reprise">{TEXTES.progressif.repriseDans(resteAvantReprise)}</p>
+    </div>
+  {/if}
 
   <p class="consigne" aria-live="polite">
     {attendue ? consigne(attendue.question, notation, afficherCase) : ''}
@@ -524,6 +526,7 @@
   }
   .actions {
     display: flex;
+    flex-shrink: 0;
     gap: 0.375rem;
   }
   .pause {
@@ -567,9 +570,7 @@
     font-size: 1.125rem;
   }
   .passage {
-    position: absolute;
-    inset: auto 0.5rem 0.5rem;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     text-align: center;
     background: var(--surface);
     border: 2px solid var(--juste);
@@ -597,9 +598,11 @@
     font-weight: 700;
   }
   .compteurs {
-    display: grid;
-    grid-template-columns: repeat(4, auto);
-    gap: 0.5rem;
+    /* Les compteurs passent sur deux lignes quand la place manque (grand score sur un écran de 360 px). */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.125rem 0.5rem;
+    min-width: 0;
     margin: 0;
   }
   .compteurs div {

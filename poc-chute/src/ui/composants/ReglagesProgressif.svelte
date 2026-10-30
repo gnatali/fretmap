@@ -144,6 +144,7 @@
   .reglages-progressif,
   .avances {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
   label {
@@ -158,7 +159,7 @@
     font-weight: 400;
   }
   select {
-    max-width: 100%;
+    width: 100%;
     padding: 0 0.5rem;
     color: var(--texte);
     background: var(--surface);

@@ -48,6 +48,13 @@ test('mode progressif : note immobile, passage au niveau 2, note perdue, reprise
   ]);
   await expect(page.locator('.passage .plafond')).toHaveText('Vitesse max du niveau : 35 %');
   await expect(page.locator('.rappel')).toHaveCount(3);
+  // Le cadre du passage est sous le manche : il ne cache aucune nouvelle note entourée.
+  const cadre = (await page.locator('.passage').boundingBox())!;
+  for (const rappel of await page.locator('.rappel').all()) {
+    const boite = (await rappel.boundingBox())!;
+    expect(boite.y + boite.height).toBeLessThanOrEqual(cadre.y);
+  }
+  expect(await debordants(page)).toEqual([]);
   await expect(page.locator('.niveau')).toHaveText('2');
   await expect(passage).toBeHidden({ timeout: 8000 });
   await expect(page.locator('.vitesse')).toHaveText('0 %');
@@ -82,4 +89,38 @@ test('mode progressif : note immobile, passage au niveau 2, note perdue, reprise
   // Reprise au niveau atteint.
   await page.getByRole('button', { name: 'Réglages' }).click();
   await expect(page.getByRole('button', { name: 'Reprendre au niveau 2 (9 notes) (simulation)' })).toBeVisible();
+});
+
+test('passage sur un petit téléphone (360 px) : le cadre ne cache pas les nouvelles notes, rien ne déborde', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 360, height: 640 });
+  // Reprise au niveau 6 (21 notes, jusqu'à la case 4) : son passage ajoute deux notes en case 5, en bas du manche.
+  const positions = ['6/0', '5/0', '4/0', '3/0', '2/0', '1/0', '6/1', '2/1', '1/1', '5/2', '4/2', '3/2', '6/3']
+    .concat(['5/3', '4/3', '2/3', '1/3', '5/1', '4/1', '3/1', '3/4'])
+    .map((p) => ({ corde: Number(p[0]), case: Number(p[2]) }));
+  await page.goto('/?simulation');
+  await page.evaluate((donnees) => localStorage.setItem('fretmap-chute.v1', JSON.stringify(donnees)), {
+    version: 1,
+    progressif: { niveau: 6, positions },
+  });
+  await page.reload();
+  await page.getByRole('button', { name: 'Reprendre au niveau 6 (21 notes) (simulation)' }).click();
+  await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 6000 });
+  const passage = page.getByText(/^Niveau 6 validé/);
+  for (let i = 0; i < 400 && !(await passage.isVisible()); i++) {
+    await page.keyboard.press('Space');
+    await page.waitForTimeout(40);
+  }
+  await expect(passage).toBeVisible();
+  await expect(page.locator('.rappel')).toHaveCount(3);
+  const cadre = (await page.locator('.passage').boundingBox())!;
+  for (const rappel of await page.locator('.rappel').all()) {
+    const boite = (await rappel.boundingBox())!;
+    expect(boite.y + boite.height).toBeLessThanOrEqual(cadre.y);
+  }
+  // Score à 5 chiffres et multiplicateur : les compteurs passent sur deux lignes au besoin.
+  expect(Number((await page.locator('.score').textContent())!.split(' ')[0])).toBeGreaterThanOrEqual(10_000);
+  expect(await debordants(page)).toEqual([]);
 });
