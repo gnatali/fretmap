@@ -31,7 +31,11 @@ import {
 export const ERREURS_AVANT_PERTE = 3;
 /** Pause au passage de niveau, le temps de montrer les nouvelles notes, en ms : 6 s (proposition, spec §16). */
 export const DUREE_PAUSE_NIVEAU_MS = 6000;
-/** Poids ajouté au tirage par l'échec : poids = 1 + 3 × (1 − réussite), de 1 à 4, comme l'application (spec §16). */
+/**
+ * Poids ajouté au tirage par l'échec : poids = 1 + 3 × (1 − réussite), de 1 à 4, comme l'application (spec §16). Une
+ * note qui n'a pas encore ses `essaisMinimum` essais a le poids maximal (4), pour que les nouvelles notes soient
+ * jouées tout de suite (annexe B13, 2e journal).
+ */
 export const POIDS_ECHEC_TIRAGE = 3;
 
 export interface OptionsPartieProgressive {
@@ -311,8 +315,8 @@ export class PartieProgressive {
   }
 
   /**
-   * Nouvelle note du niveau, tirée selon la réussite (une note peu réussie revient jusqu'à 4 fois plus souvent), sans
-   * le nom des 2 dernières.
+   * Nouvelle note du niveau, tirée selon la réussite (une note peu réussie, ou pas encore assez jouée, revient
+   * jusqu'à 4 fois plus souvent), sans le nom des 2 dernières.
    */
   private apparaitre(tMs: number): void {
     const question = tirerQuestion(
@@ -320,7 +324,7 @@ export class PartieProgressive {
       {
         caseMax: CASE_MAX,
         cordeDemandee: true,
-        poids: (p) => 1 + POIDS_ECHEC_TIRAGE * (1 - this.reussiteDe(p)),
+        poids: (p) => this.poidsTirage(p),
       },
       this.hasard,
       this.derniereTiree,
@@ -330,6 +334,12 @@ export class PartieProgressive {
     this.nomsRecents = retenirNom(this.nomsRecents, question.nom);
     this.chute.ajouter({ index: this.tirees, question, progression: 0, tApparitionMs: tMs, tAttendueMs: null });
     this.rendreAttendue(tMs);
+  }
+
+  /** Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum, puis selon sa réussite. */
+  private poidsTirage(position: Position): number {
+    if (this.essaisDe(position) < this.reglages.essaisMinimum) return 1 + POIDS_ECHEC_TIRAGE;
+    return 1 + POIDS_ECHEC_TIRAGE * (1 - this.reussiteDe(position));
   }
 
   private rendreAttendue(tMs: number): void {

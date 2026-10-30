@@ -192,6 +192,34 @@ describe('tirage', () => {
   });
 });
 
+describe('tirage des nouvelles notes', () => {
+  it('une note sans ses essais minimum garde le poids maximal : les nouvelles notes sont vite jouées 3 fois', () => {
+    // Au niveau 2, notes tirées entre le passage et le 3e essai de chacune des 3 nouvelles notes, sur 40 parties :
+    // 23 en moyenne (au plus 35) ; 37 en moyenne (jusqu'à 85) quand le poids retombait après un premier essai.
+    const nouvelles: Position[] = [
+      { corde: 6, case: 1 },
+      { corde: 2, case: 1 },
+      { corde: 1, case: 1 },
+    ];
+    const tirages: number[] = [];
+    for (let graine = 1; graine <= 40; graine++) {
+      const partie = nouvelle({}, { hasard: hasardFixe(graine) });
+      let { t } = jouerJusquAuPassage(partie);
+      t += DUREE_PAUSE_NIVEAU_MS;
+      let n = 0;
+      while (!nouvelles.every((p) => partie.essaisDe(p) >= 3)) {
+        t += 500;
+        partie.avancer(t);
+        partie.jouerSimule(true, t);
+        n++;
+      }
+      tirages.push(n);
+    }
+    expect(tirages.reduce((somme, n) => somme + n, 0) / tirages.length).toBeLessThan(28);
+    expect(Math.max(...tirages)).toBeLessThanOrEqual(40);
+  });
+});
+
 describe('plafond de vitesse', () => {
   it('30 % au niveau 1, + 5 % par niveau, 100 % au niveau 15 (réglages par défaut)', () => {
     const r = REGLAGES_PROGRESSIF_DEFAUT;

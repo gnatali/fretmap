@@ -53,8 +53,8 @@ Au niveau 3, le retard a une autre cause : La (corde 3, case 2) est sortie souve
 - « temps » valide le niveau 3 à l'essai 42 au lieu de 61 ;
 - « taux » ne valide jamais le niveau 4, à cause des fausses notes de La (corde 3, case 2).
 
-### Propositions (à valider par l'utilisateur)
-- **Tirage** : une note qui n'a pas encore ses `essaisMinimum` essais garderait le poids maximal (4) jusqu'à les avoir. Les nouvelles notes seraient travaillées tout de suite, et les niveaux seraient plus courts.
+### Décisions (30/10/2026, spec version 2.3, annexe B13)
+- **Tirage** : une note qui n'a pas encore ses `essaisMinimum` essais garde le poids maximal (4) jusqu'à les avoir. En simulation, sur 40 parties, les 3 nouvelles notes du niveau 2 ont leurs 3 essais en 23 notes en moyenne, au lieu de 37.
 - **Réglages** : garder les valeurs par défaut pour la prochaine session, et continuer au niveau 6 (vitesse max de 55 %).
 
 ## Journal du 30/10/2026 (`journal-poc-chute-20261030-1559.json`)
