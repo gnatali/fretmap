@@ -5,7 +5,7 @@ import './resize-observer';
 import type { Niveau } from '../../src/progression/modele';
 import { contenuNiveau, positionsDuNiveau } from '../../src/progression/niveaux';
 import { tirerQuestion } from '../../src/quiz/tirage';
-import MancheChute from '../../src/ui/composants/MancheChute.svelte';
+import MancheChute, { caseAffichee } from '../../src/ui/composants/MancheChute.svelte';
 
 const question = (niveau: Niveau, corde: number, numeroCase: number) => {
   const candidates = positionsDuNiveau(niveau).filter((p) => p.corde === corde && p.case === numeroCase);
@@ -13,10 +13,20 @@ const question = (niveau: Niveau, corde: number, numeroCase: number) => {
 };
 
 describe('MancheChute', () => {
-  it('dessine les cases du niveau, de la case 0 à la case maximale', () => {
-    const { container } = render(MancheChute, { caseMax: 5, notes: [], notation: 'les-deux' });
-    expect(container.querySelectorAll('.case')).toHaveLength(6);
-    expect(container.querySelectorAll('.corde')).toHaveLength(6);
+  it('dessine au moins les cases 0 à 5, puis jusqu’à 7, puis jusqu’à 12', () => {
+    expect([0, 1, 5, 6, 7, 8, 12].map(caseAffichee)).toEqual([5, 5, 5, 7, 7, 12, 12]);
+    for (const [caseMax, cases] of [
+      [0, 6],
+      [2, 6],
+      [5, 6],
+      [6, 8],
+      [8, 13],
+    ] as const) {
+      const { container, unmount } = render(MancheChute, { caseMax, notes: [], notation: 'les-deux' });
+      expect(container.querySelectorAll('.case')).toHaveLength(cases);
+      expect(container.querySelectorAll('.corde')).toHaveLength(6);
+      unmount();
+    }
   });
 
   it('place chaque note dans la colonne de sa corde, la plus basse étant la note attendue', () => {

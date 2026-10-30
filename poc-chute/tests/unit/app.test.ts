@@ -100,8 +100,8 @@ describe('écran de départ, mode progressif', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.depart.reprendre(3, 3, true) }));
     expect(document.querySelector('.niveau')!.textContent).toBe('3');
-    // Manche du niveau : cases 0 à 2.
-    expect(document.querySelectorAll('.case')).toHaveLength(3);
+    // Notes des cases 0 à 2 : le manche affiché va au moins jusqu'à la case 5.
+    expect(document.querySelectorAll('.case')).toHaveLength(6);
   });
 });
 

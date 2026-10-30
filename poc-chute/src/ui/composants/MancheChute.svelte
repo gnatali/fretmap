@@ -18,6 +18,17 @@
     progression: number;
     juste: boolean;
   }
+
+  /**
+   * Paliers du manche affiché : au moins les cases 0 à 5, puis jusqu'à 7 si une note le demande, puis jusqu'à 12
+   * (demande de l'utilisateur, 30/10/2026, spec §6.2).
+   */
+  export const PALIERS_MANCHE: readonly number[] = [5, 7, 12];
+
+  /** Dernière case affichée : le premier palier qui contient la case maximale des notes. */
+  export function caseAffichee(caseMax: number): number {
+    return PALIERS_MANCHE.find((palier) => palier >= caseMax) ?? caseMax;
+  }
 </script>
 
 <script lang="ts">
@@ -26,12 +37,13 @@
   import { TEXTES } from '../textes';
 
   // Manche vertical (spec §6.2) : cordes en colonnes (corde 6 à gauche), cases en lignes de la case 0 en haut à la
-  // case maximale du niveau, ligne de jeu en bas. Les notes descendent dans la colonne de leur corde.
+  // case 5, 7 ou 12 (caseAffichee), ligne de jeu en bas. Les notes descendent dans la colonne de leur corde.
 
   /** Hauteur d'une note en px (voir .note) : à la ligne de jeu, son bas touche la ligne. */
   const HAUTEUR_NOTE_PX = 48;
 
   interface Props {
+    /** Case maximale des notes du niveau ; le manche va jusqu'au palier qui la contient. */
     caseMax: number;
     /** De la plus basse (la note attendue) à la plus haute. */
     notes: readonly NoteAffichee[];
@@ -46,7 +58,7 @@
   let { caseMax, notes, notation, afficherCase = false, rappel = [], effets = [] }: Props = $props();
 
   let hauteur = $state(0);
-  const cases = $derived(Array.from({ length: caseMax + 1 }, (_, k) => k));
+  const cases = $derived(Array.from({ length: caseAffichee(caseMax) + 1 }, (_, k) => k));
 
   const pourcent = (valeur: number) => `${valeur * 100}%`;
   /** Centre de la colonne d'une corde ; au niveau 1 (corde non demandée), centre du manche. */

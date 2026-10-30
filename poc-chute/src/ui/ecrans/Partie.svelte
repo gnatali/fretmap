@@ -36,7 +36,7 @@
   import { nomAffiche } from '../../music/notation';
   import type { NoteDetectee } from '../../music/notes';
   import Indicateur from '../composants/Indicateur.svelte';
-  import MancheChute, { type Effet, type NoteAffichee } from '../composants/MancheChute.svelte';
+  import MancheChute, { caseAffichee, type Effet, type NoteAffichee } from '../composants/MancheChute.svelte';
   import { TEXTES, consigne, duree, nomPosition, pourcent, retour, retourFausse, retourProgressif } from '../textes';
 
   // Écran de jeu (spec §6.2 à §6.4) : calibrage du micro, compte à rebours, puis une image par
@@ -424,7 +424,7 @@
       {notes}
       {notation}
       {afficherCase}
-      rappel={(rappel?.positions ?? []).filter((p) => p.case <= caseMax)}
+      rappel={(rappel?.positions ?? []).filter((p) => p.case <= caseAffichee(caseMax))}
       {effets}
     />
     {#if passage && phase === 'jeu'}
