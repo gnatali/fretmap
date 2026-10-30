@@ -43,10 +43,14 @@ test('aucun écran ne défile horizontalement, même sur un petit téléphone (3
     for (const nom of [/^Mode 1/, /^Mode 2/, /^Accordeur/, /^Statistiques/, /^Réglages/]) {
       await page.getByRole('button', { name: nom }).click();
       // Aucun élément ne dépasse le bord droit (une liste trop large peut déborder sans faire défiler la page).
-      const debordants = await page.evaluate(() =>
-        [...document.querySelectorAll('main *')]
-          .filter((e) => e.getBoundingClientRect().right > window.innerWidth + 1)
-          .map((e) => e.outerHTML.slice(0, 60)),
+      // Largeur de l'écran émulé, pas window.innerWidth : sur mobile, la page s'élargit d'elle-même quand son contenu
+      // déborde.
+      const debordants = await page.evaluate(
+        (ecran) =>
+          [...document.querySelectorAll('main *')]
+            .filter((e) => e.getBoundingClientRect().right > ecran + 1)
+            .map((e) => e.outerHTML.slice(0, 60)),
+        page.viewportSize()!.width,
       );
       expect(debordants, `${nom} à ${largeur} px`).toEqual([]);
       await page.getByRole('button', { name: /^(Arrêter|Retour)$/ }).click();

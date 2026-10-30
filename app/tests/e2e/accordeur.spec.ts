@@ -11,5 +11,7 @@ test('accordeur : calibrage puis corde de mi grave juste', async ({ page }) => {
   await expect(statut).toContainText('Juste ✓', { timeout: 10_000 });
   await expect(page.locator('.cible .note')).toHaveText('Mi2 (E2)');
   await expect(page.getByRole('button', { name: /^6/ })).toHaveClass(/detectee/);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  // Largeur de l'écran émulé, pas window.innerWidth, que la page élargit d'elle-même sur mobile quand elle déborde.
+  const ecran = page.viewportSize()!.width;
+  expect(await page.evaluate((ecran) => document.documentElement.scrollWidth <= ecran, ecran)).toBe(true);
 });
