@@ -135,6 +135,8 @@ function progressif(partie) {
     `- Même nom à la suite : ${memesNoms(partie.essais.map((e) => e.nom))}.`,
     "",
   ];
+  if (partie.essais.length === 0)
+    return [...lignes.slice(0, -1), "- Aucune note jouée."];
 
   // Notes de chaque niveau : départ, puis ajouts des passages.
   const notesDuNiveau = new Map([

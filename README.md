@@ -63,5 +63,5 @@ Le workflow est `.github/workflows/pages.yml`. Il exige une activation unique : 
 - [x] Phase 3 : écrans en portrait, animation, mode simulation (au clavier), journal, tests de bout en bout
 - [x] Phase 4 : micro (calibrage, détection, indicateur en direct), test de bout en bout avec un micro simulé
 - [x] Mode progressif (des cordes à vide au manche entier), pause, règle de la fausse note au choix
-- [x] Premier journal analysé ([`poc-chute/resultats/`](poc-chute/resultats/README.md)) : plafond de vitesse par niveau, notes variées
+- [x] Deux journaux analysés ([`poc-chute/resultats/`](poc-chute/resultats/README.md)) : plafond de vitesse par niveau, notes variées, effet confirmé
 - [ ] Phase 5 : campagne sur Android, synthèse, décision
