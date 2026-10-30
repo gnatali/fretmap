@@ -174,6 +174,24 @@ describe('notes jouées', () => {
   });
 });
 
+describe('tirage', () => {
+  it('un nom de note ne revient qu’après 2 notes d’un autre nom, même au passage de niveau', () => {
+    const partie = nouvelle({ essaisMinimum: 1, seuilNote: 0.3, seuilGlobal: 0.3 }, { hasard: hasardFixe(3) });
+    let t = 0;
+    for (let i = 0; i < 500; i++) {
+      t += 500;
+      partie.avancer(t);
+      partie.jouerSimule(true, t);
+      if (partie.enPause) t += DUREE_PAUSE_NIVEAU_MS;
+    }
+    const journal = partie.journal(CONTEXTE);
+    expect(journal.passages.length).toBeGreaterThanOrEqual(3);
+    const noms = journal.essais.map((e) => e.nom);
+    expect(noms.length).toBeGreaterThan(300);
+    for (let i = 2; i < noms.length; i++) expect(new Set(noms.slice(i - 2, i + 1)).size).toBe(3);
+  });
+});
+
 describe('plafond de vitesse', () => {
   it('30 % au niveau 1, + 5 % par niveau, 100 % au niveau 15 (réglages par défaut)', () => {
     const r = REGLAGES_PROGRESSIF_DEFAUT;

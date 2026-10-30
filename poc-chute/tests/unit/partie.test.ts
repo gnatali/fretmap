@@ -29,7 +29,10 @@ const CONTEXTE: ContexteJournal = {
   pauses: [],
 };
 
-/** Tirage toujours sur la première position possible : au niveau 2, E2 (corde 6, case 0) et F2 (case 1) alternent. */
+/**
+ * Tirage toujours sur la première position possible : au niveau 2, E2 (corde 6, case 0), F2 (case 1) et G2 (case 3)
+ * se suivent en boucle, un nom ne revenant qu'après 2 autres (enchainement.ts).
+ */
 function nouvellePartie(reglages: Partial<ReglagesPartie> = {}, statistiques: Statistique[] = [], simulation = false) {
   return new Partie({ ...REGLAGES, ...reglages }, statistiques, {
     debutMs: DEBUT,
@@ -79,6 +82,19 @@ describe('début de partie', () => {
     expect(partie.notes).toHaveLength(2);
     expect(partie.notes[1]!.question.nom).toBe('F');
     expect(partie.attendue!.index).toBe(1);
+  });
+
+  it('un nom de note ne revient qu’après 2 notes d’un autre nom, à chaque niveau', () => {
+    for (const niveau of [1, 2, 3, 4, 5, 6, 7] as const) {
+      let graine = niveau;
+      // Hasard reproductible (générateur congruentiel), pour varier le tirage.
+      const hasard = () => (graine = (graine * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
+      const partie = new Partie({ ...REGLAGES, niveau }, [], { debutMs: DEBUT, date: DATE, hasard, simulation: true });
+      jouerJustes(partie, NOTES_PAR_PARTIE);
+      const noms = partie.journal(CONTEXTE).notes.map((n) => n.nom);
+      expect(noms).toHaveLength(NOTES_PAR_PARTIE);
+      for (let i = 2; i < noms.length; i++) expect(new Set(noms.slice(i - 2, i + 1)).size).toBe(3);
+    }
   });
 });
 
@@ -134,13 +150,14 @@ describe('validation au micro', () => {
     jouerJustes(partie, 2);
     expect(partie.serie).toBe(2);
     avancer(partie, DEBUT + 100, DEBUT + 150);
-    const evenements = partie.traiterDetection(etat(DEBUT + 500, { note: 'G2', nouvelle: true }));
+    expect(partie.attendue!.question.nom).toBe('G');
+    const evenements = partie.traiterDetection(etat(DEBUT + 500, { note: 'A2', nouvelle: true }));
     expect(evenements).toMatchObject([{ type: 'resultat', resultat: 'fausse', timing: null, points: 0, serie: 0 }]);
-    expect(resultats(evenements)[0]!.detectee!.nom).toBe('G');
+    expect(resultats(evenements)[0]!.detectee!.nom).toBe('A');
     expect(partie.notes).toHaveLength(0);
     expect(partie.dureeChuteMs).toBeCloseTo(6900);
     expect(partie.meilleureSerie).toBe(2);
-    expect(partie.statistiques.find((s) => s.case === 0)).toMatchObject({ tentatives: 2, reussites: 1 });
+    expect(partie.statistiques.find((s) => s.case === 3)).toMatchObject({ tentatives: 1, reussites: 0 });
   });
 
   it('note ratée : arrivée sur la ligne sans être jouée', () => {
@@ -226,8 +243,8 @@ describe('mode « pénalité » : la fausse note coûte des points, la note rest
     avancer(partie, DEBUT + 100, DEBUT + 150);
     expect(partie.score).toBe(250);
 
-    const evenements = partie.traiterDetection(etat(DEBUT + 500, { note: 'G2', nouvelle: true }));
-    expect(evenements).toMatchObject([{ type: 'fausse', note: { index: 3 }, detectee: { nom: 'G' }, penalite: 50 }]);
+    const evenements = partie.traiterDetection(etat(DEBUT + 500, { note: 'A2', nouvelle: true }));
+    expect(evenements).toMatchObject([{ type: 'fausse', note: { index: 3 }, detectee: { nom: 'A' }, penalite: 50 }]);
     expect(evenements[0]).toMatchObject({ fausses: 1 });
     expect(partie.score).toBe(200);
     expect(partie.serie).toBe(0);
@@ -235,16 +252,16 @@ describe('mode « pénalité » : la fausse note coûte des points, la note rest
     expect(partie.dureeChuteMs).toBeCloseTo(6900);
     expect(partie.attendue!.index).toBe(3);
     expect(partie.notesRestantes).toBe(NOTES_PAR_PARTIE - 2);
-    expect(partie.statistiques.find((s) => s.case === 0)).toMatchObject({ tentatives: 2, reussites: 1 });
+    expect(partie.statistiques.find((s) => s.case === 3)).toMatchObject({ tentatives: 1, reussites: 0 });
 
     // Juste ensuite : points à la durée ralentie (100 × 1,5 × 5/6,9), temps de réponse depuis la fausse note.
-    const [resultat] = resultats(partie.traiterDetection(etat(DEBUT + 900, { note: 'E2', nouvelle: true })));
+    const [resultat] = resultats(partie.traiterDetection(etat(DEBUT + 900, { note: 'G2', nouvelle: true })));
     expect(resultat).toMatchObject({ resultat: 'juste', note: { index: 3 }, points: 109, serie: 1 });
-    expect(partie.statistiques.find((s) => s.case === 0)).toMatchObject({ tentatives: 3, reussites: 2 });
+    expect(partie.statistiques.find((s) => s.case === 3)).toMatchObject({ tentatives: 2, reussites: 1 });
     const journal = partie.journal(CONTEXTE);
     expect(journal.notes[2]).toMatchObject({
       resultat: 'juste',
-      evenements: [{ type: 'fausse', tMs: 500, nom: 'G', midi: 43, cents: 0, penalite: 50 }],
+      evenements: [{ type: 'fausse', tMs: 500, nom: 'A', midi: 45, cents: 0, penalite: 50 }],
     });
     expect(journal.resume).toMatchObject({ fausses: 1, justes: 3, score: 309 });
   });

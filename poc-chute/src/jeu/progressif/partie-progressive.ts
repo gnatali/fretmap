@@ -5,10 +5,11 @@
 import type { EtatDetection } from '../../audio/pitch';
 import { CASE_MAX, noteDePosition, type Position } from '../../music/manche';
 import type { Notation } from '../../music/notation';
-import { frequenceVersNote, midiVersFrequence, type NoteDetectee } from '../../music/notes';
+import { frequenceVersNote, midiVersFrequence, type NomNote, type NoteDetectee } from '../../music/notes';
 import { tirerQuestion, type Question } from '../../quiz/tirage';
 import { SuiviMode2 } from '../../quiz/validation';
 import { Chute, type NoteEnChute } from '../chute';
+import { retenirNom, sansNomsRecents } from '../enchainement';
 import { quantile, type ContexteJournal, type EvenementNoteJournal } from '../journal';
 import { OPTIONS_VALIDATION } from '../partie';
 import { POINTS_BASE, multiplicateur } from '../points';
@@ -99,6 +100,8 @@ export class PartieProgressive {
   private readonly passages: PassageJournal[] = [];
   private tirees = 0;
   private derniereTiree: Question | undefined;
+  /** Noms des dernières notes tirées, écartés du tirage suivant (enchainement.ts) ; gardés au passage de niveau. */
+  private nomsRecents: NomNote[] = [];
   private derniereConclue: Question | null = null;
   private dernierT: number;
   private derniereAttaqueMs: number | null = null;
@@ -307,10 +310,13 @@ export class PartieProgressive {
     return Math.round(tMs - this.debutMs);
   }
 
-  /** Nouvelle note du niveau, tirée selon la réussite : une note peu réussie revient jusqu'à 4 fois plus souvent. */
+  /**
+   * Nouvelle note du niveau, tirée selon la réussite (une note peu réussie revient jusqu'à 4 fois plus souvent), sans
+   * le nom des 2 dernières.
+   */
   private apparaitre(tMs: number): void {
     const question = tirerQuestion(
-      this.notesDuNiveau,
+      sansNomsRecents(this.notesDuNiveau, this.nomsRecents),
       {
         caseMax: CASE_MAX,
         cordeDemandee: true,
@@ -321,6 +327,7 @@ export class PartieProgressive {
     );
     this.tirees++;
     this.derniereTiree = question;
+    this.nomsRecents = retenirNom(this.nomsRecents, question.nom);
     this.chute.ajouter({ index: this.tirees, question, progression: 0, tApparitionMs: tMs, tAttendueMs: null });
     this.rendreAttendue(tMs);
   }

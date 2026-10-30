@@ -3,13 +3,14 @@
 import type { EtatDetection } from '../audio/pitch';
 import { noteDePosition, type Position } from '../music/manche';
 import type { Notation } from '../music/notation';
-import { frequenceVersNote, midiVersFrequence, type NoteDetectee } from '../music/notes';
+import { frequenceVersNote, midiVersFrequence, type NomNote, type NoteDetectee } from '../music/notes';
 import { progressionInitiale, type Mode, type Niveau, type Statistique } from '../progression/modele';
 import { caseMaxDuNiveau, contenuNiveau, positionsDuNiveau } from '../progression/niveaux';
 import { enregistrerReponse, poidsDuMode } from '../progression/statistiques';
 import { tirerQuestion, type OptionsTirage, type Question } from '../quiz/tirage';
 import { SuiviMode2, type OptionsMode2 } from '../quiz/validation';
 import { Chute, type NoteEnChute } from './chute';
+import { retenirNom, sansNomsRecents } from './enchainement';
 import {
   quantile,
   type ContexteJournal,
@@ -106,6 +107,8 @@ export class Partie {
   private tirees = 0;
   private conclues = 0;
   private derniereTiree: Question | undefined;
+  /** Noms des dernières notes tirées, écartés du tirage suivant (enchainement.ts). */
+  private nomsRecents: NomNote[] = [];
   private derniereConclue: Question | null = null;
   private dernierT: number;
   /** Dernière attaque entendue pendant que la note attendue l'était. */
@@ -279,16 +282,20 @@ export class Partie {
     return Math.round(tMs - this.debutMs);
   }
 
-  /** Tire une nouvelle note (pondérée par les statistiques en cours) et la place en haut de la chute. */
+  /**
+   * Tire une nouvelle note (pondérée par les statistiques en cours, sans le nom des 2 dernières) et la place en haut
+   * de la chute.
+   */
   private apparaitre(tMs: number): void {
     const question = tirerQuestion(
-      this.candidates,
+      sansNomsRecents(this.candidates, this.nomsRecents),
       { ...this.optionsTirage, poids: poidsDuMode(this.stats, MODE) },
       this.hasard,
       this.derniereTiree,
     );
     this.tirees++;
     this.derniereTiree = question;
+    this.nomsRecents = retenirNom(this.nomsRecents, question.nom);
     this.chute.ajouter({ index: this.tirees, question, progression: 0, tApparitionMs: tMs, tAttendueMs: null });
     this.rendreAttendue(tMs);
   }

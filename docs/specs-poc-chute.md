@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit le POC du jeu « Notes qui tombent », ses règles, les hypothèses à valider et le protocole de test. Lire l'intégralité avant de commencer.
 
-**Version 2.1** (30/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Version 1.5 : pause (bouton, touche P), manche masqué pendant la pause, pause automatique quand l'onglet passe en arrière-plan (au lieu de l'arrêt), temps du jeu sans les pauses (30/10/2026). Version 2.0 : **mode progressif** (§16, annexe B), des cordes à vide au manche entier, devenu le mode par défaut ; le jeu des sections 6.1 à 6.10 devient le « mode classique » (30/10/2026). Version 2.1, après le premier journal (`poc-chute/resultats/`) : plafond de vitesse par niveau en mode progressif, au lieu de la vitesse requise (§16.3, §16.4, annexe B9) (30/10/2026). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
+**Version 2.1** (30/10/2026). Version 1 : rédigée à partir des réponses de l'utilisateur à 20 questions (annexe A). Version 1.1 (phase 2) : stockage séparé du journal (`stockage.ts`), durée d'image plafonnée, apparition immédiate sur un écran vide, temps de réponse médian dans le résumé. Version 1.2 (phase 3) : phases 3 et 4 redécoupées (tout ce qui ne dépend pas du micro en phase 3), Démarrer renvoie vers la simulation tant que le micro n'est pas branché. Version 1.3 (phase 4) : micro branché, contenu de l'indicateur, message de l'ancienne note, arrêt de la partie quand l'onglet passe en arrière-plan. Version 1.4 : règle de la fausse note au choix, « pénalité » par défaut (la note reste à jouer, −50 points) ou « destruction » (Q14), d'après les réponses de l'utilisateur du 28/10/2026 (annexe A). Version 1.5 : pause (bouton, touche P), manche masqué pendant la pause, pause automatique quand l'onglet passe en arrière-plan (au lieu de l'arrêt), temps du jeu sans les pauses (30/10/2026). Version 2.0 : **mode progressif** (§16, annexe B), des cordes à vide au manche entier, devenu le mode par défaut ; le jeu des sections 6.1 à 6.10 devient le « mode classique » (30/10/2026). Version 2.1, après le premier journal (`poc-chute/resultats/`) : plafond de vitesse par niveau en mode progressif, au lieu de la vitesse requise (§16.3, §16.4, annexe B9) ; dans les deux modes, un nom de note ne revient qu'après 2 notes d'un autre nom (§6.8, annexe B10 et B11) (30/10/2026). Les valeurs chiffrées des règles (vitesse, points, seuils des hypothèses) sont des propositions, à ajuster à la relecture ou après les mesures.
 
 ---
 
@@ -212,6 +212,7 @@ points = 100 × timing × vitesse × difficulté × multiplicateur
 - Positions du niveau choisi : `positionsDuNiveau(niveau, 2)` (plage bornée par `CASE_MAX_MODE2`).
 - Tirage pondéré (Q16) : `tirerQuestion` avec les poids de `poidsPosition`, calculés sur les statistiques par position **propres au POC** (pas celles de l'application). Les positions les moins maîtrisées reviennent plus souvent.
 - Pas deux fois la même position d'affilée (règle de `tirerQuestion`). Au niveau 1, le tirage porte sur les noms de note (règle de l'application).
+- **Notes variées** (version 2.1, B10 et B11) : un nom de note ne revient qu'après au moins 2 notes d'un autre nom, quelles que soient l'octave et la corde (pas de A2 puis A3). Les candidates sont filtrées avant `tirerQuestion` (`jeu/enchainement.ts`, `NOMS_ECARTES`) ; s'il ne reste aucune note, seul le dernier nom est écarté, puis aucun. Même règle en mode progressif.
 
 ### 6.9 Options de mesure et simulation
 - **Afficher la case** : l'étiquette de la note donne aussi la case (« Sol · case 5 »). Le joueur n'a plus à chercher : la partie mesure la détection et la latence seules (enseignement du scénario 5 du premier POC).
@@ -297,6 +298,7 @@ Dans `src/jeu/`, nommées en majuscules et commentées avec leur valeur initiale
 | `FAUSSES_AVANT_RAPPEL` | 3 (dans `jeu/partie.ts`) | Q24 |
 | `PARTIES_GARDEES` | 50 | proposition |
 | `DT_MAX_MS` | 100 | proposition (version 1.1) |
+| `NOMS_ECARTES` | 2 (dans `jeu/enchainement.ts`) | B10 (version 2.1) |
 
 Mode progressif : réglages et constantes en §16.5.
 
@@ -442,7 +444,7 @@ Demande de l'utilisateur après ses essais (30/10/2026) : le jeu classique n'est
 
 ### 16.3 Déroulement
 - **Départ** : niveau 1 (ou reprise), **vitesse 0** : la note reste immobile en haut jusqu'à être jouée, une seule note à l'écran (B1).
-- **Tirage** : poids = 1 + 3 × (1 − réussite de la note) : une note peu réussie revient jusqu'à 4 fois plus souvent ; jamais la même position deux fois de suite.
+- **Tirage** : poids = 1 + 3 × (1 − réussite de la note) : une note peu réussie revient jusqu'à 4 fois plus souvent ; un nom ne revient qu'après 2 notes d'un autre nom (§6.8), y compris d'un niveau au suivant.
 - **Vitesse** v, de 0 à 1, en part de la vitesse max : durée de chute = durée de chute la plus courte (« vitesse max », 3 s par défaut) / v.
   - **plafond du niveau** (version 2.1, B9) : v ne dépasse pas `vitesseDepart` + (niveau − 1) × `vitesseParNiveau`, sans dépasser 1 ; par défaut 30 % au niveau 1 (10 s de chute), 35 % au niveau 2, 50 % au niveau 5 (6 s), 100 % à partir du niveau 15 (3 s) ;
   - une note juste la fait monter de `acceleration` (10 % de la vitesse max) × son score d'essai, jusqu'au plafond ;
@@ -556,6 +558,8 @@ Demande de l'utilisateur, résumée : après test, le jeu n'est pas assez progre
 | # | Question | Réponse de l'utilisateur |
 |---|---|---|
 | B9 | Vitesse progressive | Plafond par niveau : la vitesse ne dépasse pas le plafond du niveau (30 % au niveau 1, + 5 % par niveau, réglables), et il faut l'atteindre pour passer ; le réglage « vitesse requise » disparaît |
+| B10 | Notes similaires à la suite | Un nom ne revient qu'après au moins 2 notes d'un autre nom (A2, puis C, puis D, puis A3 possible) |
+| B11 | Mode concerné par B10 | Les deux modes |
 
 **Choix de la rédaction, à valider** : le mode progressif est le mode par défaut (c'est celui demandé pour apprendre) ; formules et valeurs par défaut de 16.2 à 16.5 (score d'essai, poids du tirage, vitesse, points, bonus) ; positions comme notes du niveau (nom et corde donnés, case à trouver) ; pause de 6 s au passage.
 
