@@ -31,12 +31,12 @@ export interface ReglagesProgressif {
   essaisMinimum: number;
   /** Difficulté d'une note altérée (#), en cases ajoutées à sa case. */
   poidsAlteration: number;
-  /** Délai depuis la note précédente : rapidité de 1 jusqu'à « bon », de 0 à partir de « lent », en ms. */
+  /**
+   * Délai entre le moment où la note est demandée (elle devient la note attendue) et la bonne réponse : rapidité de 1
+   * jusqu'à « bon », de 0 à partir de « lent », en ms.
+   */
   delaiNoteBonMs: number;
   delaiNoteLentMs: number;
-  /** Délai après l'apparition de la note en haut de l'écran : même règle, en ms. */
-  delaiApparitionBonMs: number;
-  delaiApparitionLentMs: number;
   /** Hausse de la vitesse après une note juste, multipliée par son score d'essai (part de la vitesse max). */
   acceleration: number;
   /** Baisse de la vitesse après chaque erreur (fausse note, note perdue ou ratée), en part de la vitesse. */
@@ -68,8 +68,6 @@ export const REGLAGES_PROGRESSIF_DEFAUT: Readonly<ReglagesProgressif> = {
   poidsAlteration: 3,
   delaiNoteBonMs: 1500,
   delaiNoteLentMs: 6000,
-  delaiApparitionBonMs: 2000,
-  delaiApparitionLentMs: 10000,
   acceleration: 0.1,
   ralentissement: 0.15,
   penaliteFausse: 50,
@@ -93,8 +91,6 @@ export const BORNES_PROGRESSIF: Readonly<Record<CleNumerique, { min: number; max
   poidsAlteration: { min: 0, max: 12, pas: 1 },
   delaiNoteBonMs: { min: 500, max: 10000, pas: 500 },
   delaiNoteLentMs: { min: 1000, max: 20000, pas: 500 },
-  delaiApparitionBonMs: { min: 500, max: 10000, pas: 500 },
-  delaiApparitionLentMs: { min: 1000, max: 30000, pas: 500 },
   acceleration: { min: 0.01, max: 0.5, pas: 0.01 },
   ralentissement: { min: 0, max: 0.5, pas: 0.05 },
   penaliteFausse: { min: 0, max: 200, pas: 10 },

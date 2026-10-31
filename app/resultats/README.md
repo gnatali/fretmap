@@ -2,6 +2,27 @@
 
 Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien. Les journaux du mode 1 (`journal-mode1-*.json`) s'analysent avec le skill `analyser-journal-mode1`.
 
+## Nouvelle règle de rapidité, évaluée sur les journaux (31/10/2026, spec version 3.4)
+
+Demande de l'utilisateur : la rapidité d'un essai est le délai entre le moment où la note est demandée (elle devient la note attendue) et la bonne réponse ; l'apparition de la note pendant que la note précédente n'est pas encore jouée ne compte pas. Avant : moyenne de cette rapidité (1 jusqu'à 1,5 s, 0 à 6 s) et de la rapidité depuis l'apparition (1 jusqu'à 2 s, 0 à 10 s). Seuils gardés : 1,5 s et 6 s.
+
+Rejeu des 632 essais des 4 parties (`journal-mode1-20261031-2109.json`), avec les règles de la version 3.2 :
+
+- **Score moyen inchangé** : 0,898 avec les deux règles.
+  - 434 notes justes sur 632 étaient demandées dès leur apparition (une seule note à l'écran) : la nouvelle règle les note un peu moins bien, car le seuil de 2 s à 10 s après apparition était plus large.
+  - Les 198 autres attendaient déjà à l'écran (médiane 1,5 s, jusqu'à 5,7 s) : la nouvelle règle ne leur compte plus cette attente.
+- **Passages** (essai du niveau où le passage serait validé, règle actuelle → nouvelle) : identiques, sauf deux.
+
+| Partie, niveau              | Facile     | Normal     | Difficile  | Hardcore   |
+| --------------------------- | ---------- | ---------- | ---------- | ---------- |
+| 1 (normal), niveau 1        | 21 → 21    | 21 → 21    | 21 → non   | non → non  |
+| 3 (facile), niveau 5        | 82 → 64    | 153 → 153  | 153 → 153  | non → non  |
+| Les 10 autres niveaux joués | identiques | identiques | identiques | identiques |
+
+- Le facile profite de la nouvelle règle quand les notes s'empilent (vitesse plus haute aux niveaux 5 et plus) : au niveau 5 de la partie 3, 18 essais de moins.
+- Le difficile devient un peu plus strict sur les notes jouées seules à l'écran (niveau 1 : réponses entre 1,5 s et 2 s moins bien notées).
+- Le hardcore ne change pas : la note acquise regardait déjà le seul délai depuis que la note est demandée (≤ 1,5 s).
+
 ## Journaux du mode 1 du 31/10/2026, 21 h 05 et 21 h 09 (`journal-mode1-20261031-2109.json`)
 
 **Session** : le journal de 21 h 09 contient 4 parties ; celui de 21 h 05 (non gardé) en est un sous-ensemble (parties 1 à 3). La partie 1 est celle du journal de 1 h 08 ci-dessous. Remarques de l'utilisateur : le hardcore ne progresse pas ; le facile n'est pas assez facile. Images : médiane et p95 de 16,7 ms dans toutes les parties.

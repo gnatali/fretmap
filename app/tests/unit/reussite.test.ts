@@ -54,11 +54,13 @@ describe('rapidité, justesse, score d’essai', () => {
     expect(justesse(perdue(E6))).toBe(0);
   });
 
-  it('score d’essai : justesse × (0,5 + 0,5 × rapidité moyenne)', () => {
+  it('score d’essai : justesse × (0,5 + 0,5 × rapidité depuis que la note est demandée)', () => {
     expect(scoreEssai(juste(E6), P)).toBe(1);
-    // Rapidités 0,5 (3,75 s) et 0 (10 s) : moyenne 0,25, score 0,625 ; après une fausse note, 0,3125.
-    expect(scoreEssai(juste(E6, 0, 3750, 10000), P)).toBe(0.625);
-    expect(scoreEssai(juste(E6, 1, 3750, 10000), P)).toBe(0.3125);
+    // Rapidité 0,5 (3,75 s depuis que la note est demandée) : score 0,75 ; après une fausse note, 0,375.
+    expect(scoreEssai(juste(E6, 0, 3750, 10000), P)).toBe(0.75);
+    expect(scoreEssai(juste(E6, 1, 3750, 10000), P)).toBe(0.375);
+    // Le temps passé à l'écran avant d'être demandée (note précédente pas encore jouée) ne compte pas.
+    expect(scoreEssai(juste(E6, 0, 1000, 8000), P)).toBe(1);
     expect(scoreEssai(ratee(E6), P)).toBe(0);
   });
 });
@@ -67,8 +69,8 @@ describe('méthodes de réussite d’une note', () => {
   const essais = [juste(E6), juste(E6, 1, 3750), ratee(E6, 1)];
 
   it('score : moyenne des scores d’essai', () => {
-    // 1 ; 0,5 × (0,5 + 0,5 × 0,75) = 0,4375 ; 0.
-    expect(reussiteEssais('score', essais, P)).toBeCloseTo((1 + 0.4375 + 0) / 3);
+    // 1 ; 0,5 × (0,5 + 0,5 × 0,5) = 0,375 ; 0.
+    expect(reussiteEssais('score', essais, P)).toBeCloseTo((1 + 0.375 + 0) / 3);
   });
 
   it('taux : justes / réponses (fausses notes et notes ratées comptent comme fausses)', () => {

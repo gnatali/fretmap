@@ -40,13 +40,7 @@ export interface Essai {
 
 export type ParametresReussite = Pick<
   ReglagesProgressif,
-  | 'essaisNote'
-  | 'essaisGlobaux'
-  | 'poidsAlteration'
-  | 'delaiNoteBonMs'
-  | 'delaiNoteLentMs'
-  | 'delaiApparitionBonMs'
-  | 'delaiApparitionLentMs'
+  'essaisNote' | 'essaisGlobaux' | 'poidsAlteration' | 'delaiNoteBonMs' | 'delaiNoteLentMs'
 >;
 
 const memePosition = (a: Position, b: Position) => a.corde === b.corde && a.case === b.case;
@@ -66,15 +60,16 @@ export function justesse(essai: Essai): number {
   return essai.resultat === 'juste' ? 0.5 ** essai.erreurs : 0;
 }
 
-/** Score d'essai de 0 à 1 : justesse × (0,5 + 0,5 × rapidité moyenne des deux délais). Juste mais lent : 0,5. */
+/**
+ * Score d'essai de 0 à 1 : justesse × (0,5 + 0,5 × rapidité). Juste mais lent : 0,5. La rapidité est celle du délai
+ * entre le moment où la note est demandée (elle devient la note attendue) et la bonne réponse ; le temps passé à
+ * l'écran avant, pendant que la note précédente n'était pas encore jouée, ne compte pas (demande de l'utilisateur du
+ * 31/10/2026 ; avant : moyenne avec la rapidité depuis l'apparition, de 2 s à 10 s).
+ */
 export function scoreEssai(essai: Essai, p: ParametresReussite): number {
   const j = justesse(essai);
   if (j === 0) return 0;
-  const vite =
-    (rapidite(essai.delaiApparitionMs, p.delaiApparitionBonMs, p.delaiApparitionLentMs) +
-      rapidite(essai.delaiNoteMs, p.delaiNoteBonMs, p.delaiNoteLentMs)) /
-    2;
-  return j * (0.5 + 0.5 * vite);
+  return j * (0.5 + 0.5 * rapidite(essai.delaiNoteMs, p.delaiNoteBonMs, p.delaiNoteLentMs));
 }
 
 /** Méthode de note appliquée à une liste d'essais (sans fenêtre) ; 0 sans essai. */

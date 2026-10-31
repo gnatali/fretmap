@@ -144,13 +144,13 @@ describe('notes jouées', () => {
     expect(partie.vitesse).toBeCloseTo(0.1);
     expect(partie.dureeChuteMs).toBeCloseTo(30_000);
 
-    // 3,75 s : rapidités 0,5 (depuis la note précédente) et 0,78125 (après apparition), score 0,8203125.
+    // 3,75 s depuis que la note est demandée : rapidité 0,5, score 0,75.
     partie.avancer(1050);
     const [deuxieme] = resultats(toucher(partie, true, 4800));
-    expect(deuxieme!.scoreEssai).toBeCloseTo(0.8203125);
-    expect(deuxieme!.points).toBe(90); // 100 × 0,8203 × (1 + 0,1)
-    expect(partie.score).toBe(190);
-    expect(partie.vitesse).toBeCloseTo(0.1 + 0.1 * 0.8203125);
+    expect(deuxieme!.scoreEssai).toBeCloseTo(0.75);
+    expect(deuxieme!.points).toBe(83); // 100 × 0,75 × (1 + 0,1) = 82,5
+    expect(partie.score).toBe(183);
+    expect(partie.vitesse).toBeCloseTo(0.1 + 0.1 * 0.75);
   });
 
   it('la vitesse ne dépasse pas le plafond du niveau : 30 % au niveau 1', () => {
@@ -386,13 +386,13 @@ describe('difficulté', () => {
     expect(enDifficulte('hardcore').journal(CONTEXTE).difficulte).toBe('hardcore');
   });
 
-  it('une note toutes les 3,4 s (score d’essai 0,85) passe en facile et en normal, pas en difficile', () => {
+  it('une note toutes les 2,85 s (score d’essai 0,85) passe en facile et en normal, pas en difficile', () => {
     // Vitesse lente (60 s de chute) : une seule note à l'écran, délais après apparition et depuis la note
-    // précédente égaux. Rapidités (6 − 3,4) / 4,5 et (10 − 3,4) / 8 : score 0,5 + 0,5 × 0,7 = 0,85.
+    // précédente égaux. Rapidité (6 − 2,85) / 4,5 = 0,7 : score 0,5 + 0,5 × 0,7 = 0,85.
     const lente = { vitesseDepart: 0.05 };
-    expect(passe(enDifficulte('facile', lente), 3400)).toBe(true);
-    expect(passe(enDifficulte('normal', lente), 3400)).toBe(true);
-    expect(passe(enDifficulte('difficile', lente), 3400)).toBe(false);
+    expect(passe(enDifficulte('facile', lente), 2850)).toBe(true);
+    expect(passe(enDifficulte('normal', lente), 2850)).toBe(true);
+    expect(passe(enDifficulte('difficile', lente), 2850)).toBe(false);
     expect(passe(enDifficulte('difficile', lente), 1000)).toBe(true);
   });
 
