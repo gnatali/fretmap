@@ -118,7 +118,7 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(caseDuManche('6-0').disabled).toBe(false);
   });
 
-  it('passage de niveau : bilan, nouvelles notes entourées, progression enregistrée', async () => {
+  it('passage de niveau : bilan, nouvelles notes sur leur case, « Continuer », compte à rebours, reprise', async () => {
     // Hasard qui tourne : avec un hasard nul, Mi serait toujours tiré sur la corde 6, jamais sur la corde 1.
     let n = 0;
     const { etat, stockage } = afficher(undefined, () => (n++ * 0.37) % 1);
@@ -131,8 +131,29 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(etat.progression.jeu.positions).toHaveLength(9);
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"niveau":2');
     expect(texte('.titre-passage')).toBe(TEXTES.partie.niveauValide(1, 500));
-    expect(document.querySelectorAll('.rappel')).toHaveLength(3);
+    // Nouvelles notes : la bulle des notes qui tombent, posée sur leur case (plus de cases entourées).
+    const bulles = () => [...document.querySelectorAll<HTMLElement>('.note.presentee')].map((b) => b.dataset.position);
+    expect(bulles()).toEqual(['6-1', '2-1', '1-1']);
+    expect(document.querySelectorAll('.rappel')).toHaveLength(0);
+    expect(document.querySelector('.note.presentee[data-position="6-1"]')?.textContent).toContain('Fa');
     expect(caseDuManche('6-1').disabled).toBe(true);
+    // La partie attend « Continuer » : pas de compte à rebours, aucune note ne tombe.
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(document.querySelector('.note.attendue')).toBeNull();
+    expect(document.querySelector('.compte')).toBeNull();
+
+    // « Continuer » : le cadre disparaît, le compte à rebours du départ se lance sur le manche visible (sans cache),
+    // les nouvelles notes restent affichées.
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.continuerNiveau(2) }));
+    expect(document.querySelector('.passage')).toBeNull();
+    expect(texte('.compte')).toContain('3');
+    expect(screen.queryByRole('group', { name: TEXTES.partie.enPause })).toBeNull();
+    expect(bulles()).toHaveLength(3);
+    expect(caseDuManche('6-1').disabled).toBe(true);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(bulles()).toHaveLength(0);
+    expect(document.querySelector('.note.attendue')).not.toBeNull();
+    expect(caseDuManche('6-1').disabled).toBe(false);
   });
 
   it('arrêt : fin de partie, nouveau record, journal enregistré ; puis départ au niveau atteint', async () => {

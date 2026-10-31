@@ -36,8 +36,6 @@ import {
 
 /** Cases fausses touchées sur une même note avant qu'elle disparaisse (« perdue ») : 3, comme le POC (spec §16.2). */
 export const ERREURS_AVANT_PERTE = 3;
-/** Pause au passage de niveau, le temps de montrer les nouvelles notes, en ms : 6 s (POC, spec §16.4). */
-export const DUREE_PAUSE_NIVEAU_MS = 6000;
 /**
  * Poids ajouté au tirage par l'échec : poids = 1 + 3 × (1 − réussite), de 1 à 4 (POC, spec §16.3). Une note qui n'a
  * pas encore ses `essaisMinimum` essais a le poids maximal (4), pour que les nouvelles notes soient jouées tout de suite.
@@ -144,8 +142,8 @@ export class Partie {
   private erreursAttendue = 0;
   private fausses = 0;
   private faussesAttendue: FausseJournal[] = [];
-  /** Fin de la pause de passage de niveau (temps du jeu), ou null. */
-  private finPauseMs: number | null = null;
+  /** Passage de niveau : la partie attend `continuer` (bouton de l'écran) avant la première note du niveau. */
+  private enAttente = false;
   private fini = false;
   private interrompu = false;
 
@@ -205,9 +203,9 @@ export class Partie {
     return multiplicateur(this.serie);
   }
 
-  /** Pause de passage de niveau en cours. */
+  /** Passage de niveau en cours : la partie attend `continuer`. */
   get enPause(): boolean {
-    return this.finPauseMs !== null;
+    return this.enAttente;
   }
 
   get terminee(): boolean {
@@ -251,21 +249,17 @@ export class Partie {
     return this.notesDuNiveau.filter((p) => this.noteValidee(p)).length;
   }
 
-  /** Fait avancer la chute jusqu'à tMs ; pendant la pause de passage, rien ne bouge, puis la note suivante apparaît. */
+  /** Fait avancer la chute jusqu'à tMs ; pendant le passage de niveau, rien ne bouge jusqu'à `continuer`. */
   avancer(tMs: number): EvenementPartie[] {
     if (this.fini) return [];
     const dtMs = tMs - this.dernierT;
     this.dernierT = tMs;
     const evenements: EvenementPartie[] = [];
-    if (this.finPauseMs !== null) {
-      if (tMs < this.finPauseMs) return [];
-      this.finPauseMs = null;
-    } else {
-      for (const note of this.chute.avancer(dtMs, this.dureeChuteMs)) {
-        evenements.push(...this.conclure(note, 'ratee', tMs, null));
-        // Un passage de niveau vide la chute : les autres notes arrivées en bas ne comptent plus.
-        if (this.finPauseMs !== null) return evenements;
-      }
+    if (this.enAttente) return [];
+    for (const note of this.chute.avancer(dtMs, this.dureeChuteMs)) {
+      evenements.push(...this.conclure(note, 'ratee', tMs, null));
+      // Un passage de niveau vide la chute : les autres notes arrivées en bas ne comptent plus.
+      if (this.enAttente) return evenements;
     }
     if (this.chute.apparitionDue()) this.apparaitre(tMs);
     return evenements;
@@ -279,6 +273,16 @@ export class Partie {
     if (!verifierMode1(note.question, touchee).juste) return this.caseFausse(note, tMs, touchee);
     this.chute.retirerAttendue();
     return this.conclure(note, 'juste', tMs, touchee);
+  }
+
+  /**
+   * Fin du passage de niveau (bouton « Continuer », après le compte à rebours de l'écran) : la première note du niveau
+   * apparaît au prochain `avancer`, immobile (vitesse 0).
+   */
+  continuer(tMs: number): void {
+    if (!this.enAttente) return;
+    this.enAttente = false;
+    this.dernierT = tMs;
   }
 
   arreter(): EvenementPartie[] {
@@ -519,10 +523,10 @@ export class Partie {
     this.niveauActuel++;
     const plafond = this.plafond;
     this.passages.push({ tMs: this.relatif(tMs), niveau: this.niveauActuel, bonus, ajoutees, plafond });
-    // Pause : les notes restantes sont retirées sans compter ; la partie reprend à vitesse 0.
+    // Les notes restantes sont retirées sans compter ; la partie attend `continuer`, puis reprend à vitesse 0.
     this.chute = new Chute();
     this.vitesseActuelle = 0;
-    this.finPauseMs = tMs + DUREE_PAUSE_NIVEAU_MS;
+    this.enAttente = true;
     return { type: 'niveau', niveau: this.niveauActuel, bonus, ajoutees: ajoutees.map((p) => ({ ...p })), plafond };
   }
 }

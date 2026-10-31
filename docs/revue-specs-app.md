@@ -94,3 +94,4 @@ Après les journaux de 21 h 05 et 21 h 09 (`app/resultats/README.md`) : le hardc
 | N25 | Facile : le seuil du niveau (60 %) ne bloquait jamais ; une note faible bloquait le niveau 5 pendant 153 essais | Réussite minimale de chaque note à 40 % en facile, et la bonne case s'allume dès la 1re case fausse |
 | N26 | Voir ce qui manque pour passer | Compteur « Notes » (validées / total) pendant la partie ; notes « à travailler » en fin de partie |
 | N27 | Confusions répétées (Ré et Sol à vide) | Une note ratée revient 3 tirages plus tard, dans toutes les difficultés |
+| N28 | Passage de niveau (demande de l'utilisateur) | Bouton « Continuer au niveau N » au lieu de la pause de 6 s ; au clic, le bilan disparaît et le compte à rebours de 3 s du départ se lance ; les nouvelles notes sont montrées avec la bulle des notes qui tombent, sur leur case, jusqu'à la première note (version 3.3) |

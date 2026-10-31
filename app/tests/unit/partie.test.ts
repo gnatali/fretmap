@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { positionsDepart } from '../../src/jeu/difficulte';
 import type { ContexteJournal } from '../../src/jeu/journal';
 import { ESSAIS_HARDCORE, reglagesDe, type Difficulte } from '../../src/jeu/niveauxDifficulte';
-import { DUREE_PAUSE_NIVEAU_MS, Partie, TIRAGES_AVANT_RETOUR, type EvenementPartie } from '../../src/jeu/partie';
+import { Partie, TIRAGES_AVANT_RETOUR, type EvenementPartie } from '../../src/jeu/partie';
 import {
   REGLAGES_PROGRESSIF_DEFAUT,
   niveauVitessePleine,
@@ -224,7 +224,7 @@ describe('tirage', () => {
       t += 500;
       partie.avancer(t);
       toucher(partie, true, t);
-      if (partie.enPause) t += DUREE_PAUSE_NIVEAU_MS;
+      if (partie.enPause) partie.continuer(t);
     }
     const journal = partie.journal(CONTEXTE);
     expect(journal.passages.length).toBeGreaterThanOrEqual(3);
@@ -247,7 +247,7 @@ describe('tirage des nouvelles notes', () => {
     for (let graine = 1; graine <= 40; graine++) {
       const partie = nouvelle({}, { hasard: hasardFixe(graine) });
       let { t } = jouerJusquAuPassage(partie);
-      t += DUREE_PAUSE_NIVEAU_MS;
+      partie.continuer(t);
       let n = 0;
       while (!nouvelles.every((p) => partie.essaisDe(p) >= 3)) {
         t += 500;
@@ -279,7 +279,7 @@ describe('plafond de vitesse', () => {
 });
 
 describe('passage de niveau', () => {
-  it('quand chaque note et l’ensemble sont réussis au plafond de vitesse : bonus, notes ajoutées, pause, vitesse 0', () => {
+  it('quand chaque note et l’ensemble sont réussis au plafond de vitesse : bonus, notes ajoutées, attente, vitesse 0', () => {
     const partie = nouvelle({}, { hasard: hasardFixe() });
     const { t, niveau } = jouerJusquAuPassage(partie);
     expect(niveau).toEqual({
@@ -310,12 +310,17 @@ describe('passage de niveau', () => {
     expect(partie.enPause).toBe(true);
     expect(partie.notes).toHaveLength(0);
     expect(toucher(partie, true, t + 100)).toEqual([]);
-    // Pause de passage : rien ne bouge, puis la note suivante apparaît, immobile.
-    expect(partie.avancer(t + DUREE_PAUSE_NIVEAU_MS - 1)).toEqual([]);
+    // Passage : rien ne bouge tant que « Continuer » n'est pas choisi, même longtemps après.
+    expect(partie.avancer(t + 60_000)).toEqual([]);
     expect(partie.notes).toHaveLength(0);
-    partie.avancer(t + DUREE_PAUSE_NIVEAU_MS);
+    expect(partie.attendue).toBeNull();
+    // Puis la note suivante apparaît, immobile.
+    partie.continuer(t + 60_000);
     expect(partie.enPause).toBe(false);
-    expect(partie.attendue).not.toBeNull();
+    partie.avancer(t + 60_000);
+    expect(partie.attendue).toMatchObject({ progression: 0 });
+    partie.avancer(t + 120_000);
+    expect(partie.attendue!.progression).toBe(0);
 
     expect(journal.passages).toEqual([{ tMs: t, niveau: 2, bonus: 500, ajoutees: niveau.ajoutees, plafond: 0.35 }]);
     expect(Object.keys(journal.essais[0]!.globales)).toEqual(['score', 'taux', 'temps']);
@@ -343,7 +348,8 @@ describe('passage de niveau', () => {
     );
     const { t, niveau } = jouerJusquAuPassage(partie);
     expect(niveau).toMatchObject({ niveau: 2, ajoutees: [] });
-    expect(() => jouerJusquAuPassage(partie, t + DUREE_PAUSE_NIVEAU_MS, 100)).toThrow('Pas de passage de niveau');
+    partie.continuer(t);
+    expect(() => jouerJusquAuPassage(partie, t, 100)).toThrow('Pas de passage de niveau');
   });
 });
 

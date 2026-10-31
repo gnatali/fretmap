@@ -35,7 +35,7 @@
 </script>
 
 <script lang="ts">
-  import { MARQUEURS, NUMEROS_CORDES, type Position } from '../../music/manche';
+  import { MARQUEURS, NUMEROS_CORDES, noteDePosition, type Position } from '../../music/manche';
   import { nomSurDeuxLignes, type Notation } from '../../music/notation';
   import { TEXTES } from '../textes';
 
@@ -52,8 +52,10 @@
     /** De la plus basse (la note attendue) à la plus haute. */
     notes: readonly NoteAffichee[];
     notation: Notation;
-    /** Cases entourées : bonne case après une erreur, nouvelles notes au passage de niveau. */
+    /** Cases entourées : bonne case après une erreur. */
     rappel?: readonly Position[];
+    /** Nouvelles notes au passage de niveau : bulles des notes qui tombent, posées sur leur case. */
+    presentees?: readonly Position[];
     effets?: readonly Effet[];
     /** Marques par position touchée, clé `${corde}-${case}`. */
     marques?: Record<string, MarqueCase>;
@@ -66,6 +68,7 @@
     notes,
     notation,
     rappel = [],
+    presentees = [],
     effets = [],
     marques = {},
     desactive = false,
@@ -151,6 +154,19 @@
             style:top={pourcent(position.case / cases.length)}
             style:height={pourcent(1 / cases.length)}
           ></div>
+        {/each}
+        {#each presentees as position (cle(position))}
+          {@const nom = nomSurDeuxLignes(noteDePosition(position).nom, notation)}
+          <div
+            class="note presentee"
+            data-position={cle(position)}
+            style:left={pourcent((NUMEROS_CORDES.indexOf(position.corde) + 0.5) / 6)}
+            style:top={pourcent((position.case + 0.5) / cases.length)}
+            style:transform="translate(-50%, -50%)"
+          >
+            <span class="nom">{nom.haut}</span>
+            {#if nom.bas}<span class="secondaire">{nom.bas}</span>{/if}
+          </div>
         {/each}
         {#each notes as note, rang (note.index)}
           {@const nom = nomSurDeuxLignes(note.question.nom, notation)}
@@ -344,7 +360,8 @@
     border: 2px solid var(--cadre);
     opacity: 0.75;
   }
-  .note.attendue {
+  .note.attendue,
+  .note.presentee {
     border: 3px solid var(--lien);
     background: var(--evidence);
     opacity: 0.95;

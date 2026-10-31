@@ -129,7 +129,7 @@ export const TEXTES = {
     niveauValide: (niveau: number, bonus: number) => `Niveau ${niveau} validé ! +${bonus}`,
     nouvellesNotes: 'Nouvelles notes :',
     mancheComplet: 'Tout le manche est validé !',
-    repriseNiveau: (secondes: number) => `Reprise dans ${secondes} s, à vitesse 0`,
+    continuerNiveau: (niveau: number) => `Continuer au niveau ${niveau}`,
     plafond: (vitesse: string) => `Vitesse max du niveau : ${vitesse}`,
     qualites: { parfait: 'Parfait', bien: 'Bien', juste: 'Juste' },
     fausse: 'Case fausse',

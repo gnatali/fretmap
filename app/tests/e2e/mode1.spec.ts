@@ -75,14 +75,27 @@ test('mode 1 : passage au niveau 2, sans débordement à 360 px, puis reprise au
     await expect(page.locator('.note.attendue').or(page.locator('.titre-passage'))).toBeVisible();
   }
   await expect(page.locator('.titre-passage')).toHaveText('Niveau 1 validé ! +500');
-  await expect(page.locator('.rappel')).toHaveCount(3);
-  // Le bilan sous le manche ne cache aucune nouvelle note, et rien ne déborde.
+  // Nouvelles notes : bulles posées sur leur case. Le bilan sous le manche n'en cache aucune, et rien ne déborde.
+  const bulles = page.locator('.note.presentee');
+  await expect(bulles).toHaveCount(3);
   const bilan = (await page.locator('.passage').boundingBox())!;
-  for (const rappel of await page.locator('.rappel').all()) {
-    const boite = (await rappel.boundingBox())!;
+  for (const bulle of await bulles.all()) {
+    const boite = (await bulle.boundingBox())!;
     expect(boite.y + boite.height).toBeLessThanOrEqual(bilan.y);
+    // Chaque bulle est sur sa case.
+    const caseBulle = (await caseDuManche(page, (await bulle.getAttribute('data-position'))!).boundingBox())!;
+    expect(Math.abs(boite.x + boite.width / 2 - (caseBulle.x + caseBulle.width / 2))).toBeLessThan(2);
+    expect(Math.abs(boite.y + boite.height / 2 - (caseBulle.y + caseBulle.height / 2))).toBeLessThan(6);
   }
   expect(await debordants(page)).toEqual([]);
+
+  // « Continuer » : le bilan disparaît, compte à rebours avec les bulles, puis la première note du niveau 2.
+  await page.getByRole('button', { name: 'Continuer au niveau 2' }).click();
+  await expect(page.locator('.passage')).toHaveCount(0);
+  await expect(page.locator('.compte')).toBeVisible();
+  await expect(bulles).toHaveCount(3);
+  await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 5000 });
+  await expect(bulles).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Arrêter' }).click();
   await page.getByRole('button', { name: 'Accueil' }).click();

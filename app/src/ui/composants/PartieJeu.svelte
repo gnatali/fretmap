@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from 'svelte';
   import { HorlogeJeu } from '../../jeu/horloge';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
-  import { DUREE_PAUSE_NIVEAU_MS, Partie, type EvenementPartie } from '../../jeu/partie';
+  import { Partie, type EvenementPartie } from '../../jeu/partie';
   import { AIDE_APRES_ERREUR, reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
   import { noteDePosition, type Position } from '../../music/manche';
   import type { Notation } from '../../music/notation';
@@ -51,8 +51,13 @@
     hasard,
   }: Props = $props();
 
-  /** compte : compte à rebours (départ ou reprise) ; jeu : la partie tourne ; pause. */
-  let phase = $state<'compte' | 'jeu' | 'pause'>('compte');
+  /**
+   * compte : compte à rebours (départ, reprise après une pause ou après un passage de niveau) ; jeu : la partie tourne ;
+   * pause ; niveau : bilan du passage de niveau, la partie attend « Continuer ».
+   */
+  let phase = $state<'compte' | 'jeu' | 'pause' | 'niveau'>('compte');
+  /** Compte à rebours après un passage de niveau : affiché comme au départ, sur le manche visible (sans cache). */
+  let compteNiveau = $state(false);
   let compte = $state(COMPTE_A_REBOURS_S);
   let partie: Partie | null = null;
   let enPartie = $state(false);
@@ -78,17 +83,12 @@
   // svelte-ignore state_referenced_locally
   let notesDuNiveau = $state(positions.length);
   let vitesse = $state(0);
-  /** Passage de niveau : bilan affiché pendant la pause du jeu (temps du jeu de la reprise). */
-  let passage = $state.raw<{
-    niveau: number;
-    bonus: number;
-    ajoutees: Position[];
-    plafond: number;
-    reprise: number;
-  } | null>(null);
-  let resteAvantReprise = $state(0);
+  /** Passage de niveau : bilan affiché sous le manche jusqu'au clic sur « Continuer ». */
+  let passage = $state.raw<{ niveau: number; bonus: number; ajoutees: Position[]; plafond: number } | null>(null);
+  /** Nouvelles notes montrées sur leur case, du passage de niveau à la fin du compte à rebours qui suit. */
+  let presentees = $state.raw<Position[]>([]);
   let dernierRetour = $state<{ texte: string; juste: boolean } | null>(null);
-  /** Cases entourées : bonne case de la note `index` après une erreur, ou nouvelles notes (index −1). */
+  /** Cases entourées : bonne case de la note `index` après une erreur. */
   let rappel = $state.raw<{ index: number; positions: readonly Position[]; jusqua: number } | null>(null);
   /** Note qui vient de recevoir une case fausse (clignotement rouge). */
   let faute: { index: number; jusqua: number } | null = null;
@@ -130,16 +130,39 @@
     boucle = requestAnimationFrame(image);
   }
 
-  /** Fin du compte à rebours après une pause : le temps du jeu repart, la boucle aussi. */
+  /**
+   * Fin du compte à rebours après une pause ou un passage de niveau : le temps du jeu repart, la boucle aussi ; après un
+   * passage, la partie reprend (première note du niveau) et les nouvelles notes ne sont plus montrées.
+   */
   function relancer(): void {
-    horloge.reprendre(performance.now());
+    const t = performance.now();
+    horloge.reprendre(t);
+    presentees = [];
+    compteNiveau = false;
     phase = 'jeu';
+    if (partie?.enPause) {
+      // Comme au départ, la première note du niveau est là dès la fin du compte à rebours.
+      const tJeu = horloge.jeu(t);
+      partie.continuer(tJeu);
+      traiter(partie.avancer(tJeu), tJeu);
+      rafraichir(tJeu);
+    }
     boucle = requestAnimationFrame(image);
+  }
+
+  /** « Continuer » au passage de niveau : le bilan disparaît, puis le compte à rebours du départ. */
+  function continuerNiveau(): void {
+    if (phase !== 'niveau') return;
+    passage = null;
+    dernierRetour = null;
+    compteNiveau = true;
+    lancerCompte();
   }
 
   /** Pause (bouton, touche P, ou onglet en arrière-plan) ; une pause pendant le compte à rebours de reprise y revient. */
   function pauser(arrierePlan: boolean): void {
-    if (!partie || partie.terminee || phase === 'pause') return;
+    // Au passage de niveau, la partie attend déjà « Continuer » : rien à suspendre.
+    if (!partie || partie.terminee || phase === 'pause' || phase === 'niveau') return;
     clearTimeout(minuteur);
     cancelAnimationFrame(boucle);
     // La boucle repartira sans compter la durée de la pause comme une image.
@@ -196,10 +219,15 @@
           rappel = { index, positions: question.positionsCorrectes, jusqua: Infinity };
         }
       } else if (evenement.type === 'niveau') {
-        // Bilan et nouvelles notes, entourées sur le manche pendant la pause du jeu.
+        // Bilan sous le manche, nouvelles notes sur leur case ; la boucle s'arrête jusqu'à « Continuer ».
         const { niveau: nouveau, bonus, ajoutees, plafond } = evenement;
-        passage = { niveau: nouveau - 1, bonus, ajoutees, plafond, reprise: t + DUREE_PAUSE_NIVEAU_MS };
-        rappel = { index: -1, positions: ajoutees, jusqua: t + DUREE_PAUSE_NIVEAU_MS };
+        passage = { niveau: nouveau - 1, bonus, ajoutees, plafond };
+        presentees = ajoutees;
+        rappel = null;
+        phase = 'niveau';
+        cancelAnimationFrame(boucle);
+        // La boucle repartira sans compter l'attente comme une image.
+        dernierT = null;
         if (partie) onNiveau(partie);
       } else if (evenement.type === 'fin') {
         terminer();
@@ -224,8 +252,6 @@
     notesValidees = partie.notesValidees;
     notesDuNiveau = partie.positions.length;
     vitesse = partie.vitesse;
-    if (passage && !partie.enPause) passage = null;
-    if (passage) resteAvantReprise = Math.max(1, Math.ceil((passage.reprise - t) / 1000));
     if (effets.some((e) => e.jusqua <= t)) effets = effets.filter((e) => e.jusqua > t);
     if (marques.some((m) => m.jusqua <= t)) marques = marques.filter((m) => m.jusqua > t);
     if (rappel && rappel.jusqua <= t) rappel = null;
@@ -328,12 +354,13 @@
       {notes}
       {notation}
       rappel={(rappel?.positions ?? []).filter((p) => p.case <= caseAffichee(caseMax))}
+      {presentees}
       {effets}
       marques={marquesParCase}
-      desactive={phase !== 'jeu' || passage !== null}
+      desactive={phase !== 'jeu'}
       onToucher={toucher}
     />
-    {#if enPartie && phase !== 'jeu'}
+    {#if enPartie && (phase === 'pause' || (phase === 'compte' && !compteNiveau))}
       <!-- Pause et reprise : le manche est masqué, pour ne pas chercher la case hors du temps de jeu. -->
       <div class="cache" role="group" aria-label={TEXTES.partie.enPause}>
         {#if phase === 'pause'}
@@ -354,8 +381,8 @@
     {/if}
   </div>
 
-  {#if passage && phase === 'jeu'}
-    <!-- Passage de niveau : sous le manche, pour ne pas cacher les nouvelles notes entourées. -->
+  {#if passage && phase === 'niveau'}
+    <!-- Passage de niveau : sous le manche, pour ne pas cacher les nouvelles notes posées sur leur case. -->
     <div class="passage" aria-live="polite">
       <p class="titre-passage">{TEXTES.partie.niveauValide(passage.niveau, passage.bonus)}</p>
       {#if passage.ajoutees.length === 0}
@@ -369,7 +396,9 @@
         </ul>
       {/if}
       <p class="plafond">{TEXTES.partie.plafond(pourcent(passage.plafond))}</p>
-      <p class="reprise">{TEXTES.partie.repriseNiveau(resteAvantReprise)}</p>
+      <button type="button" class="principal continuer" onclick={continuerNiveau}>
+        {TEXTES.partie.continuerNiveau(passage.niveau + 1)}
+      </button>
     </div>
   {:else}
     <p
@@ -509,8 +538,9 @@
     font-weight: 700;
     color: var(--juste);
   }
-  .reprise {
-    color: var(--discret);
+  .continuer {
+    margin-top: 0.25rem;
+    min-height: 48px;
   }
   .consigne,
   .retour {
