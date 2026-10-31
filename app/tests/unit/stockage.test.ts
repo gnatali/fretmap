@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { REGLAGES_DEFAUT, jeuInitial, progressionInitiale, type Progression } from '../../src/progression/modele';
+import {
+  REGLAGES_DEFAUT,
+  jeuInitial,
+  progressionInitiale,
+  recordsVides,
+  type Progression,
+} from '../../src/progression/modele';
 import {
   CLE_ILLISIBLE,
   CLE_STOCKAGE,
@@ -19,7 +25,8 @@ const exemple = (): Progression => ({
   jeu: {
     niveau: 2,
     positions: [...jeuInitial().positions, { corde: 6, case: 1 }, { corde: 2, case: 1 }, { corde: 1, case: 1 }],
-    record: { score: 4200, niveau: 3 },
+    difficulte: 'hardcore',
+    records: { ...recordsVides(), normal: { score: 4200, niveau: 3 }, hardcore: { score: 900, niveau: 2 } },
   },
   statistiques: [
     {
@@ -135,8 +142,10 @@ describe('migrer', () => {
   });
 
   it('jeu invalide : cordes à vide, records gardés s’ils sont valides ; notes en double écartées', () => {
-    const record = { score: 900, niveau: 4 };
-    expect(migrer({ ...exemple(), jeu: { niveau: 0, positions: [], record } })?.jeu).toEqual(jeuInitial(record));
+    const records = { ...recordsVides(), difficile: { score: 900, niveau: 4 } };
+    expect(migrer({ ...exemple(), jeu: { niveau: 0, positions: [], difficulte: 'difficile', records } })?.jeu).toEqual(
+      jeuInitial({ difficulte: 'difficile', records }),
+    );
     expect(migrer({ ...exemple(), jeu: 'x' })?.jeu).toEqual(jeuInitial());
     expect(
       migrer({
@@ -149,10 +158,26 @@ describe('migrer', () => {
             { corde: 7, case: 0 },
             { corde: 5, case: 13 },
           ],
-          record: { score: -5, niveau: 2 },
+          difficulte: 'extreme',
+          records: { normal: { score: -5, niveau: 2 } },
         },
       })?.jeu,
-    ).toEqual({ niveau: 3, positions: [{ corde: 6, case: 0 }], record: { score: 0, niveau: 2 } });
+    ).toEqual({
+      niveau: 3,
+      positions: [{ corde: 6, case: 0 }],
+      difficulte: 'normal',
+      records: { ...recordsVides(), normal: { score: 0, niveau: 2 } },
+    });
+  });
+
+  it('jeu d’avant le choix de la difficulté : son record devient celui du mode normal', () => {
+    const avant = { niveau: 5, positions: jeuInitial().positions, record: { score: 25896, niveau: 5 } };
+    expect(migrer({ ...exemple(), jeu: avant })?.jeu).toEqual({
+      niveau: 5,
+      positions: jeuInitial().positions,
+      difficulte: 'normal',
+      records: { ...recordsVides(), normal: { score: 25896, niveau: 5 } },
+    });
   });
 
   it('écarte les statistiques et avancements invalides, et borne les dernières réponses', () => {

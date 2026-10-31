@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { EtatApp } from '../../etat.svelte';
+  import { DIFFICULTES } from '../../jeu/niveauxDifficulte';
   import { CASE_MAX, NUMEROS_CORDES, noteDePosition } from '../../music/manche';
   import { nomAffiche } from '../../music/notation';
   import { MODES, type Mode, type Statistique } from '../../progression/modele';
@@ -51,8 +52,14 @@
     {#if mode === 1}
       <p class="avancement">
         {TEXTES.statistiques.jeu(jeu.niveau, jeu.positions.length)}
-        {#if jeu.record.niveau > 0}{TEXTES.statistiques.record(jeu.record.score, jeu.record.niveau)}{/if}
       </p>
+      {#if DIFFICULTES.some((d) => jeu.records[d].niveau > 0)}
+        <ul class="records" aria-label={TEXTES.statistiques.records}>
+          {#each DIFFICULTES.filter((d) => jeu.records[d].niveau > 0) as d (d)}
+            <li>{TEXTES.statistiques.record(TEXTES.difficultes[d], jeu.records[d].score, jeu.records[d].niveau)}</li>
+          {/each}
+        </ul>
+      {/if}
     {:else}
       <p class="avancement">
         {TEXTES.statistiques.niveauAtteint(avancement.niveauAtteint, TEXTES.niveaux[avancement.niveauAtteint]!)}
@@ -114,6 +121,10 @@
   }
   .avancement {
     margin: 0 0 0.5rem;
+  }
+  .records {
+    margin: 0 0 0.5rem;
+    padding-left: 1.25rem;
   }
   .totaux {
     margin: 0 0 0.75rem;

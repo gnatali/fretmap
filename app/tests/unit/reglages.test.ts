@@ -102,7 +102,7 @@ describe('réglages', () => {
     const fichier = {
       ...progressionInitiale(),
       avancement: { 2: avancementInitial(2) },
-      jeu: { ...jeuInitial({ score: 800, niveau: 3 }), niveau: 3 },
+      jeu: { ...jeuInitial({ difficulte: 'difficile' }), niveau: 3 },
     };
     await fireEvent.change(champ, { target: { files: [new File([exporterJson(fichier)], 'p.json')] } });
     await waitFor(() => expect(screen.getByText(TEXTES.reglages.confirmerImport)).toBeTruthy());

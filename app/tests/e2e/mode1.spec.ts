@@ -43,6 +43,7 @@ test('mode 1 : case juste, case fausse, fin, record, journal exporté et statist
   await page.getByRole('button', { name: 'Arrêter' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fin de partie');
   await expect(page.getByText('Nouveau record !')).toBeVisible();
+  await expect(page.locator('.difficulte')).toHaveText('Normal');
   await expect(page.locator('.justes')).toHaveText('1');
   await expect(page.locator('.fausses')).toHaveText('1');
 
@@ -88,6 +89,32 @@ test('mode 1 : passage au niveau 2, sans débordement à 360 px, puis reprise au
   await expect(page.getByText('Niveau atteint : 2 en mode 1')).toBeVisible();
   await page.getByRole('button', { name: /^Mode 1/ }).click();
   await expect(page.getByRole('button', { name: 'Reprendre au niveau 2 (9 notes)' })).toBeVisible();
+});
+
+test('mode 1 : difficulté choisie, gardée après rechargement, et record propre à cette difficulté', async ({
+  page,
+}) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /^Mode 1/ }).click();
+  await page.getByRole('radio', { name: /^Difficile/ }).check();
+  await page.reload();
+  await page.getByRole('button', { name: /^Mode 1/ }).click();
+  await expect(page.getByRole('radio', { name: /^Difficile/ })).toBeChecked();
+  await expect(page.getByRole('heading', { name: 'Records en difficile' })).toBeVisible();
+  await expect(page.locator('.records')).toHaveText('Pas encore de partie.');
+  expect(await debordants(page)).toEqual([]);
+
+  await page.getByRole('button', { name: 'Commencer aux cordes à vide' }).click();
+  await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 5000 });
+  await caseDuManche(page, await reponse(page)).click();
+  await page.getByRole('button', { name: 'Arrêter' }).click();
+  await expect(page.locator('.difficulte')).toHaveText('Difficile');
+  await expect(page.getByText('Nouveau record !')).toBeVisible();
+  await page.getByRole('button', { name: 'Accueil' }).click();
+  await page.getByRole('button', { name: /^Mode 1/ }).click();
+  await expect(page.locator('.records')).toHaveText(/^\d+ points · niveau 1$/);
+  await page.getByRole('radio', { name: /^Normal/ }).check();
+  await expect(page.locator('.records')).toHaveText('Pas encore de partie.');
 });
 
 test('aucun écran ne défile horizontalement, même sur un petit téléphone (360 px)', async ({ page }) => {

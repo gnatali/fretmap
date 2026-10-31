@@ -59,9 +59,10 @@ export class EtatApp {
     return ajouterPartie(this.stockage, partie);
   }
 
-  /** Le jeu du mode 1 repart aux cordes à vide ; les records et les statistiques sont gardés. */
+  /** Le jeu du mode 1 repart aux cordes à vide ; la difficulté, les records et les statistiques sont gardés. */
   recommencerJeu(): void {
-    this.sauverJeu(jeuInitial(this.progression.jeu.record));
+    const { difficulte, records } = this.progression.jeu;
+    this.sauverJeu(jeuInitial({ difficulte, records }));
   }
 
   definirReglage<C extends keyof Reglages>(cle: C, valeur: Reglages[C]): void {

@@ -3,7 +3,7 @@
   import { HorlogeJeu } from '../../jeu/horloge';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import { DUREE_PAUSE_NIVEAU_MS, Partie, type EvenementPartie } from '../../jeu/partie';
-  import { REGLAGES_PROGRESSIF_DEFAUT } from '../../jeu/reglages';
+  import { reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
   import { noteDePosition, type Position } from '../../music/manche';
   import type { Notation } from '../../music/notation';
   import { TEXTES, consigne, nomPosition, pourcent, retourEssai, retourFausse } from '../textes';
@@ -26,6 +26,8 @@
     niveau: number;
     positions: readonly Position[];
     notation: Notation;
+    /** Difficulté de la partie : condition de passage de niveau. */
+    difficulte: Difficulte;
     /** Chaque événement de la partie (statistiques par position). */
     onEvenement: (evenement: EvenementPartie) => void;
     /** Niveau validé : où reprendre est enregistré. */
@@ -37,7 +39,17 @@
     hasard?: () => number;
   }
 
-  let { niveau: niveauDepart, positions, notation, onEvenement, onNiveau, onFin, onAnnuler, hasard }: Props = $props();
+  let {
+    niveau: niveauDepart,
+    positions,
+    notation,
+    difficulte,
+    onEvenement,
+    onNiveau,
+    onFin,
+    onAnnuler,
+    hasard,
+  }: Props = $props();
 
   /** compte : compte à rebours (départ ou reprise) ; jeu : la partie tourne ; pause. */
   let phase = $state<'compte' | 'jeu' | 'pause'>('compte');
@@ -99,13 +111,14 @@
   function commencer(): void {
     const t = horloge.jeu(performance.now());
     debutJeu = t;
-    partie = new Partie(REGLAGES_PROGRESSIF_DEFAUT, {
+    partie = new Partie(reglagesDe(difficulte), {
       debutMs: t,
       date: new Date(),
       hasard,
       niveau: niveauDepart,
       positions,
       notation,
+      difficulte,
     });
     enPartie = true;
     phase = 'jeu';

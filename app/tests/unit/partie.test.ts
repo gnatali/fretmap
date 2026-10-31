@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { positionsDepart } from '../../src/jeu/difficulte';
 import type { ContexteJournal } from '../../src/jeu/journal';
+import { ESSAIS_HARDCORE, reglagesDe, type Difficulte } from '../../src/jeu/niveauxDifficulte';
 import { DUREE_PAUSE_NIVEAU_MS, Partie, type EvenementPartie } from '../../src/jeu/partie';
 import {
   REGLAGES_PROGRESSIF_DEFAUT,
@@ -30,7 +31,7 @@ function hasardFixe(graine = 1): () => number {
 
 function nouvelle(
   reglages: Partial<ReglagesProgressif> = {},
-  options: { hasard?: () => number; niveau?: number; positions?: Position[] } = {},
+  options: { hasard?: () => number; niveau?: number; positions?: Position[]; difficulte?: Difficulte } = {},
 ) {
   return new Partie(
     { ...REGLAGES_PROGRESSIF_DEFAUT, ...reglages },
@@ -343,5 +344,70 @@ describe('passage de niveau', () => {
     const { t, niveau } = jouerJusquAuPassage(partie);
     expect(niveau).toMatchObject({ niveau: 2, ajoutees: [] });
     expect(() => jouerJusquAuPassage(partie, t + DUREE_PAUSE_NIVEAU_MS, 100)).toThrow('Pas de passage de niveau');
+  });
+});
+
+describe('difficulté', () => {
+  /** Partie dans une difficulté, avec ses réglages (et des réglages en plus). */
+  const enDifficulte = (difficulte: Difficulte, autres: Partial<ReglagesProgressif> = {}, graine = 1) =>
+    new Partie(
+      { ...reglagesDe(difficulte), ...autres },
+      { debutMs: 0, date: DATE, notation: 'les-deux', hasard: hasardFixe(graine), difficulte },
+    );
+
+  /**
+   * Joue juste, `delaiMs` après l'apparition de chaque note, jusqu'au passage de niveau ou à `maximum` notes ;
+   * true si passage.
+   */
+  function passe(partie: Partie, delaiMs: number, maximum = 300): boolean {
+    let t = 0;
+    for (let i = 0; i < maximum; i++) {
+      partie.avancer(t); // La note suivante apparaît.
+      t += delaiMs;
+      partie.avancer(t);
+      if (toucher(partie, true, t).some((e) => e.type === 'niveau')) return true;
+    }
+    return false;
+  }
+
+  it('règle la réussite minimale du niveau : 60 %, 80 %, 90 % ; hardcore : 5 essais minimum par note', () => {
+    expect(reglagesDe('facile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilGlobal: 0.6 });
+    expect(reglagesDe('normal')).toEqual(REGLAGES_PROGRESSIF_DEFAUT);
+    expect(reglagesDe('difficile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilGlobal: 0.9 });
+    expect(reglagesDe('hardcore')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, essaisMinimum: ESSAIS_HARDCORE });
+    expect(nouvelle().difficulte).toBe('normal');
+    expect(enDifficulte('hardcore').journal(CONTEXTE).difficulte).toBe('hardcore');
+  });
+
+  it('une note toutes les 3,4 s (score d’essai 0,85) passe en facile et en normal, pas en difficile', () => {
+    // Vitesse lente (60 s de chute) : une seule note à l'écran, délais après apparition et depuis la note
+    // précédente égaux. Rapidités (6 − 3,4) / 4,5 et (10 − 3,4) / 8 : score 0,5 + 0,5 × 0,7 = 0,85.
+    const lente = { vitesseDepart: 0.05 };
+    expect(passe(enDifficulte('facile', lente), 3400)).toBe(true);
+    expect(passe(enDifficulte('normal', lente), 3400)).toBe(true);
+    expect(passe(enDifficulte('difficile', lente), 3400)).toBe(false);
+    expect(passe(enDifficulte('difficile', lente), 1000)).toBe(true);
+  });
+
+  it('hardcore : chaque note doit avoir ses 5 derniers essais justes du premier coup et rapides', () => {
+    const partie = enDifficulte('hardcore');
+    // Une case fausse sur la première note : ses essais d'avant ne comptent plus.
+    toucher(partie, false, 200);
+    expect(passe(partie, 500)).toBe(true);
+    const journal = partie.journal(CONTEXTE);
+    for (const p of positionsDepart()) {
+      const siens = journal.essais.filter((e) => e.position.corde === p.corde && e.position.case === p.case);
+      expect(siens.length).toBeGreaterThanOrEqual(ESSAIS_HARDCORE);
+      for (const e of siens.slice(-ESSAIS_HARDCORE)) {
+        expect(e).toMatchObject({ resultat: 'juste', erreurs: 0 });
+        expect(e.delaiNoteMs!).toBeLessThanOrEqual(1500);
+      }
+    }
+    expect(journal.essais[0]!.erreurs).toBe(1);
+  });
+
+  it('hardcore : des notes justes mais lentes (2 s) ne passent pas le niveau, qui passe en normal', () => {
+    expect(passe(enDifficulte('normal'), 2000)).toBe(true);
+    expect(passe(enDifficulte('hardcore'), 2000)).toBe(false);
   });
 });

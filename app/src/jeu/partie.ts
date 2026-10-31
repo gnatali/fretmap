@@ -19,6 +19,7 @@ import {
   type PartieJournal,
   type PassageJournal,
 } from './journal';
+import { DIFFICULTE_DEFAUT, ESSAIS_HARDCORE, type Difficulte } from './niveauxDifficulte';
 import { POINTS_BASE, multiplicateur } from './points';
 import { plafondVitesse, type ReglagesProgressif } from './reglages';
 import {
@@ -27,6 +28,7 @@ import {
   reussiteGlobale,
   reussiteNote,
   reussitesNote,
+  sansFaute,
   scoreEssai,
   type Essai,
   type ResultatEssai,
@@ -53,6 +55,11 @@ export interface OptionsPartie {
   positions?: readonly Position[];
   /** Affichage, noté dans le journal. */
   notation: Notation;
+  /**
+   * Difficulté (niveauxDifficulte.ts) : les réglages en tiennent déjà compte (`reglagesDe`) ; en hardcore, chaque note
+   * doit en plus avoir ses ESSAIS_HARDCORE derniers essais sans faute. Normal par défaut.
+   */
+  difficulte?: Difficulte;
 }
 
 export type EvenementPartie =
@@ -95,6 +102,7 @@ export function questionTouchee(question: Question): Question {
 
 export class Partie {
   readonly reglages: Readonly<ReglagesProgressif>;
+  readonly difficulte: Difficulte;
   score = 0;
   serie = 0;
   meilleureSerie = 0;
@@ -134,6 +142,7 @@ export class Partie {
   /** La première note apparaît dès la création, immobile. */
   constructor(reglages: ReglagesProgressif, options: OptionsPartie) {
     this.reglages = { ...reglages };
+    this.difficulte = options.difficulte ?? DIFFICULTE_DEFAUT;
     this.hasard = options.hasard ?? Math.random;
     this.debutMs = options.debutMs;
     this.dernierT = options.debutMs;
@@ -261,6 +270,7 @@ export class Partie {
       debut: this.date.toISOString(),
       navigateur: contexte.navigateur,
       interrompue: this.interrompu,
+      difficulte: this.difficulte,
       reglages: { ...this.reglages, notation: this.notation },
       images: { ...contexte.images },
       pauses: contexte.pauses.map((p) => ({ ...p })),
@@ -434,13 +444,17 @@ export class Partie {
 
   /**
    * Passage de niveau : chaque note a assez d'essais et une réussite ≥ seuilNote, la réussite globale est
-   * ≥ seuilGlobal, et la vitesse a atteint le plafond du niveau.
+   * ≥ seuilGlobal, et la vitesse a atteint le plafond du niveau ; en hardcore, chaque note a en plus ses
+   * ESSAIS_HARDCORE derniers essais sans faute.
    */
   private niveauValide(): boolean {
     const r = this.reglages;
     if (this.mancheComplet || this.vitesseActuelle + 1e-9 < this.plafond) return false;
     const notesReussies = this.notesDuNiveau.every(
-      (p) => this.essaisDe(p) >= r.essaisMinimum && this.reussiteDe(p) + 1e-9 >= r.seuilNote,
+      (p) =>
+        this.essaisDe(p) >= r.essaisMinimum &&
+        this.reussiteDe(p) + 1e-9 >= r.seuilNote &&
+        (this.difficulte !== 'hardcore' || sansFaute(p, this.essais, ESSAIS_HARDCORE, r.delaiNoteBonMs)),
     );
     return notesReussies && this.reussiteGlobale + 1e-9 >= r.seuilGlobal;
   }

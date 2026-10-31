@@ -5,6 +5,7 @@ import type { Position } from '../music/manche';
 import type { Notation } from '../music/notation';
 import type { NomNote } from '../music/notes';
 import type { Pause } from './horloge';
+import type { Difficulte } from './niveauxDifficulte';
 import type { ReglagesProgressif } from './reglages';
 import type { MethodeGlobale, MethodeNote, ResultatEssai } from './reussite';
 
@@ -112,6 +113,8 @@ export interface PartieJournal extends ContexteJournal {
   /** ISO 8601. */
   debut: string;
   interrompue: boolean;
+  /** Absente des parties jouées avant le choix de la difficulté (normal). */
+  difficulte?: Difficulte;
   reglages: ReglagesProgressif & { notation: Notation };
   niveauDepart: number;
   positionsDepart: Position[];

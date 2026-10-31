@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import './resize-observer';
 import { EtatApp } from '../../src/etat.svelte';
 import { CLE_JOURNAL } from '../../src/jeu/stockage';
-import { jeuInitial } from '../../src/progression/modele';
+import { jeuInitial, recordsVides } from '../../src/progression/modele';
 import { CLE_STOCKAGE } from '../../src/progression/stockage';
 import Mode1 from '../../src/ui/ecrans/Mode1.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -112,11 +112,13 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(TEXTES.fin.titre);
     expect(screen.getByText(TEXTES.fin.nouveauRecord)).toBeTruthy();
-    expect(etat.progression.jeu.record.score).toBeGreaterThan(0);
-    expect(etat.progression.jeu.record.niveau).toBe(1);
+    expect(texte('.difficulte')).toBe('Normal');
+    expect(etat.progression.jeu.records.normal.score).toBeGreaterThan(0);
+    expect(etat.progression.jeu.records.normal.niveau).toBe(1);
+    expect(etat.progression.jeu.records.facile).toEqual({ score: 0, niveau: 0 });
     const journal = JSON.parse(stockage.donnees[CLE_JOURNAL]!) as unknown[];
     expect(journal).toHaveLength(1);
-    expect(journal[0]).toMatchObject({ interrompue: true, resume: { essais: 1, justes: 1 } });
+    expect(journal[0]).toMatchObject({ interrompue: true, difficulte: 'normal', resume: { essais: 1, justes: 1 } });
 
     // Une partie sans meilleur score ni meilleur niveau n'est pas un record.
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.fin.continuer(1) }));
@@ -126,11 +128,13 @@ describe('mode 1 : notes qui tombent au toucher', () => {
   });
 
   it('départ : reprise au niveau atteint, records, recommencer aux cordes à vide après confirmation', async () => {
+    const records = { ...recordsVides(), normal: { score: 1200, niveau: 3 } };
     const { etat } = afficher((e) =>
       e.sauverJeu({
         niveau: 3,
         positions: [...jeuInitial().positions, { corde: 6, case: 1 }],
-        record: { score: 1200, niveau: 3 },
+        difficulte: 'normal',
+        records,
       }),
     );
     expect(screen.getByText(TEXTES.mode1.recordValeurs(1200, 3))).toBeTruthy();
@@ -140,8 +144,29 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(etat.progression.jeu.niveau).toBe(3);
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.recommencer }));
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.confirmer }));
-    expect(etat.progression.jeu).toEqual(jeuInitial({ score: 1200, niveau: 3 }));
+    expect(etat.progression.jeu).toEqual(jeuInitial({ records }));
     expect(texte('.compte')).toContain('3');
+  });
+
+  it('difficulté : choix enregistré, records et record battu propres à chaque difficulté', async () => {
+    const records = { ...recordsVides(), normal: { score: 5000, niveau: 4 } };
+    const { etat } = afficher((e) => e.sauverJeu({ ...jeuInitial({ records }) }));
+    expect(screen.getByRole('radio', { name: /^Normal/ })).toHaveProperty('checked', true);
+    expect(screen.getByText(TEXTES.mode1.recordValeurs(5000, 4))).toBeTruthy();
+
+    await fireEvent.click(screen.getByRole('radio', { name: /^Facile/ }));
+    expect(etat.progression.jeu.difficulte).toBe('facile');
+    expect(screen.getByRole('heading', { name: TEXTES.mode1.records('Facile') })).toBeTruthy();
+    expect(screen.getByText(TEXTES.mode1.aucunRecord)).toBeTruthy();
+
+    // Un premier score en facile est un record en facile, sans toucher au record du mode normal.
+    await commencer();
+    await fireEvent.click(caseDuManche(reponse()));
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    expect(texte('.difficulte')).toBe('Facile');
+    expect(screen.getByText(TEXTES.fin.nouveauRecord)).toBeTruthy();
+    expect(etat.progression.jeu.records.facile.niveau).toBe(1);
+    expect(etat.progression.jeu.records.normal).toEqual({ score: 5000, niveau: 4 });
   });
 
   it('arrêter pendant le compte à rebours ramène au départ sans rien enregistrer', async () => {

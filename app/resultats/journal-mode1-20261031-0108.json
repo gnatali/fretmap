@@ -1,0 +1,5961 @@
+{
+  "format": "fretmap-mode1-journal",
+  "version": 1,
+  "exporteLe": "2026-10-31T00:08:34.528Z",
+  "parties": [
+    {
+      "debut": "2026-10-31T00:04:22.491Z",
+      "navigateur": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Mobile Safari/537.36",
+      "interrompue": true,
+      "reglages": {
+        "methodeNote": "score",
+        "methodeGlobale": "moyenne",
+        "seuilNote": 0.6,
+        "seuilGlobal": 0.8,
+        "vitesseDepart": 0.3,
+        "vitesseParNiveau": 0.05,
+        "dureeChuteMinMs": 3000,
+        "notesAjoutees": 3,
+        "essaisNote": 5,
+        "essaisGlobaux": 10,
+        "essaisMinimum": 3,
+        "poidsAlteration": 3,
+        "delaiNoteBonMs": 1500,
+        "delaiNoteLentMs": 6000,
+        "delaiApparitionBonMs": 2000,
+        "delaiApparitionLentMs": 10000,
+        "acceleration": 0.1,
+        "ralentissement": 0.15,
+        "penaliteFausse": 50,
+        "penalitePerdue": 150,
+        "bonusNiveau": 500,
+        "notation": "les-deux"
+      },
+      "images": {
+        "nombre": 13651,
+        "medianeMs": 16.7,
+        "p95Ms": 16.7,
+        "partAuDelaDe33Ms": 0
+      },
+      "pauses": [
+        {
+          "tMs": 227359,
+          "dureeMs": 19492,
+          "arrierePlan": false
+        }
+      ],
+      "niveauDepart": 1,
+      "positionsDepart": [
+        {
+          "corde": 6,
+          "case": 0
+        },
+        {
+          "corde": 5,
+          "case": 0
+        },
+        {
+          "corde": 4,
+          "case": 0
+        },
+        {
+          "corde": 3,
+          "case": 0
+        },
+        {
+          "corde": 2,
+          "case": 0
+        },
+        {
+          "corde": 1,
+          "case": 0
+        }
+      ],
+      "passages": [
+        {
+          "tMs": 30702,
+          "niveau": 2,
+          "bonus": 500,
+          "ajoutees": [
+            {
+              "corde": 6,
+              "case": 1
+            },
+            {
+              "corde": 2,
+              "case": 1
+            },
+            {
+              "corde": 1,
+              "case": 1
+            }
+          ],
+          "plafond": 0.35
+        },
+        {
+          "tMs": 91886,
+          "niveau": 3,
+          "bonus": 1000,
+          "ajoutees": [
+            {
+              "corde": 5,
+              "case": 2
+            },
+            {
+              "corde": 4,
+              "case": 2
+            },
+            {
+              "corde": 3,
+              "case": 2
+            }
+          ],
+          "plafond": 0.4
+        },
+        {
+          "tMs": 134276,
+          "niveau": 4,
+          "bonus": 1500,
+          "ajoutees": [
+            {
+              "corde": 6,
+              "case": 3
+            },
+            {
+              "corde": 5,
+              "case": 3
+            },
+            {
+              "corde": 4,
+              "case": 3
+            }
+          ],
+          "plafond": 0.45
+        },
+        {
+          "tMs": 219363,
+          "niveau": 5,
+          "bonus": 2000,
+          "ajoutees": [
+            {
+              "corde": 2,
+              "case": 3
+            },
+            {
+              "corde": 1,
+              "case": 3
+            },
+            {
+              "corde": 5,
+              "case": 1
+            }
+          ],
+          "plafond": 0.5
+        }
+      ],
+      "resume": {
+        "score": 25896,
+        "niveauDepart": 1,
+        "niveauAtteint": 5,
+        "essais": 111,
+        "justes": 110,
+        "fausses": 19,
+        "perdues": 1,
+        "ratees": 0,
+        "meilleureSerie": 38,
+        "vitesseMax": 0.45,
+        "delaiNoteMedianMs": 1574,
+        "reussiteGlobale": 0.743
+      },
+      "bilanNotes": [
+        {
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "difficulte": 0,
+          "essais": 8,
+          "reussite": 0.946
+        },
+        {
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "difficulte": 0,
+          "essais": 10,
+          "reussite": 0.853
+        },
+        {
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "difficulte": 0,
+          "essais": 11,
+          "reussite": 0.651
+        },
+        {
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "difficulte": 0,
+          "essais": 12,
+          "reussite": 0.997
+        },
+        {
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "difficulte": 0,
+          "essais": 11,
+          "reussite": 0.986
+        },
+        {
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "difficulte": 0,
+          "essais": 7,
+          "reussite": 0.968
+        },
+        {
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "difficulte": 1,
+          "essais": 5,
+          "reussite": 0.999
+        },
+        {
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "difficulte": 1,
+          "essais": 10,
+          "reussite": 0.786
+        },
+        {
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "difficulte": 1,
+          "essais": 10,
+          "reussite": 0.881
+        },
+        {
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "difficulte": 2,
+          "essais": 5,
+          "reussite": 0.815
+        },
+        {
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "difficulte": 2,
+          "essais": 7,
+          "reussite": 0.828
+        },
+        {
+          "position": {
+            "corde": 3,
+            "case": 2
+          },
+          "nom": "A",
+          "difficulte": 2,
+          "essais": 4,
+          "reussite": 0.962
+        },
+        {
+          "position": {
+            "corde": 6,
+            "case": 3
+          },
+          "nom": "G",
+          "difficulte": 3,
+          "essais": 3,
+          "reussite": 0.993
+        },
+        {
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "difficulte": 3,
+          "essais": 5,
+          "reussite": 0.994
+        },
+        {
+          "position": {
+            "corde": 4,
+            "case": 3
+          },
+          "nom": "F",
+          "difficulte": 3,
+          "essais": 3,
+          "reussite": 0.717
+        },
+        {
+          "position": {
+            "corde": 2,
+            "case": 3
+          },
+          "nom": "D",
+          "difficulte": 3,
+          "essais": 0,
+          "reussite": 0
+        },
+        {
+          "position": {
+            "corde": 1,
+            "case": 3
+          },
+          "nom": "G",
+          "difficulte": 3,
+          "essais": 0,
+          "reussite": 0
+        },
+        {
+          "position": {
+            "corde": 5,
+            "case": 1
+          },
+          "nom": "A#",
+          "difficulte": 4,
+          "essais": 0,
+          "reussite": 0
+        }
+      ],
+      "essais": [
+        {
+          "index": 1,
+          "niveau": 1,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 0,
+          "tAttendueMs": 0,
+          "tResultatMs": 1592,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1592,
+          "delaiNoteMs": 1592,
+          "scoreEssai": 0.995,
+          "vitesse": 0,
+          "points": 99,
+          "serie": 1,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.995,
+            "taux": 1,
+            "temps": 0.98
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.166,
+              "ponderee": 0.166,
+              "derniers": 0.995
+            },
+            "taux": {
+              "moyenne": 0.167,
+              "ponderee": 0.167,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.163,
+              "ponderee": 0.163,
+              "derniers": 0.98
+            }
+          }
+        },
+        {
+          "index": 2,
+          "niveau": 1,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 1603,
+          "tAttendueMs": 1603,
+          "tResultatMs": 6042,
+          "resultat": "perdue",
+          "erreurs": 3,
+          "justesse": 0,
+          "delaiApparitionMs": null,
+          "delaiNoteMs": null,
+          "scoreEssai": 0,
+          "vitesse": 0.072,
+          "points": 0,
+          "serie": 0,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 3757,
+              "position": {
+                "corde": 2,
+                "case": 1
+              },
+              "penalite": 50
+            },
+            {
+              "tMs": 4847,
+              "position": {
+                "corde": 3,
+                "case": 1
+              },
+              "penalite": 49
+            },
+            {
+              "tMs": 6042,
+              "position": {
+                "corde": 3,
+                "case": 0
+              },
+              "penalite": 0
+            }
+          ],
+          "reussites": {
+            "score": 0,
+            "taux": 0,
+            "temps": 0
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.166,
+              "ponderee": 0.166,
+              "derniers": 0.497
+            },
+            "taux": {
+              "moyenne": 0.167,
+              "ponderee": 0.167,
+              "derniers": 0.25
+            },
+            "temps": {
+              "moyenne": 0.163,
+              "ponderee": 0.163,
+              "derniers": 0.49
+            }
+          }
+        },
+        {
+          "index": 3,
+          "niveau": 1,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 6050,
+          "tAttendueMs": 6050,
+          "tResultatMs": 9105,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 3055,
+          "delaiNoteMs": 3055,
+          "scoreEssai": 0.881,
+          "vitesse": 0.061,
+          "points": 93,
+          "serie": 1,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.881,
+            "taux": 1,
+            "temps": 0.654
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.313,
+              "ponderee": 0.313,
+              "derniers": 0.625
+            },
+            "taux": {
+              "moyenne": 0.333,
+              "ponderee": 0.333,
+              "derniers": 0.4
+            },
+            "temps": {
+              "moyenne": 0.272,
+              "ponderee": 0.272,
+              "derniers": 0.545
+            }
+          }
+        },
+        {
+          "index": 4,
+          "niveau": 1,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 9114,
+          "tAttendueMs": 9114,
+          "tResultatMs": 10425,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1312,
+          "delaiNoteMs": 1312,
+          "scoreEssai": 1,
+          "vitesse": 0.149,
+          "points": 115,
+          "serie": 2,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.997,
+            "taux": 1,
+            "temps": 0.99
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.313,
+              "ponderee": 0.313,
+              "derniers": 0.719
+            },
+            "taux": {
+              "moyenne": 0.333,
+              "ponderee": 0.333,
+              "derniers": 0.5
+            },
+            "temps": {
+              "moyenne": 0.274,
+              "ponderee": 0.274,
+              "derniers": 0.658
+            }
+          }
+        },
+        {
+          "index": 5,
+          "niveau": 1,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 10429,
+          "tAttendueMs": 10429,
+          "tResultatMs": 11722,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 1293,
+          "delaiNoteMs": 1293,
+          "scoreEssai": 0.5,
+          "vitesse": 0.212,
+          "points": 61,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 10705,
+              "position": {
+                "corde": 6,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.5,
+            "taux": 0.5,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.396,
+              "ponderee": 0.396,
+              "derniers": 0.675
+            },
+            "taux": {
+              "moyenne": 0.417,
+              "ponderee": 0.417,
+              "derniers": 0.5
+            },
+            "temps": {
+              "moyenne": 0.441,
+              "ponderee": 0.441,
+              "derniers": 0.727
+            }
+          }
+        },
+        {
+          "index": 6,
+          "niveau": 1,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 11728,
+          "tAttendueMs": 11728,
+          "tResultatMs": 13748,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2021,
+          "delaiNoteMs": 2021,
+          "scoreEssai": 0.97,
+          "vitesse": 0.262,
+          "points": 122,
+          "serie": 2,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.97,
+            "taux": 1,
+            "temps": 0.884
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.558,
+              "ponderee": 0.558,
+              "derniers": 0.724
+            },
+            "taux": {
+              "moyenne": 0.583,
+              "ponderee": 0.583,
+              "derniers": 0.556
+            },
+            "temps": {
+              "moyenne": 0.588,
+              "ponderee": 0.588,
+              "derniers": 0.753
+            }
+          }
+        },
+        {
+          "index": 7,
+          "niveau": 1,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 13759,
+          "tAttendueMs": 13759,
+          "tResultatMs": 14918,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1159,
+          "delaiNoteMs": 1159,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 3,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.725,
+              "ponderee": 0.725,
+              "derniers": 0.764
+            },
+            "taux": {
+              "moyenne": 0.75,
+              "ponderee": 0.75,
+              "derniers": 0.6
+            },
+            "temps": {
+              "moyenne": 0.755,
+              "ponderee": 0.755,
+              "derniers": 0.788
+            }
+          }
+        },
+        {
+          "index": 8,
+          "niveau": 1,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 14925,
+          "tAttendueMs": 14925,
+          "tResultatMs": 15889,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 964,
+          "delaiNoteMs": 964,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 4,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.5,
+            "taux": 0.25,
+            "temps": 0.5
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.808,
+              "ponderee": 0.808,
+              "derniers": 0.793
+            },
+            "taux": {
+              "moyenne": 0.792,
+              "ponderee": 0.792,
+              "derniers": 0.636
+            },
+            "temps": {
+              "moyenne": 0.838,
+              "ponderee": 0.838,
+              "derniers": 0.815
+            }
+          }
+        },
+        {
+          "index": 9,
+          "niveau": 1,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 15891,
+          "tAttendueMs": 15891,
+          "tResultatMs": 17206,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1316,
+          "delaiNoteMs": 1316,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 5,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.75,
+            "taux": 0.667,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.85,
+              "ponderee": 0.85,
+              "derniers": 0.816
+            },
+            "taux": {
+              "moyenne": 0.819,
+              "ponderee": 0.819,
+              "derniers": 0.667
+            },
+            "temps": {
+              "moyenne": 0.838,
+              "ponderee": 0.838,
+              "derniers": 0.835
+            }
+          }
+        },
+        {
+          "index": 10,
+          "niveau": 1,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 17206,
+          "tAttendueMs": 17206,
+          "tResultatMs": 18223,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1017,
+          "delaiNoteMs": 1017,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 6,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.94,
+            "taux": 1,
+            "temps": 0.827
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.86,
+              "ponderee": 0.86,
+              "derniers": 0.835
+            },
+            "taux": {
+              "moyenne": 0.819,
+              "ponderee": 0.819,
+              "derniers": 0.692
+            },
+            "temps": {
+              "moyenne": 0.867,
+              "ponderee": 0.867,
+              "derniers": 0.852
+            }
+          }
+        },
+        {
+          "index": 11,
+          "niveau": 1,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 18222,
+          "tAttendueMs": 18222,
+          "tResultatMs": 19210,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 988,
+          "delaiNoteMs": 988,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 7,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 0.993
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.86,
+              "ponderee": 0.86,
+              "derniers": 0.835
+            },
+            "taux": {
+              "moyenne": 0.819,
+              "ponderee": 0.819,
+              "derniers": 0.692
+            },
+            "temps": {
+              "moyenne": 0.867,
+              "ponderee": 0.867,
+              "derniers": 0.854
+            }
+          }
+        },
+        {
+          "index": 12,
+          "niveau": 1,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 19221,
+          "tAttendueMs": 19221,
+          "tResultatMs": 20425,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1204,
+          "delaiNoteMs": 1204,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 8,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.833,
+            "taux": 0.75,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.874,
+              "ponderee": 0.874,
+              "derniers": 0.935
+            },
+            "taux": {
+              "moyenne": 0.833,
+              "ponderee": 0.833,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.867,
+              "ponderee": 0.867,
+              "derniers": 0.954
+            }
+          }
+        },
+        {
+          "index": 13,
+          "niveau": 1,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 20437,
+          "tAttendueMs": 20437,
+          "tResultatMs": 21467,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1030,
+          "delaiNoteMs": 1030,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 130,
+          "serie": 9,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.96,
+            "taux": 1,
+            "temps": 0.885
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.877,
+              "ponderee": 0.877,
+              "derniers": 0.947
+            },
+            "taux": {
+              "moyenne": 0.833,
+              "ponderee": 0.833,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.877,
+              "ponderee": 0.877,
+              "derniers": 0.988
+            }
+          }
+        },
+        {
+          "index": 14,
+          "niveau": 1,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 21469,
+          "tAttendueMs": 21469,
+          "tResultatMs": 22654,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1184,
+          "delaiNoteMs": 1184,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 10,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.667,
+            "taux": 0.4,
+            "temps": 0.667
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.905,
+              "ponderee": 0.905,
+              "derniers": 0.947
+            },
+            "taux": {
+              "moyenne": 0.858,
+              "ponderee": 0.858,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.905,
+              "ponderee": 0.905,
+              "derniers": 0.988
+            }
+          }
+        },
+        {
+          "index": 15,
+          "niveau": 1,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 22652,
+          "tAttendueMs": 22652,
+          "tResultatMs": 23592,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 940,
+          "delaiNoteMs": 940,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 11,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.905,
+              "ponderee": 0.905,
+              "derniers": 0.997
+            },
+            "taux": {
+              "moyenne": 0.858,
+              "ponderee": 0.858,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.905,
+              "ponderee": 0.905,
+              "derniers": 0.988
+            }
+          }
+        },
+        {
+          "index": 16,
+          "niveau": 1,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 23601,
+          "tAttendueMs": 23601,
+          "tResultatMs": 24601,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1000,
+          "delaiNoteMs": 1000,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 12,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.985,
+            "taux": 1,
+            "temps": 0.942
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.907,
+              "ponderee": 0.907,
+              "derniers": 1
+            },
+            "taux": {
+              "moyenne": 0.858,
+              "ponderee": 0.858,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.914,
+              "derniers": 1
+            }
+          }
+        },
+        {
+          "index": 17,
+          "niveau": 1,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 24600,
+          "tAttendueMs": 24600,
+          "tResultatMs": 25639,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1039,
+          "delaiNoteMs": 1039,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 13,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.875,
+            "taux": 0.8,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.914,
+              "ponderee": 0.914,
+              "derniers": 1
+            },
+            "taux": {
+              "moyenne": 0.867,
+              "ponderee": 0.867,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.914,
+              "derniers": 1
+            }
+          }
+        },
+        {
+          "index": 18,
+          "niveau": 1,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 25649,
+          "tAttendueMs": 25649,
+          "tResultatMs": 26538,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 889,
+          "delaiNoteMs": 889,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 14,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.75,
+            "taux": 0.5,
+            "temps": 0.75
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.928,
+              "ponderee": 0.928,
+              "derniers": 1
+            },
+            "taux": {
+              "moyenne": 0.883,
+              "ponderee": 0.883,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.928,
+              "derniers": 1
+            }
+          }
+        },
+        {
+          "index": 19,
+          "niveau": 1,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 26548,
+          "tAttendueMs": 26548,
+          "tResultatMs": 27575,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1027,
+          "delaiNoteMs": 1027,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 15,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.928,
+              "ponderee": 0.928,
+              "derniers": 1
+            },
+            "taux": {
+              "moyenne": 0.883,
+              "ponderee": 0.883,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.928,
+              "derniers": 1
+            }
+          }
+        },
+        {
+          "index": 20,
+          "niveau": 1,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 27580,
+          "tAttendueMs": 27580,
+          "tResultatMs": 28535,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 955,
+          "delaiNoteMs": 955,
+          "scoreEssai": 1,
+          "vitesse": 0.3,
+          "points": 260,
+          "serie": 16,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.97,
+            "taux": 1,
+            "temps": 0.914
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.93,
+              "ponderee": 0.93,
+              "derniers": 1
+            },
+            "taux": {
+              "moyenne": 0.883,
+              "ponderee": 0.883,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.933,
+              "ponderee": 0.933,
+              "derniers": 1
+            }
+          }
+        },
+        {
+          "index": 21,
+          "niveau": 1,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 28546,
+          "tAttendueMs": 28546,
+          "tResultatMs": 30702,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 2156,
+          "delaiNoteMs": 2156,
+          "scoreEssai": 0.479,
+          "vitesse": 0.255,
+          "points": 60,
+          "serie": 1,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 29831,
+              "position": {
+                "corde": 4,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.817,
+            "taux": 0.75,
+            "temps": 0.913
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.902,
+              "ponderee": 0.902,
+              "derniers": 0.948
+            },
+            "taux": {
+              "moyenne": 0.842,
+              "ponderee": 0.842,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.928,
+              "derniers": 0.985
+            }
+          }
+        },
+        {
+          "index": 22,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 36706,
+          "tAttendueMs": 36706,
+          "tResultatMs": 38536,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1830,
+          "delaiNoteMs": 1830,
+          "scoreEssai": 0.982,
+          "vitesse": 0,
+          "points": 98,
+          "serie": 2,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.796,
+            "taux": 0.571,
+            "temps": 0.785
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.606,
+              "ponderee": 0.455,
+              "derniers": 0.946
+            },
+            "taux": {
+              "moyenne": 0.569,
+              "ponderee": 0.427,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.623,
+              "ponderee": 0.467,
+              "derniers": 0.978
+            }
+          }
+        },
+        {
+          "index": 23,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 38537,
+          "tAttendueMs": 38537,
+          "tResultatMs": 39998,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1461,
+          "delaiNoteMs": 1461,
+          "scoreEssai": 1,
+          "vitesse": 0.098,
+          "points": 110,
+          "serie": 3,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.717,
+              "ponderee": 0.621,
+              "derniers": 0.946
+            },
+            "taux": {
+              "moyenne": 0.68,
+              "ponderee": 0.593,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.734,
+              "ponderee": 0.634,
+              "derniers": 0.978
+            }
+          }
+        },
+        {
+          "index": 24,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 40003,
+          "tAttendueMs": 40003,
+          "tResultatMs": 41428,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1425,
+          "delaiNoteMs": 1425,
+          "scoreEssai": 1,
+          "vitesse": 0.198,
+          "points": 120,
+          "serie": 4,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.828,
+              "ponderee": 0.788,
+              "derniers": 0.946
+            },
+            "taux": {
+              "moyenne": 0.791,
+              "ponderee": 0.76,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.845,
+              "ponderee": 0.8,
+              "derniers": 0.978
+            }
+          }
+        },
+        {
+          "index": 25,
+          "niveau": 2,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 41435,
+          "tAttendueMs": 41435,
+          "tResultatMs": 45975,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 4541,
+          "delaiNoteMs": 4541,
+          "scoreEssai": 0.376,
+          "vitesse": 0.253,
+          "points": 47,
+          "serie": 1,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 45053,
+              "position": {
+                "corde": 4,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.706,
+            "taux": 0.667,
+            "temps": 0.766
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.816,
+              "ponderee": 0.779,
+              "derniers": 0.884
+            },
+            "taux": {
+              "moyenne": 0.782,
+              "ponderee": 0.753,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.829,
+              "ponderee": 0.788,
+              "derniers": 0.911
+            }
+          }
+        },
+        {
+          "index": 26,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 44798,
+          "tAttendueMs": 45975,
+          "tResultatMs": 47041,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2244,
+          "delaiNoteMs": 1066,
+          "scoreEssai": 0.992,
+          "vitesse": 0.291,
+          "points": 128,
+          "serie": 2,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.816,
+              "ponderee": 0.779,
+              "derniers": 0.883
+            },
+            "taux": {
+              "moyenne": 0.782,
+              "ponderee": 0.753,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.829,
+              "ponderee": 0.788,
+              "derniers": 0.911
+            }
+          }
+        },
+        {
+          "index": 27,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 47046,
+          "tAttendueMs": 47046,
+          "tResultatMs": 48601,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1555,
+          "delaiNoteMs": 1555,
+          "scoreEssai": 0.997,
+          "vitesse": 0.35,
+          "points": 135,
+          "serie": 3,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 0.994
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.816,
+              "ponderee": 0.778,
+              "derniers": 0.883
+            },
+            "taux": {
+              "moyenne": 0.782,
+              "ponderee": 0.753,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.828,
+              "ponderee": 0.787,
+              "derniers": 0.909
+            }
+          }
+        },
+        {
+          "index": 28,
+          "niveau": 2,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 48611,
+          "tAttendueMs": 48611,
+          "tResultatMs": 50941,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2330,
+          "delaiNoteMs": 2330,
+          "scoreEssai": 0.944,
+          "vitesse": 0.35,
+          "points": 127,
+          "serie": 4,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.754,
+            "taux": 0.714,
+            "temps": 0.776
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.821,
+              "ponderee": 0.782,
+              "derniers": 0.877
+            },
+            "taux": {
+              "moyenne": 0.787,
+              "ponderee": 0.757,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.829,
+              "ponderee": 0.788,
+              "derniers": 0.891
+            }
+          }
+        },
+        {
+          "index": 29,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 50942,
+          "tAttendueMs": 50942,
+          "tResultatMs": 52580,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1638,
+          "delaiNoteMs": 1638,
+          "scoreEssai": 0.992,
+          "vitesse": 0.35,
+          "points": 134,
+          "serie": 5,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.996,
+            "taux": 1,
+            "temps": 0.985
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.821,
+              "ponderee": 0.782,
+              "derniers": 0.876
+            },
+            "taux": {
+              "moyenne": 0.787,
+              "ponderee": 0.757,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.827,
+              "ponderee": 0.785,
+              "derniers": 0.888
+            }
+          }
+        },
+        {
+          "index": 30,
+          "niveau": 2,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 52591,
+          "tAttendueMs": 52591,
+          "tResultatMs": 58547,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 5956,
+          "delaiNoteMs": 5956,
+          "scoreEssai": 0.629,
+          "vitesse": 0.35,
+          "points": 85,
+          "serie": 6,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.826,
+            "taux": 0.833,
+            "temps": 0.802
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.815,
+              "ponderee": 0.778,
+              "derniers": 0.839
+            },
+            "taux": {
+              "moyenne": 0.791,
+              "ponderee": 0.76,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.805,
+              "ponderee": 0.769,
+              "derniers": 0.789
+            }
+          }
+        },
+        {
+          "index": 31,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 55455,
+          "tAttendueMs": 58547,
+          "tResultatMs": 60461,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 5006,
+          "delaiNoteMs": 1914,
+          "scoreEssai": 0.883,
+          "vitesse": 0.35,
+          "points": 119,
+          "serie": 7,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.96,
+            "taux": 1,
+            "temps": 0.965
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.811,
+              "ponderee": 0.771,
+              "derniers": 0.879
+            },
+            "taux": {
+              "moyenne": 0.791,
+              "ponderee": 0.76,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.802,
+              "ponderee": 0.764,
+              "derniers": 0.794
+            }
+          }
+        },
+        {
+          "index": 32,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 58320,
+          "tAttendueMs": 60461,
+          "tResultatMs": 61760,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 3441,
+          "delaiNoteMs": 1299,
+          "scoreEssai": 0.955,
+          "vitesse": 0.35,
+          "points": 129,
+          "serie": 8,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.987,
+            "taux": 1,
+            "temps": 0.985
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.832,
+              "ponderee": 0.787,
+              "derniers": 0.877
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.824,
+              "ponderee": 0.781,
+              "derniers": 0.801
+            }
+          }
+        },
+        {
+          "index": 33,
+          "niveau": 2,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 61184,
+          "tAttendueMs": 61760,
+          "tResultatMs": 63306,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2122,
+          "delaiNoteMs": 1545,
+          "scoreEssai": 0.994,
+          "vitesse": 0.35,
+          "points": 134,
+          "serie": 9,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.758,
+            "taux": 0.714,
+            "temps": 0.797
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.833,
+              "ponderee": 0.788,
+              "derniers": 0.876
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.827,
+              "ponderee": 0.783,
+              "derniers": 0.8
+            }
+          }
+        },
+        {
+          "index": 34,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 63315,
+          "tAttendueMs": 63315,
+          "tResultatMs": 65192,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1876,
+          "delaiNoteMs": 1876,
+          "scoreEssai": 0.979,
+          "vitesse": 0.35,
+          "points": 264,
+          "serie": 10,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.99,
+            "taux": 1,
+            "temps": 0.962
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.832,
+              "ponderee": 0.787,
+              "derniers": 0.874
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.824,
+              "ponderee": 0.779,
+              "derniers": 0.792
+            }
+          }
+        },
+        {
+          "index": 35,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 65197,
+          "tAttendueMs": 65197,
+          "tResultatMs": 67162,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1965,
+          "delaiNoteMs": 1965,
+          "scoreEssai": 0.974,
+          "vitesse": 0.35,
+          "points": 263,
+          "serie": 11,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.993,
+            "taux": 1,
+            "temps": 0.979
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.832,
+              "ponderee": 0.786,
+              "derniers": 0.934
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.822,
+              "ponderee": 0.777,
+              "derniers": 0.849
+            }
+          }
+        },
+        {
+          "index": 36,
+          "niveau": 2,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 67162,
+          "tAttendueMs": 67162,
+          "tResultatMs": 69620,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2458,
+          "delaiNoteMs": 2458,
+          "scoreEssai": 0.932,
+          "vitesse": 0.35,
+          "points": 252,
+          "serie": 12,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.963,
+            "taux": 1,
+            "temps": 0.888
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.831,
+              "ponderee": 0.786,
+              "derniers": 0.928
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.819,
+              "ponderee": 0.775,
+              "derniers": 0.828
+            }
+          }
+        },
+        {
+          "index": 37,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 69626,
+          "tAttendueMs": 69626,
+          "tResultatMs": 71157,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1530,
+          "delaiNoteMs": 1530,
+          "scoreEssai": 0.998,
+          "vitesse": 0.35,
+          "points": 270,
+          "serie": 13,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.992,
+            "taux": 1,
+            "temps": 0.97
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.831,
+              "ponderee": 0.786,
+              "derniers": 0.928
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.82,
+              "ponderee": 0.776,
+              "derniers": 0.829
+            }
+          }
+        },
+        {
+          "index": 38,
+          "niveau": 2,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 71158,
+          "tAttendueMs": 71158,
+          "tResultatMs": 72974,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1815,
+          "delaiNoteMs": 1815,
+          "scoreEssai": 0.982,
+          "vitesse": 0.35,
+          "points": 265,
+          "serie": 14,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.755,
+            "taux": 0.714,
+            "temps": 0.783
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.831,
+              "ponderee": 0.786,
+              "derniers": 0.932
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.818,
+              "ponderee": 0.775,
+              "derniers": 0.84
+            }
+          }
+        },
+        {
+          "index": 39,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 72973,
+          "tAttendueMs": 72973,
+          "tResultatMs": 74380,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1407,
+          "delaiNoteMs": 1407,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 270,
+          "serie": 15,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.97,
+            "taux": 1,
+            "temps": 0.974
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.832,
+              "ponderee": 0.787,
+              "derniers": 0.933
+            },
+            "taux": {
+              "moyenne": 0.839,
+              "ponderee": 0.796,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.819,
+              "ponderee": 0.777,
+              "derniers": 0.843
+            }
+          }
+        },
+        {
+          "index": 40,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 74388,
+          "tAttendueMs": 74388,
+          "tResultatMs": 75747,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1359,
+          "delaiNoteMs": 1359,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 270,
+          "serie": 16,
+          "touchee": {
+            "corde": 6,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.943,
+              "ponderee": 0.954,
+              "derniers": 0.97
+            },
+            "taux": {
+              "moyenne": 0.95,
+              "ponderee": 0.962,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.931,
+              "ponderee": 0.943,
+              "derniers": 0.942
+            }
+          }
+        },
+        {
+          "index": 41,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 75753,
+          "tAttendueMs": 75753,
+          "tResultatMs": 77059,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1305,
+          "delaiNoteMs": 1305,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 270,
+          "serie": 17,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.993,
+            "taux": 1,
+            "temps": 0.979
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.943,
+              "ponderee": 0.954,
+              "derniers": 0.982
+            },
+            "taux": {
+              "moyenne": 0.95,
+              "ponderee": 0.962,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.931,
+              "ponderee": 0.943,
+              "derniers": 0.951
+            }
+          }
+        },
+        {
+          "index": 42,
+          "niveau": 2,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 77069,
+          "tAttendueMs": 77069,
+          "tResultatMs": 78756,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1687,
+          "delaiNoteMs": 1687,
+          "scoreEssai": 0.99,
+          "vitesse": 0.35,
+          "points": 267,
+          "serie": 18,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.924,
+            "taux": 1,
+            "temps": 0.794
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.954,
+              "ponderee": 0.962,
+              "derniers": 0.985
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.93,
+              "ponderee": 0.942,
+              "derniers": 0.947
+            }
+          }
+        },
+        {
+          "index": 43,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 78767,
+          "tAttendueMs": 78767,
+          "tResultatMs": 80342,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1575,
+          "delaiNoteMs": 1575,
+          "scoreEssai": 0.996,
+          "vitesse": 0.35,
+          "points": 269,
+          "serie": 19,
+          "touchee": {
+            "corde": 6,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 0.992
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.953,
+              "ponderee": 0.962,
+              "derniers": 0.985
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.929,
+              "ponderee": 0.941,
+              "derniers": 0.947
+            }
+          }
+        },
+        {
+          "index": 44,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 80349,
+          "tAttendueMs": 80349,
+          "tResultatMs": 82344,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1996,
+          "delaiNoteMs": 1996,
+          "scoreEssai": 0.972,
+          "vitesse": 0.35,
+          "points": 394,
+          "serie": 20,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.97,
+            "taux": 1,
+            "temps": 0.957
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.953,
+              "ponderee": 0.962,
+              "derniers": 0.985
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.927,
+              "ponderee": 0.938,
+              "derniers": 0.944
+            }
+          }
+        },
+        {
+          "index": 45,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 82346,
+          "tAttendueMs": 82346,
+          "tResultatMs": 83755,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1409,
+          "delaiNoteMs": 1409,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 405,
+          "serie": 21,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.999,
+            "taux": 1,
+            "temps": 0.995
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.954,
+              "ponderee": 0.962,
+              "derniers": 0.987
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.927,
+              "ponderee": 0.938,
+              "derniers": 0.954
+            }
+          }
+        },
+        {
+          "index": 46,
+          "niveau": 2,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 83762,
+          "tAttendueMs": 83762,
+          "tResultatMs": 85059,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1297,
+          "delaiNoteMs": 1297,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 405,
+          "serie": 22,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.994,
+            "taux": 1,
+            "temps": 0.976
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.954,
+              "ponderee": 0.962,
+              "derniers": 0.994
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.939,
+              "derniers": 0.975
+            }
+          }
+        },
+        {
+          "index": 47,
+          "niveau": 2,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 85060,
+          "tAttendueMs": 85060,
+          "tResultatMs": 86411,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1351,
+          "delaiNoteMs": 1351,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 405,
+          "serie": 23,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.987,
+            "taux": 1,
+            "temps": 0.985
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.954,
+              "ponderee": 0.962,
+              "derniers": 0.994
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.939,
+              "derniers": 0.976
+            }
+          }
+        },
+        {
+          "index": 48,
+          "niveau": 2,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 86409,
+          "tAttendueMs": 86409,
+          "tResultatMs": 88290,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1881,
+          "delaiNoteMs": 1881,
+          "scoreEssai": 0.979,
+          "vitesse": 0.35,
+          "points": 396,
+          "serie": 24,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.982,
+            "taux": 1,
+            "temps": 0.94
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.956,
+              "ponderee": 0.964,
+              "derniers": 0.994
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.933,
+              "ponderee": 0.944,
+              "derniers": 0.975
+            }
+          }
+        },
+        {
+          "index": 49,
+          "niveau": 2,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 88290,
+          "tAttendueMs": 88290,
+          "tResultatMs": 90500,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2211,
+          "delaiNoteMs": 2211,
+          "scoreEssai": 0.954,
+          "vitesse": 0.35,
+          "points": 386,
+          "serie": 25,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.914,
+            "taux": 1,
+            "temps": 0.762
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.955,
+              "ponderee": 0.963,
+              "derniers": 0.989
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.93,
+              "ponderee": 0.941,
+              "derniers": 0.959
+            }
+          }
+        },
+        {
+          "index": 50,
+          "niveau": 2,
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 90504,
+          "tAttendueMs": 90504,
+          "tResultatMs": 91886,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1382,
+          "delaiNoteMs": 1382,
+          "scoreEssai": 1,
+          "vitesse": 0.35,
+          "points": 405,
+          "serie": 26,
+          "touchee": {
+            "corde": 6,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.999,
+            "taux": 1,
+            "temps": 0.994
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.955,
+              "ponderee": 0.963,
+              "derniers": 0.989
+            },
+            "taux": {
+              "moyenne": 0.968,
+              "ponderee": 0.976,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.93,
+              "ponderee": 0.942,
+              "derniers": 0.959
+            }
+          }
+        },
+        {
+          "index": 51,
+          "niveau": 3,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 97897,
+          "tAttendueMs": 97897,
+          "tResultatMs": 101082,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 3185,
+          "delaiNoteMs": 3185,
+          "scoreEssai": 0.869,
+          "vitesse": 0,
+          "points": 261,
+          "serie": 27,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.869,
+            "taux": 1,
+            "temps": 0.626
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.789,
+              "ponderee": 0.675,
+              "derniers": 0.976
+            },
+            "taux": {
+              "moyenne": 0.81,
+              "ponderee": 0.701,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.75,
+              "ponderee": 0.627,
+              "derniers": 0.921
+            }
+          }
+        },
+        {
+          "index": 52,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 2
+          },
+          "nom": "A",
+          "cordeDemandee": true,
+          "tApparitionMs": 101093,
+          "tAttendueMs": 101093,
+          "tResultatMs": 102524,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1430,
+          "delaiNoteMs": 1430,
+          "scoreEssai": 1,
+          "vitesse": 0.087,
+          "points": 326,
+          "serie": 28,
+          "touchee": {
+            "corde": 3,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.872,
+              "ponderee": 0.817,
+              "derniers": 0.977
+            },
+            "taux": {
+              "moyenne": 0.893,
+              "ponderee": 0.844,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.833,
+              "ponderee": 0.77,
+              "derniers": 0.926
+            }
+          }
+        },
+        {
+          "index": 53,
+          "niveau": 3,
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 102527,
+          "tAttendueMs": 102527,
+          "tResultatMs": 103772,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1246,
+          "delaiNoteMs": 1246,
+          "scoreEssai": 1,
+          "vitesse": 0.187,
+          "points": 356,
+          "serie": 29,
+          "touchee": {
+            "corde": 6,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.999,
+            "taux": 1,
+            "temps": 0.996
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.872,
+              "ponderee": 0.817,
+              "derniers": 0.977
+            },
+            "taux": {
+              "moyenne": 0.893,
+              "ponderee": 0.844,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.833,
+              "ponderee": 0.77,
+              "derniers": 0.927
+            }
+          }
+        },
+        {
+          "index": 54,
+          "niveau": 3,
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "cordeDemandee": true,
+          "tApparitionMs": 103776,
+          "tAttendueMs": 103776,
+          "tResultatMs": 104815,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1039,
+          "delaiNoteMs": 1039,
+          "scoreEssai": 1,
+          "vitesse": 0.287,
+          "points": 515,
+          "serie": 30,
+          "touchee": {
+            "corde": 5,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.955,
+              "ponderee": 0.96,
+              "derniers": 0.98
+            },
+            "taux": {
+              "moyenne": 0.976,
+              "ponderee": 0.986,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.917,
+              "ponderee": 0.913,
+              "derniers": 0.938
+            }
+          }
+        },
+        {
+          "index": 55,
+          "niveau": 3,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 104824,
+          "tAttendueMs": 104824,
+          "tResultatMs": 106898,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2074,
+          "delaiNoteMs": 2074,
+          "scoreEssai": 0.966,
+          "vitesse": 0.387,
+          "points": 536,
+          "serie": 31,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.975,
+            "taux": 1,
+            "temps": 0.915
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.955,
+              "ponderee": 0.96,
+              "derniers": 0.977
+            },
+            "taux": {
+              "moyenne": 0.976,
+              "ponderee": 0.986,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.912,
+              "derniers": 0.926
+            }
+          }
+        },
+        {
+          "index": 56,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 106906,
+          "tAttendueMs": 106906,
+          "tResultatMs": 108646,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1740,
+          "delaiNoteMs": 1740,
+          "scoreEssai": 0.987,
+          "vitesse": 0.4,
+          "points": 553,
+          "serie": 32,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.856,
+            "taux": 0.833,
+            "temps": 0.801
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.963,
+              "ponderee": 0.965,
+              "derniers": 0.975
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.916,
+              "ponderee": 0.913,
+              "derniers": 0.92
+            }
+          }
+        },
+        {
+          "index": 57,
+          "niveau": 3,
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "cordeDemandee": true,
+          "tApparitionMs": 108654,
+          "tAttendueMs": 108654,
+          "tResultatMs": 110337,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1683,
+          "delaiNoteMs": 1683,
+          "scoreEssai": 0.99,
+          "vitesse": 0.4,
+          "points": 554,
+          "serie": 33,
+          "touchee": {
+            "corde": 5,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.995,
+            "taux": 1,
+            "temps": 0.98
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.963,
+              "ponderee": 0.964,
+              "derniers": 0.974
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.91,
+              "derniers": 0.916
+            }
+          }
+        },
+        {
+          "index": 58,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 2
+          },
+          "nom": "A",
+          "cordeDemandee": true,
+          "tApparitionMs": 110336,
+          "tAttendueMs": 110336,
+          "tResultatMs": 111920,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1584,
+          "delaiNoteMs": 1584,
+          "scoreEssai": 0.995,
+          "vitesse": 0.4,
+          "points": 557,
+          "serie": 34,
+          "touchee": {
+            "corde": 3,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 0.991
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.963,
+              "ponderee": 0.964,
+              "derniers": 0.976
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.909,
+              "derniers": 0.923
+            }
+          }
+        },
+        {
+          "index": 59,
+          "niveau": 3,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 111918,
+          "tAttendueMs": 111918,
+          "tResultatMs": 113536,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1618,
+          "delaiNoteMs": 1618,
+          "scoreEssai": 0.993,
+          "vitesse": 0.4,
+          "points": 556,
+          "serie": 35,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.913,
+            "taux": 1,
+            "temps": 0.757
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.962,
+              "ponderee": 0.964,
+              "derniers": 0.98
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.913,
+              "ponderee": 0.908,
+              "derniers": 0.936
+            }
+          }
+        },
+        {
+          "index": 60,
+          "niveau": 3,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 113534,
+          "tAttendueMs": 113534,
+          "tResultatMs": 114928,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1395,
+          "delaiNoteMs": 1395,
+          "scoreEssai": 1,
+          "vitesse": 0.4,
+          "points": 560,
+          "serie": 36,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.994,
+            "taux": 1,
+            "temps": 0.976
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.962,
+              "ponderee": 0.964,
+              "derniers": 0.98
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.913,
+              "ponderee": 0.908,
+              "derniers": 0.936
+            }
+          }
+        },
+        {
+          "index": 61,
+          "niveau": 3,
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "cordeDemandee": true,
+          "tApparitionMs": 114932,
+          "tAttendueMs": 114932,
+          "tResultatMs": 116104,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1171,
+          "delaiNoteMs": 1171,
+          "scoreEssai": 1,
+          "vitesse": 0.4,
+          "points": 560,
+          "serie": 37,
+          "touchee": {
+            "corde": 5,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.997,
+            "taux": 1,
+            "temps": 0.986
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.963,
+              "ponderee": 0.964,
+              "derniers": 0.993
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.914,
+              "ponderee": 0.909,
+              "derniers": 0.973
+            }
+          }
+        },
+        {
+          "index": 62,
+          "niveau": 3,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 116114,
+          "tAttendueMs": 116114,
+          "tResultatMs": 117686,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1572,
+          "delaiNoteMs": 1572,
+          "scoreEssai": 0.996,
+          "vitesse": 0.4,
+          "points": 558,
+          "serie": 38,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.933,
+            "taux": 1,
+            "temps": 0.805
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.968,
+              "ponderee": 0.973,
+              "derniers": 0.993
+            },
+            "taux": {
+              "moyenne": 0.986,
+              "ponderee": 0.992,
+              "derniers": 1
+            },
+            "temps": {
+              "moyenne": 0.929,
+              "ponderee": 0.935,
+              "derniers": 0.972
+            }
+          }
+        },
+        {
+          "index": 63,
+          "niveau": 3,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 117696,
+          "tAttendueMs": 117696,
+          "tResultatMs": 120999,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 3303,
+          "delaiNoteMs": 3303,
+          "scoreEssai": 0.43,
+          "vitesse": 0.34,
+          "points": 58,
+          "serie": 1,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 120150,
+              "position": {
+                "corde": 4,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.861,
+            "taux": 0.833,
+            "temps": 0.835
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.958,
+              "ponderee": 0.968,
+              "derniers": 0.936
+            },
+            "taux": {
+              "moyenne": 0.972,
+              "ponderee": 0.984,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.922,
+              "ponderee": 0.931,
+              "derniers": 0.932
+            }
+          }
+        },
+        {
+          "index": 64,
+          "niveau": 3,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 120210,
+          "tAttendueMs": 120999,
+          "tResultatMs": 123153,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 2943,
+          "delaiNoteMs": 2154,
+          "scoreEssai": 0.467,
+          "vitesse": 0.326,
+          "points": 62,
+          "serie": 1,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [
+            {
+              "tMs": 122154,
+              "position": {
+                "corde": 2,
+                "case": 2
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.864,
+            "taux": 0.833,
+            "temps": 0.928
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.95,
+              "ponderee": 0.957,
+              "derniers": 0.882
+            },
+            "taux": {
+              "moyenne": 0.958,
+              "ponderee": 0.968,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.92,
+              "ponderee": 0.928,
+              "derniers": 0.917
+            }
+          }
+        },
+        {
+          "index": 65,
+          "niveau": 3,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 123057,
+          "tAttendueMs": 123153,
+          "tResultatMs": 125246,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2190,
+          "delaiNoteMs": 2094,
+          "scoreEssai": 0.961,
+          "vitesse": 0.372,
+          "points": 132,
+          "serie": 2,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.991,
+            "taux": 1,
+            "temps": 0.97
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.949,
+              "ponderee": 0.957,
+              "derniers": 0.882
+            },
+            "taux": {
+              "moyenne": 0.958,
+              "ponderee": 0.968,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.917,
+              "ponderee": 0.927,
+              "derniers": 0.917
+            }
+          }
+        },
+        {
+          "index": 66,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 125254,
+          "tAttendueMs": 125254,
+          "tResultatMs": 126430,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1175,
+          "delaiNoteMs": 1175,
+          "scoreEssai": 1,
+          "vitesse": 0.4,
+          "points": 140,
+          "serie": 3,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.981,
+            "taux": 1,
+            "temps": 0.936
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.959,
+              "ponderee": 0.963,
+              "derniers": 0.883
+            },
+            "taux": {
+              "moyenne": 0.972,
+              "ponderee": 0.976,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.929,
+              "ponderee": 0.934,
+              "derniers": 0.922
+            }
+          }
+        },
+        {
+          "index": 67,
+          "niveau": 3,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 126436,
+          "tAttendueMs": 126436,
+          "tResultatMs": 127521,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1085,
+          "delaiNoteMs": 1085,
+          "scoreEssai": 1,
+          "vitesse": 0.4,
+          "points": 140,
+          "serie": 4,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.987,
+            "taux": 1,
+            "temps": 0.985
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.959,
+              "ponderee": 0.963,
+              "derniers": 0.884
+            },
+            "taux": {
+              "moyenne": 0.972,
+              "ponderee": 0.976,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.929,
+              "ponderee": 0.934,
+              "derniers": 0.926
+            }
+          }
+        },
+        {
+          "index": 68,
+          "niveau": 3,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 127519,
+          "tAttendueMs": 127519,
+          "tResultatMs": 129030,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1512,
+          "delaiNoteMs": 1512,
+          "scoreEssai": 0.999,
+          "vitesse": 0.4,
+          "points": 140,
+          "serie": 5,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.955,
+            "taux": 1,
+            "temps": 0.869
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.961,
+              "ponderee": 0.966,
+              "derniers": 0.885
+            },
+            "taux": {
+              "moyenne": 0.972,
+              "ponderee": 0.976,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.934,
+              "ponderee": 0.943,
+              "derniers": 0.928
+            }
+          }
+        },
+        {
+          "index": 69,
+          "niveau": 3,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 129034,
+          "tAttendueMs": 129034,
+          "tResultatMs": 131266,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 2232,
+          "delaiNoteMs": 2232,
+          "scoreEssai": 0.476,
+          "vitesse": 0.34,
+          "points": 64,
+          "serie": 1,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [
+            {
+              "tMs": 130117,
+              "position": {
+                "corde": 2,
+                "case": 2
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.76,
+            "taux": 0.714,
+            "temps": 0.898
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.952,
+              "ponderee": 0.956,
+              "derniers": 0.833
+            },
+            "taux": {
+              "moyenne": 0.962,
+              "ponderee": 0.965,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.932,
+              "ponderee": 0.94,
+              "derniers": 0.914
+            }
+          }
+        },
+        {
+          "index": 70,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 131265,
+          "tAttendueMs": 131265,
+          "tResultatMs": 132631,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1366,
+          "delaiNoteMs": 1366,
+          "scoreEssai": 1,
+          "vitesse": 0.388,
+          "points": 139,
+          "serie": 2,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.993,
+            "taux": 1,
+            "temps": 0.973
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.953,
+              "ponderee": 0.957,
+              "derniers": 0.833
+            },
+            "taux": {
+              "moyenne": 0.962,
+              "ponderee": 0.965,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.935,
+              "ponderee": 0.942,
+              "derniers": 0.914
+            }
+          }
+        },
+        {
+          "index": 71,
+          "niveau": 3,
+          "position": {
+            "corde": 3,
+            "case": 2
+          },
+          "nom": "A",
+          "cordeDemandee": true,
+          "tApparitionMs": 132631,
+          "tAttendueMs": 132631,
+          "tResultatMs": 134276,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1645,
+          "delaiNoteMs": 1645,
+          "scoreEssai": 0.992,
+          "vitesse": 0.4,
+          "points": 139,
+          "serie": 3,
+          "touchee": {
+            "corde": 3,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.996,
+            "taux": 1,
+            "temps": 0.983
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.953,
+              "ponderee": 0.956,
+              "derniers": 0.832
+            },
+            "taux": {
+              "moyenne": 0.962,
+              "ponderee": 0.965,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.934,
+              "ponderee": 0.941,
+              "derniers": 0.911
+            }
+          }
+        },
+        {
+          "index": 72,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 140292,
+          "tAttendueMs": 140292,
+          "tResultatMs": 142641,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2349,
+          "delaiNoteMs": 2349,
+          "scoreEssai": 0.942,
+          "vitesse": 0,
+          "points": 94,
+          "serie": 4,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.952,
+            "taux": 1,
+            "temps": 0.855
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.762,
+              "ponderee": 0.608,
+              "derniers": 0.827
+            },
+            "taux": {
+              "moyenne": 0.77,
+              "ponderee": 0.614,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.746,
+              "ponderee": 0.597,
+              "derniers": 0.894
+            }
+          }
+        },
+        {
+          "index": 73,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 142640,
+          "tAttendueMs": 142640,
+          "tResultatMs": 143860,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1220,
+          "delaiNoteMs": 1220,
+          "scoreEssai": 1,
+          "vitesse": 0.094,
+          "points": 109,
+          "serie": 5,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.783,
+            "taux": 0.714,
+            "temps": 0.916
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.764,
+              "ponderee": 0.61,
+              "derniers": 0.884
+            },
+            "taux": {
+              "moyenne": 0.77,
+              "ponderee": 0.614,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.747,
+              "ponderee": 0.598,
+              "derniers": 0.934
+            }
+          }
+        },
+        {
+          "index": 74,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 3
+          },
+          "nom": "G",
+          "cordeDemandee": true,
+          "tApparitionMs": 143871,
+          "tAttendueMs": 143871,
+          "tResultatMs": 145658,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1787,
+          "delaiNoteMs": 1787,
+          "scoreEssai": 0.984,
+          "vitesse": 0.194,
+          "points": 118,
+          "serie": 6,
+          "touchee": {
+            "corde": 6,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.984,
+            "taux": 1,
+            "temps": 0.936
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.83,
+              "ponderee": 0.729,
+              "derniers": 0.935
+            },
+            "taux": {
+              "moyenne": 0.837,
+              "ponderee": 0.735,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.81,
+              "ponderee": 0.712,
+              "derniers": 0.942
+            }
+          }
+        },
+        {
+          "index": 75,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 145669,
+          "tAttendueMs": 145669,
+          "tResultatMs": 146797,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1128,
+          "delaiNoteMs": 1128,
+          "scoreEssai": 1,
+          "vitesse": 0.293,
+          "points": 129,
+          "serie": 7,
+          "touchee": {
+            "corde": 6,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.999,
+            "taux": 1,
+            "temps": 0.997
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.83,
+              "ponderee": 0.729,
+              "derniers": 0.939
+            },
+            "taux": {
+              "moyenne": 0.837,
+              "ponderee": 0.735,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.81,
+              "ponderee": 0.712,
+              "derniers": 0.955
+            }
+          }
+        },
+        {
+          "index": 76,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 146801,
+          "tAttendueMs": 146801,
+          "tResultatMs": 150892,
+          "resultat": "juste",
+          "erreurs": 2,
+          "justesse": 0.25,
+          "delaiApparitionMs": 4091,
+          "delaiNoteMs": 4091,
+          "scoreEssai": 0.198,
+          "vitesse": 0.284,
+          "points": 25,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [
+            {
+              "tMs": 149488,
+              "position": {
+                "corde": 3,
+                "case": 3
+              },
+              "penalite": 50
+            },
+            {
+              "tMs": 150208,
+              "position": {
+                "corde": 4,
+                "case": 3
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.801,
+            "taux": 0.714,
+            "temps": 0.769
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.819,
+              "ponderee": 0.715,
+              "derniers": 0.859
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.804,
+              "ponderee": 0.704,
+              "derniers": 0.897
+            }
+          }
+        },
+        {
+          "index": 77,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 149349,
+          "tAttendueMs": 150892,
+          "tResultatMs": 152762,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 3413,
+          "delaiNoteMs": 1870,
+          "scoreEssai": 0.935,
+          "vitesse": 0.303,
+          "points": 122,
+          "serie": 2,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.974,
+            "taux": 1,
+            "temps": 0.969
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.819,
+              "ponderee": 0.715,
+              "derniers": 0.853
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.803,
+              "ponderee": 0.704,
+              "derniers": 0.889
+            }
+          }
+        },
+        {
+          "index": 78,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 152580,
+          "tAttendueMs": 152762,
+          "tResultatMs": 154388,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1808,
+          "delaiNoteMs": 1626,
+          "scoreEssai": 0.993,
+          "vitesse": 0.397,
+          "points": 139,
+          "serie": 3,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.782,
+            "taux": 0.714,
+            "temps": 0.911
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.819,
+              "ponderee": 0.715,
+              "derniers": 0.852
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.803,
+              "ponderee": 0.703,
+              "derniers": 0.887
+            }
+          }
+        },
+        {
+          "index": 79,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 3
+          },
+          "nom": "G",
+          "cordeDemandee": true,
+          "tApparitionMs": 154395,
+          "tAttendueMs": 154395,
+          "tResultatMs": 155974,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1579,
+          "delaiNoteMs": 1579,
+          "scoreEssai": 0.996,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 4,
+          "touchee": {
+            "corde": 6,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.99,
+            "taux": 1,
+            "temps": 0.959
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.819,
+              "ponderee": 0.716,
+              "derniers": 0.904
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.804,
+              "ponderee": 0.706,
+              "derniers": 0.901
+            }
+          }
+        },
+        {
+          "index": 80,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "cordeDemandee": true,
+          "tApparitionMs": 155977,
+          "tAttendueMs": 155977,
+          "tResultatMs": 158449,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2472,
+          "delaiNoteMs": 2472,
+          "scoreEssai": 0.931,
+          "vitesse": 0.45,
+          "points": 135,
+          "serie": 5,
+          "touchee": {
+            "corde": 5,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.98,
+            "taux": 1,
+            "temps": 0.936
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.818,
+              "ponderee": 0.714,
+              "derniers": 0.897
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.801,
+              "ponderee": 0.701,
+              "derniers": 0.88
+            }
+          }
+        },
+        {
+          "index": 81,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 158209,
+          "tAttendueMs": 158449,
+          "tResultatMs": 159705,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1496,
+          "delaiNoteMs": 1256,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 6,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.827,
+            "taux": 0.714,
+            "temps": 0.843
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.82,
+              "ponderee": 0.716,
+              "derniers": 0.898
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.806,
+              "ponderee": 0.708,
+              "derniers": 0.883
+            }
+          }
+        },
+        {
+          "index": 82,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 1
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 159708,
+          "tAttendueMs": 159708,
+          "tResultatMs": 161321,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1613,
+          "delaiNoteMs": 1613,
+          "scoreEssai": 0.994,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 7,
+          "touchee": {
+            "corde": 2,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.786,
+            "taux": 0.714,
+            "temps": 0.928
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.82,
+              "ponderee": 0.717,
+              "derniers": 0.903
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.807,
+              "ponderee": 0.709,
+              "derniers": 0.899
+            }
+          }
+        },
+        {
+          "index": 83,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 161323,
+          "tAttendueMs": 161323,
+          "tResultatMs": 162452,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1129,
+          "delaiNoteMs": 1129,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 8,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.995,
+            "taux": 1,
+            "temps": 0.982
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.82,
+              "ponderee": 0.717,
+              "derniers": 0.903
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.807,
+              "ponderee": 0.71,
+              "derniers": 0.899
+            }
+          }
+        },
+        {
+          "index": 84,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 2
+          },
+          "nom": "E",
+          "cordeDemandee": true,
+          "tApparitionMs": 162456,
+          "tAttendueMs": 162456,
+          "tResultatMs": 163862,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1406,
+          "delaiNoteMs": 1406,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 9,
+          "touchee": {
+            "corde": 4,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.828,
+            "taux": 0.714,
+            "temps": 0.847
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.82,
+              "ponderee": 0.717,
+              "derniers": 0.905
+            },
+            "taux": {
+              "moyenne": 0.817,
+              "ponderee": 0.709,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.808,
+              "ponderee": 0.71,
+              "derniers": 0.906
+            }
+          }
+        },
+        {
+          "index": 85,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 163871,
+          "tAttendueMs": 163871,
+          "tResultatMs": 166330,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 2459,
+          "delaiNoteMs": 2459,
+          "scoreEssai": 0.466,
+          "vitesse": 0.383,
+          "points": 64,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 165143,
+              "position": {
+                "corde": 3,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.806,
+            "taux": 0.833,
+            "temps": 0.714
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.813,
+              "ponderee": 0.714,
+              "derniers": 0.851
+            },
+            "taux": {
+              "moyenne": 0.806,
+              "ponderee": 0.704,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.805,
+              "ponderee": 0.709,
+              "derniers": 0.884
+            }
+          }
+        },
+        {
+          "index": 86,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 166269,
+          "tAttendueMs": 166330,
+          "tResultatMs": 167595,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1326,
+          "delaiNoteMs": 1265,
+          "scoreEssai": 1,
+          "vitesse": 0.429,
+          "points": 143,
+          "serie": 2,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 0.999
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.813,
+              "ponderee": 0.714,
+              "derniers": 0.932
+            },
+            "taux": {
+              "moyenne": 0.806,
+              "ponderee": 0.704,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.806,
+              "ponderee": 0.71,
+              "derniers": 0.942
+            }
+          }
+        },
+        {
+          "index": 87,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 167601,
+          "tAttendueMs": 167601,
+          "tResultatMs": 169229,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1628,
+          "delaiNoteMs": 1628,
+          "scoreEssai": 0.993,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 3,
+          "touchee": {
+            "corde": 5,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.993,
+            "taux": 1,
+            "temps": 0.972
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.879,
+              "ponderee": 0.834,
+              "derniers": 0.937
+            },
+            "taux": {
+              "moyenne": 0.873,
+              "ponderee": 0.825,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.871,
+              "ponderee": 0.827,
+              "derniers": 0.947
+            }
+          }
+        },
+        {
+          "index": 88,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 3
+          },
+          "nom": "G",
+          "cordeDemandee": true,
+          "tApparitionMs": 169234,
+          "tAttendueMs": 169234,
+          "tResultatMs": 170696,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1462,
+          "delaiNoteMs": 1462,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 4,
+          "touchee": {
+            "corde": 6,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.993,
+            "taux": 1,
+            "temps": 0.973
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.88,
+              "ponderee": 0.835,
+              "derniers": 0.938
+            },
+            "taux": {
+              "moyenne": 0.873,
+              "ponderee": 0.825,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.872,
+              "ponderee": 0.829,
+              "derniers": 0.95
+            }
+          }
+        },
+        {
+          "index": 89,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 3
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 170699,
+          "tAttendueMs": 170699,
+          "tResultatMs": 172622,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1922,
+          "delaiNoteMs": 1922,
+          "scoreEssai": 0.977,
+          "vitesse": 0.45,
+          "points": 142,
+          "serie": 5,
+          "touchee": {
+            "corde": 4,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.977,
+            "taux": 1,
+            "temps": 0.906
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.945,
+              "ponderee": 0.953,
+              "derniers": 0.936
+            },
+            "taux": {
+              "moyenne": 0.94,
+              "ponderee": 0.947,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.932,
+              "ponderee": 0.939,
+              "derniers": 0.942
+            }
+          }
+        },
+        {
+          "index": 90,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 172632,
+          "tAttendueMs": 172632,
+          "tResultatMs": 174207,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1576,
+          "delaiNoteMs": 1576,
+          "scoreEssai": 0.996,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 6,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.977,
+            "taux": 1,
+            "temps": 0.98
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.945,
+              "ponderee": 0.953,
+              "derniers": 0.943
+            },
+            "taux": {
+              "moyenne": 0.94,
+              "ponderee": 0.947,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.933,
+              "ponderee": 0.939,
+              "derniers": 0.962
+            }
+          }
+        },
+        {
+          "index": 91,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 174214,
+          "tAttendueMs": 174214,
+          "tResultatMs": 175581,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1367,
+          "delaiNoteMs": 1367,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 7,
+          "touchee": {
+            "corde": 5,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.996,
+            "taux": 1,
+            "temps": 0.986
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.945,
+              "ponderee": 0.954,
+              "derniers": 0.943
+            },
+            "taux": {
+              "moyenne": 0.94,
+              "ponderee": 0.947,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.934,
+              "ponderee": 0.941,
+              "derniers": 0.962
+            }
+          }
+        },
+        {
+          "index": 92,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 175580,
+          "tAttendueMs": 175580,
+          "tResultatMs": 176660,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1081,
+          "delaiNoteMs": 1081,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 8,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 1,
+            "taux": 1,
+            "temps": 1
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.945,
+              "ponderee": 0.954,
+              "derniers": 0.943
+            },
+            "taux": {
+              "moyenne": 0.94,
+              "ponderee": 0.947,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.934,
+              "ponderee": 0.941,
+              "derniers": 0.965
+            }
+          }
+        },
+        {
+          "index": 93,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 176662,
+          "tAttendueMs": 176662,
+          "tResultatMs": 179419,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 2756,
+          "delaiNoteMs": 2756,
+          "scoreEssai": 0.453,
+          "vitesse": 0.383,
+          "points": 63,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 177989,
+              "position": {
+                "corde": 3,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.771,
+            "taux": 0.714,
+            "temps": 0.856
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.943,
+              "ponderee": 0.953,
+              "derniers": 0.888
+            },
+            "taux": {
+              "moyenne": 0.932,
+              "ponderee": 0.943,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.943,
+              "ponderee": 0.945,
+              "derniers": 0.937
+            }
+          }
+        },
+        {
+          "index": 94,
+          "niveau": 4,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 179061,
+          "tAttendueMs": 179419,
+          "tResultatMs": 180690,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1629,
+          "delaiNoteMs": 1271,
+          "scoreEssai": 1,
+          "vitesse": 0.428,
+          "points": 143,
+          "serie": 2,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.994,
+            "taux": 1,
+            "temps": 0.975
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.943,
+              "ponderee": 0.953,
+              "derniers": 0.888
+            },
+            "taux": {
+              "moyenne": 0.932,
+              "ponderee": 0.943,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.943,
+              "ponderee": 0.945,
+              "derniers": 0.937
+            }
+          }
+        },
+        {
+          "index": 95,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 180693,
+          "tAttendueMs": 180693,
+          "tResultatMs": 181976,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1282,
+          "delaiNoteMs": 1282,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 3,
+          "touchee": {
+            "corde": 5,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.998,
+            "taux": 1,
+            "temps": 0.991
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.943,
+              "ponderee": 0.953,
+              "derniers": 0.942
+            },
+            "taux": {
+              "moyenne": 0.932,
+              "ponderee": 0.943,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.944,
+              "ponderee": 0.946,
+              "derniers": 0.958
+            }
+          }
+        },
+        {
+          "index": 96,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 3
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 181976,
+          "tAttendueMs": 181976,
+          "tResultatMs": 183589,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1613,
+          "delaiNoteMs": 1613,
+          "scoreEssai": 0.994,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 4,
+          "touchee": {
+            "corde": 4,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.985,
+            "taux": 1,
+            "temps": 0.941
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.944,
+              "ponderee": 0.954,
+              "derniers": 0.941
+            },
+            "taux": {
+              "moyenne": 0.932,
+              "ponderee": 0.943,
+              "derniers": 0.909
+            },
+            "temps": {
+              "moyenne": 0.946,
+              "ponderee": 0.95,
+              "derniers": 0.956
+            }
+          }
+        },
+        {
+          "index": 97,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 2
+          },
+          "nom": "B",
+          "cordeDemandee": true,
+          "tApparitionMs": 183591,
+          "tAttendueMs": 183591,
+          "tResultatMs": 189801,
+          "resultat": "juste",
+          "erreurs": 2,
+          "justesse": 0.25,
+          "delaiApparitionMs": 6210,
+          "delaiNoteMs": 6210,
+          "scoreEssai": 0.155,
+          "vitesse": 0.325,
+          "points": 20,
+          "serie": 1,
+          "touchee": {
+            "corde": 5,
+            "case": 2
+          },
+          "fausses": [
+            {
+              "tMs": 186790,
+              "position": {
+                "corde": 5,
+                "case": 3
+              },
+              "penalite": 50
+            },
+            {
+              "tMs": 188113,
+              "position": {
+                "corde": 5,
+                "case": 1
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.815,
+            "taux": 0.714,
+            "temps": 0.749
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.933,
+              "ponderee": 0.939,
+              "derniers": 0.857
+            },
+            "taux": {
+              "moyenne": 0.913,
+              "ponderee": 0.917,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.933,
+              "ponderee": 0.933,
+              "derniers": 0.859
+            }
+          }
+        },
+        {
+          "index": 98,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 185823,
+          "tAttendueMs": 189801,
+          "tResultatMs": 191746,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 5923,
+          "delaiNoteMs": 1944,
+          "scoreEssai": 0.853,
+          "vitesse": 0.341,
+          "points": 114,
+          "serie": 2,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.964,
+            "taux": 1,
+            "temps": 0.96
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.931,
+              "ponderee": 0.938,
+              "derniers": 0.843
+            },
+            "taux": {
+              "moyenne": 0.913,
+              "ponderee": 0.917,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.932,
+              "ponderee": 0.933,
+              "derniers": 0.849
+            }
+          }
+        },
+        {
+          "index": 99,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 0
+          },
+          "nom": "D",
+          "cordeDemandee": false,
+          "tApparitionMs": 188305,
+          "tAttendueMs": 191746,
+          "tResultatMs": 194815,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 6510,
+          "delaiNoteMs": 3069,
+          "scoreEssai": 0.386,
+          "vitesse": 0.362,
+          "points": 53,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 0
+          },
+          "fausses": [
+            {
+              "tMs": 193713,
+              "position": {
+                "corde": 3,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.651,
+            "taux": 0.625,
+            "temps": 0.795
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.923,
+              "ponderee": 0.934,
+              "derniers": 0.784
+            },
+            "taux": {
+              "moyenne": 0.907,
+              "ponderee": 0.914,
+              "derniers": 0.714
+            },
+            "temps": {
+              "moyenne": 0.928,
+              "ponderee": 0.931,
+              "derniers": 0.823
+            }
+          }
+        },
+        {
+          "index": 100,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 1
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 191319,
+          "tAttendueMs": 194815,
+          "tResultatMs": 197439,
+          "resultat": "juste",
+          "erreurs": 1,
+          "justesse": 0.5,
+          "delaiApparitionMs": 6120,
+          "delaiNoteMs": 2624,
+          "scoreEssai": 0.404,
+          "vitesse": 0.34,
+          "points": 54,
+          "serie": 1,
+          "touchee": {
+            "corde": 1,
+            "case": 1
+          },
+          "fausses": [
+            {
+              "tMs": 196046,
+              "position": {
+                "corde": 5,
+                "case": 0
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.881,
+            "taux": 0.833,
+            "temps": 0.95
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.915,
+              "ponderee": 0.927,
+              "derniers": 0.724
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.667
+            },
+            "temps": {
+              "moyenne": 0.925,
+              "ponderee": 0.928,
+              "derniers": 0.8
+            }
+          }
+        },
+        {
+          "index": 101,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 193768,
+          "tAttendueMs": 197439,
+          "tResultatMs": 198134,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 4365,
+          "delaiNoteMs": 695,
+          "scoreEssai": 0.926,
+          "vitesse": 0.381,
+          "points": 128,
+          "serie": 2,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.847,
+            "taux": 0.833,
+            "temps": 0.835
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.914,
+              "ponderee": 0.927,
+              "derniers": 0.717
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.667
+            },
+            "temps": {
+              "moyenne": 0.925,
+              "ponderee": 0.928,
+              "derniers": 0.8
+            }
+          }
+        },
+        {
+          "index": 102,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 196434,
+          "tAttendueMs": 198134,
+          "tResultatMs": 199016,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2582,
+          "delaiNoteMs": 882,
+          "scoreEssai": 0.982,
+          "vitesse": 0.45,
+          "points": 142,
+          "serie": 3,
+          "touchee": {
+            "corde": 1,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.989,
+            "taux": 1,
+            "temps": 0.974
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.913,
+              "ponderee": 0.926,
+              "derniers": 0.715
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.667
+            },
+            "temps": {
+              "moyenne": 0.925,
+              "ponderee": 0.928,
+              "derniers": 0.8
+            }
+          }
+        },
+        {
+          "index": 103,
+          "niveau": 4,
+          "position": {
+            "corde": 3,
+            "case": 0
+          },
+          "nom": "G",
+          "cordeDemandee": false,
+          "tApparitionMs": 199015,
+          "tAttendueMs": 199015,
+          "tResultatMs": 200533,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1518,
+          "delaiNoteMs": 1518,
+          "scoreEssai": 0.999,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 4,
+          "touchee": {
+            "corde": 3,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.997,
+            "taux": 1,
+            "temps": 0.989
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.914,
+              "ponderee": 0.927,
+              "derniers": 0.77
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.714
+            },
+            "temps": {
+              "moyenne": 0.926,
+              "ponderee": 0.928,
+              "derniers": 0.827
+            }
+          }
+        },
+        {
+          "index": 104,
+          "niveau": 4,
+          "position": {
+            "corde": 2,
+            "case": 0
+          },
+          "nom": "B",
+          "cordeDemandee": false,
+          "tApparitionMs": 200531,
+          "tAttendueMs": 200531,
+          "tResultatMs": 201775,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1244,
+          "delaiNoteMs": 1244,
+          "scoreEssai": 1,
+          "vitesse": 0.45,
+          "points": 145,
+          "serie": 5,
+          "touchee": {
+            "corde": 2,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.986,
+            "taux": 1,
+            "temps": 0.98
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.914,
+              "ponderee": 0.927,
+              "derniers": 0.77
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.714
+            },
+            "temps": {
+              "moyenne": 0.926,
+              "ponderee": 0.928,
+              "derniers": 0.827
+            }
+          }
+        },
+        {
+          "index": 105,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 201780,
+          "tAttendueMs": 201780,
+          "tResultatMs": 203607,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1827,
+          "delaiNoteMs": 1827,
+          "scoreEssai": 0.982,
+          "vitesse": 0.45,
+          "points": 142,
+          "serie": 6,
+          "touchee": {
+            "corde": 5,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.994,
+            "taux": 1,
+            "temps": 0.975
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.914,
+              "ponderee": 0.926,
+              "derniers": 0.768
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.714
+            },
+            "temps": {
+              "moyenne": 0.925,
+              "ponderee": 0.926,
+              "derniers": 0.82
+            }
+          }
+        },
+        {
+          "index": 106,
+          "niveau": 4,
+          "position": {
+            "corde": 1,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 203612,
+          "tAttendueMs": 203612,
+          "tResultatMs": 206455,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2843,
+          "delaiNoteMs": 2843,
+          "scoreEssai": 0.899,
+          "vitesse": 0.45,
+          "points": 130,
+          "serie": 7,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.968,
+            "taux": 1,
+            "temps": 0.914
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.913,
+              "ponderee": 0.926,
+              "derniers": 0.759
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.714
+            },
+            "temps": {
+              "moyenne": 0.921,
+              "ponderee": 0.925,
+              "derniers": 0.793
+            }
+          }
+        },
+        {
+          "index": 107,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 0
+          },
+          "nom": "A",
+          "cordeDemandee": false,
+          "tApparitionMs": 205844,
+          "tAttendueMs": 206455,
+          "tResultatMs": 208306,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 2462,
+          "delaiNoteMs": 1851,
+          "scoreEssai": 0.966,
+          "vitesse": 0.45,
+          "points": 140,
+          "serie": 8,
+          "touchee": {
+            "corde": 5,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.853,
+            "taux": 0.833,
+            "temps": 0.862
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.913,
+              "ponderee": 0.926,
+              "derniers": 0.84
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.923,
+              "ponderee": 0.925,
+              "derniers": 0.885
+            }
+          }
+        },
+        {
+          "index": 108,
+          "niveau": 4,
+          "position": {
+            "corde": 5,
+            "case": 3
+          },
+          "nom": "C",
+          "cordeDemandee": true,
+          "tApparitionMs": 208076,
+          "tAttendueMs": 208306,
+          "tResultatMs": 209931,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 1855,
+          "delaiNoteMs": 1625,
+          "scoreEssai": 0.993,
+          "vitesse": 0.45,
+          "points": 144,
+          "serie": 9,
+          "touchee": {
+            "corde": 5,
+            "case": 3
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.994,
+            "taux": 1,
+            "temps": 0.974
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.913,
+              "ponderee": 0.926,
+              "derniers": 0.854
+            },
+            "taux": {
+              "moyenne": 0.896,
+              "ponderee": 0.904,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.923,
+              "ponderee": 0.925,
+              "derniers": 0.892
+            }
+          }
+        },
+        {
+          "index": 109,
+          "niveau": 4,
+          "position": {
+            "corde": 4,
+            "case": 3
+          },
+          "nom": "F",
+          "cordeDemandee": true,
+          "tApparitionMs": 209942,
+          "tAttendueMs": 209942,
+          "tResultatMs": 214874,
+          "resultat": "juste",
+          "erreurs": 2,
+          "justesse": 0.25,
+          "delaiApparitionMs": 4932,
+          "delaiNoteMs": 4932,
+          "scoreEssai": 0.179,
+          "vitesse": 0.325,
+          "points": 24,
+          "serie": 1,
+          "touchee": {
+            "corde": 4,
+            "case": 3
+          },
+          "fausses": [
+            {
+              "tMs": 212046,
+              "position": {
+                "corde": 4,
+                "case": 2
+              },
+              "penalite": 50
+            },
+            {
+              "tMs": 212956,
+              "position": {
+                "corde": 4,
+                "case": 1
+              },
+              "penalite": 50
+            }
+          ],
+          "reussites": {
+            "score": 0.717,
+            "taux": 0.6,
+            "temps": 0.706
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.895,
+              "ponderee": 0.893,
+              "derniers": 0.833
+            },
+            "taux": {
+              "moyenne": 0.869,
+              "ponderee": 0.856,
+              "derniers": 0.769
+            },
+            "temps": {
+              "moyenne": 0.907,
+              "ponderee": 0.897,
+              "derniers": 0.851
+            }
+          }
+        },
+        {
+          "index": 110,
+          "niveau": 4,
+          "position": {
+            "corde": 6,
+            "case": 0
+          },
+          "nom": "E",
+          "cordeDemandee": false,
+          "tApparitionMs": 212191,
+          "tAttendueMs": 214874,
+          "tResultatMs": 216618,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 4427,
+          "delaiNoteMs": 1744,
+          "scoreEssai": 0.911,
+          "vitesse": 0.343,
+          "points": 122,
+          "serie": 2,
+          "touchee": {
+            "corde": 6,
+            "case": 0
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.946,
+            "taux": 1,
+            "temps": 0.949
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.894,
+              "ponderee": 0.893,
+              "derniers": 0.884
+            },
+            "taux": {
+              "moyenne": 0.869,
+              "ponderee": 0.856,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.906,
+              "ponderee": 0.897,
+              "derniers": 0.87
+            }
+          }
+        },
+        {
+          "index": 111,
+          "niveau": 4,
+          "position": {
+            "corde": 3,
+            "case": 2
+          },
+          "nom": "A",
+          "cordeDemandee": true,
+          "tApparitionMs": 215123,
+          "tAttendueMs": 216618,
+          "tResultatMs": 219363,
+          "resultat": "juste",
+          "erreurs": 0,
+          "justesse": 1,
+          "delaiApparitionMs": 4240,
+          "delaiNoteMs": 2746,
+          "scoreEssai": 0.861,
+          "vitesse": 0.434,
+          "points": 123,
+          "serie": 3,
+          "touchee": {
+            "corde": 3,
+            "case": 2
+          },
+          "fausses": [],
+          "reussites": {
+            "score": 0.962,
+            "taux": 1,
+            "temps": 0.918
+          },
+          "globales": {
+            "score": {
+              "moyenne": 0.892,
+              "ponderee": 0.89,
+              "derniers": 0.877
+            },
+            "taux": {
+              "moyenne": 0.869,
+              "ponderee": 0.856,
+              "derniers": 0.833
+            },
+            "temps": {
+              "moyenne": 0.902,
+              "ponderee": 0.891,
+              "derniers": 0.843
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

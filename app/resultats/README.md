@@ -1,6 +1,42 @@
 # Résultats de l'application
 
-Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien.
+Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien. Les journaux du mode 1 (`journal-mode1-*.json`) s'analysent avec le skill `analyser-journal-mode1`.
+
+## Journal du mode 1 du 31/10/2026, 1 h 08 (`journal-mode1-20261031-0108.json`)
+
+**Session** : première partie du jeu « Notes qui tombent » au toucher (spec version 3.0), en normal, sur le même téléphone Android (Chrome 156). 4 min 50 de jeu, une pause de 19 s, arrêtée juste après le passage au niveau 5. Images : médiane et p95 de 16,7 ms, aucune au-delà de 33 ms.
+
+| Niveau | Notes | Essais | Durée | Cases fausses | Perdues | Ratées | Délai médian |
+| ------ | ----- | ------ | ----- | ------------- | ------- | ------ | ------------ |
+| 1      | 6     | 21     | 31 s  | 5             | 1       | 0      | 1,1 s        |
+| 2      | 9     | 29     | 55 s  | 1             | 0       | 0      | 1,6 s        |
+| 3      | 12    | 21     | 36 s  | 3             | 0       | 0      | 1,6 s        |
+| 4      | 15    | 40     | 79 s  | 10            | 0       | 0      | 1,6 s        |
+
+Résumé : 111 essais, 110 justes, 19 cases fausses, une note perdue (Si à vide, au 2e essai de la partie), aucune note ratée ; meilleure série 38 ; vitesse max 45 % ; score 25 896.
+
+- **Répétition** : 111 essais en moins de 5 min, contre 104 réponses en une session de quiz. Chaque note a eu 3 à 12 essais ; les 3 notes ajoutées au niveau 5 n'ont pas été jouées (partie arrêtée).
+- **Les niveaux passent vite** : entre 21 et 40 essais. La condition qui décide est celle de chaque note (3 essais, 60 %) et la vitesse ; la réussite du niveau était déjà au-dessus de 80 %.
+- **Notes faibles** : les cordes à vide de Ré (4 cases fausses en 11 essais) et de Si (3 en 11), puis Sol à vide, Do corde 2 case 1, Mi corde 4 case 2, Si corde 5 case 2 et Fa corde 4 case 3 (2 chacune). La corde 4 (Ré) reste la plus faible, comme dans l'export du quiz.
+
+**Rejeu des passages dans chaque difficulté** (essai du niveau où le passage serait validé ; « non » : pas dans les essais joués) :
+
+| Niveau | Réel (normal) | Facile | Normal | Difficile | Hardcore |
+| ------ | ------------- | ------ | ------ | --------- | -------- |
+| 1      | 21            | 21     | 21     | 21        | non      |
+| 2      | 29            | 29     | 29     | 29        | non      |
+| 3      | 21            | 21     | 21     | 21        | non      |
+| 4      | 40            | 40     | 40     | non       | non      |
+
+- Le rejeu en normal retrouve les passages réels.
+- **Facile** ne passe pas plus tôt ici : la réussite du niveau n'était pas la condition qui manquait.
+- **Difficile** aurait gardé le niveau 4, où se trouvent 10 des 19 cases fausses.
+- **Hardcore** demande au moins 5 essais par note (30 au niveau 1), tous sans erreur et en moins de 1,5 s : aucun niveau n'aurait passé dans ces essais.
+
+### Décisions (31/10/2026, spec version 3.1, `docs/revue-specs-app.md` N21 à N23)
+
+- Choix de la difficulté au départ du mode 1 : facile (niveau à 60 %), normal (80 %), difficile (90 %), hardcore (chaque note : 5 derniers essais justes du premier coup, en 1,5 s au plus).
+- Records par difficulté ; niveau et notes atteints communs.
 
 ## Export de la progression du 31/10/2026 (`fretmap-progression-2026-10-31.json`)
 

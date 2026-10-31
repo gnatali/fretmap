@@ -31,6 +31,8 @@
 <p class="score">{TEXTES.fin.score} : <strong>{resume.score}</strong></p>
 
 <dl class="resume">
+  <dt>{TEXTES.fin.difficulte}</dt>
+  <dd class="difficulte">{TEXTES.difficultes[journal.difficulte ?? 'normal']}</dd>
   <dt>{TEXTES.fin.niveaux}</dt>
   <dd class="niveaux">{TEXTES.fin.niveauxValeurs(resume.niveauDepart, resume.niveauAtteint)}</dd>
   <dt>{TEXTES.fin.reussiteNiveau}</dt>

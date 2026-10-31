@@ -80,3 +80,6 @@ Demande de l'utilisateur, après sa session du mode 1 du 30/10 (export analysé 
 | N18 | Ajouts au jeu du POC | Records (meilleur score, plus haut niveau) et journal exportable des parties ; pas de bip |
 | N19 | Réglages du jeu | Valeurs par défaut du mode progressif du POC (§16.5), sans réglage à l'écran ; à ajuster d'après les journaux |
 | N20 | Réglage « Afficher les notes » | Retiré : il donnerait la réponse du jeu (schéma version 3) |
+| N21 | Difficulté du mode 1 (demande du 31/10/2026, après le premier journal du jeu) | Au choix sur l'écran de départ : facile (réussite du niveau 60 %), normal (80 %, défaut), difficile (90 %), hardcore |
+| N22 | Hardcore : « aucune erreur sur 5 répétitions de notes » | Chaque note du niveau : au moins 5 essais, les 5 derniers justes du premier coup et en 1,5 s au plus depuis la note précédente ; le plafond de vitesse reste exigé |
+| N23 | Records et points selon la difficulté | Records par difficulté ; mêmes points ; niveau et notes atteints communs |

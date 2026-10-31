@@ -126,6 +126,20 @@ export function reussiteGlobale(
   return reussites.reduce((s, r, i) => s + r * poids[i]!, 0) / poids.reduce((s, w) => s + w, 0);
 }
 
+/**
+ * Note jouée `n` fois de suite sans faute (hardcore) : au moins `n` essais, et ses `n` derniers justes du premier coup
+ * (aucune case fausse) en au plus `delaiBonMs` depuis la note précédente.
+ */
+export function sansFaute(position: Position, essais: readonly Essai[], n: number, delaiBonMs: number): boolean {
+  const derniers = essais.filter((e) => memePosition(e.position, position)).slice(-n);
+  return (
+    derniers.length >= n &&
+    derniers.every(
+      (e) => e.resultat === 'juste' && e.erreurs === 0 && e.delaiNoteMs !== null && e.delaiNoteMs <= delaiBonMs,
+    )
+  );
+}
+
 const arrondi = (valeur: number) => Math.round(valeur * 1000) / 1000;
 
 /** Réussite d'une note par chaque méthode, arrondie (journal). */

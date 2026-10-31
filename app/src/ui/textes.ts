@@ -1,4 +1,5 @@
 // Tous les textes de l'interface (spec §13) : un seul fichier pour faciliter une future traduction.
+import type { Difficulte } from '../jeu/niveauxDifficulte';
 import type { Position } from '../music/manche';
 import { nomAffiche, type Notation } from '../music/notation';
 import type { NomNote } from '../music/notes';
@@ -92,7 +93,8 @@ export const TEXTES = {
       `Repartir des cordes à vide ? Le niveau ${niveau} atteint est remplacé ; les records et les statistiques sont gardés.`,
     confirmer: 'Recommencer',
     annuler: 'Annuler',
-    records: 'Records',
+    records: (difficulte: string) => `Records en ${difficulte.toLowerCase()}`,
+    difficulte: 'Difficulté',
     recordValeurs: (score: number, niveau: number) => `${score} points · niveau ${niveau}`,
     aucunRecord: 'Pas encore de partie.',
     journal: 'Journal des parties',
@@ -100,6 +102,17 @@ export const TEXTES = {
     journalNonEnregistre: 'Partie non enregistrée dans le journal : le stockage du navigateur est plein.',
     retour: 'Accueil',
   },
+  /** Difficultés du jeu du mode 1 (jeu/niveauxDifficulte.ts). */
+  difficultes: { facile: 'Facile', normal: 'Normal', difficile: 'Difficile', hardcore: 'Hardcore' } as Record<
+    Difficulte,
+    string
+  >,
+  aidesDifficulte: {
+    facile: 'Réussite du niveau : 60 %',
+    normal: 'Réussite du niveau : 80 %',
+    difficile: 'Réussite du niveau : 90 %',
+    hardcore: 'Chaque note : 5 fois de suite sans erreur, en moins de 1,5 s',
+  } as Record<Difficulte, string>,
   partie: {
     score: 'Score',
     niveau: 'Niveau',
@@ -123,6 +136,7 @@ export const TEXTES = {
   },
   fin: {
     titre: 'Fin de partie',
+    difficulte: 'Difficulté',
     nouveauRecord: 'Nouveau record !',
     score: 'Score',
     niveaux: 'Niveau',
@@ -269,7 +283,8 @@ export const TEXTES = {
     aucune: (mode: number) => `Aucune réponse enregistrée pour l’instant : jouez au mode ${mode}.`,
     niveauAtteint: (niveau: number, description: string) => `Niveau atteint : ${niveau} (${description}).`,
     jeu: (niveau: number, notes: number) => `Jeu au niveau ${niveau} (${pluriel(notes, 'note')}).`,
-    record: (score: number, niveau: number) => `Record : ${score} points, niveau ${niveau}.`,
+    records: 'Records du jeu',
+    record: (difficulte: string, score: number, niveau: number) => `${difficulte} : ${score} points, niveau ${niveau}`,
     tentatives: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,
     reussite: (p: number) => `${p} % de réussite`,
     tempsMoyen: (ms: number) => `temps moyen ${(ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 })} s`,

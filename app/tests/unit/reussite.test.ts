@@ -8,6 +8,7 @@ import {
   reussiteEssais,
   reussiteGlobale,
   reussiteNote,
+  sansFaute,
   scoreEssai,
   type Essai,
 } from '../../src/jeu/reussite';
@@ -109,5 +110,34 @@ describe('méthodes de réussite globale', () => {
     expect(Object.keys(matrice)).toEqual(['score', 'taux', 'temps']);
     expect(matrice.score).toEqual({ moyenne: 0.5, ponderee: 0.167, derniers: 0.667 });
     expect(matrice.taux.moyenne).toBe(0.5);
+  });
+});
+
+describe('sansFaute (hardcore)', () => {
+  const juste = (delaiNoteMs: number, position: Position = E6): Essai => ({
+    position,
+    resultat: 'juste',
+    erreurs: 0,
+    delaiApparitionMs: delaiNoteMs,
+    delaiNoteMs,
+  });
+  const vite = (n: number) => Array.from({ length: n }, () => juste(1000));
+
+  it('demande n essais justes du premier coup et rapides, les derniers de la note', () => {
+    expect(sansFaute(E6, vite(4), 5, 1500)).toBe(false);
+    expect(sansFaute(E6, vite(5), 5, 1500)).toBe(true);
+    // Les essais des autres notes ne comptent pas.
+    expect(sansFaute(E6, [...vite(4), juste(900, A5)], 5, 1500)).toBe(false);
+    // Juste à 1,5 s : rapide ; au-delà, non.
+    expect(sansFaute(E6, [...vite(4), juste(1500)], 5, 1500)).toBe(true);
+    expect(sansFaute(E6, [...vite(4), juste(1501)], 5, 1500)).toBe(false);
+  });
+
+  it('une erreur parmi les n derniers essais remet le décompte à zéro', () => {
+    const avecFaute: Essai = { ...juste(1000), erreurs: 1 };
+    const ratee: Essai = { position: E6, resultat: 'ratee', erreurs: 0, delaiApparitionMs: null, delaiNoteMs: null };
+    expect(sansFaute(E6, [avecFaute, ...vite(4)], 5, 1500)).toBe(false);
+    expect(sansFaute(E6, [avecFaute, ...vite(5)], 5, 1500)).toBe(true);
+    expect(sansFaute(E6, [...vite(4), ratee], 5, 1500)).toBe(false);
   });
 });

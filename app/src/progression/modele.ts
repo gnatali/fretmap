@@ -1,5 +1,6 @@
 // Modèle de données de la progression (spec §6) et valeurs par défaut.
 import { SEUIL_SILENCE_DBFS_DEFAUT } from '../audio/niveau';
+import { DIFFICULTES, DIFFICULTE_DEFAUT, type Difficulte } from '../jeu/niveauxDifficulte';
 import { NUMEROS_CORDES, type NumeroCorde, type Position } from '../music/manche';
 import type { Notation } from '../music/notation';
 import { A4_DEFAUT_HZ } from '../music/notes';
@@ -64,12 +65,18 @@ export interface RecordJeu {
 
 /**
  * Où reprendre le jeu du mode 1 (spec §5.1) : niveau et notes du niveau (les réussites repartent de zéro à chaque
- * partie, comme le mode progressif du POC), et records.
+ * partie, comme le mode progressif du POC), communs aux difficultés ; difficulté choisie ; records par difficulté.
  */
 export interface ProgressionJeu {
   niveau: number;
   positions: Position[];
-  record: RecordJeu;
+  difficulte: Difficulte;
+  records: Record<Difficulte, RecordJeu>;
+}
+
+/** Records à zéro (aucune partie) dans chaque difficulté. */
+export function recordsVides(): Record<Difficulte, RecordJeu> {
+  return Object.fromEntries(DIFFICULTES.map((d) => [d, { score: 0, niveau: 0 }])) as Record<Difficulte, RecordJeu>;
 }
 
 export interface Progression {
@@ -97,9 +104,19 @@ export function avancementInitial(niveauAtteint: Niveau = 1): AvancementMode {
   return { niveauAtteint, dernieresReponses: [] };
 }
 
-/** Le jeu au niveau 1 : les 6 cordes à vide, de la corde 6 à la corde 1 ; records gardés s'ils sont donnés. */
-export function jeuInitial(record: RecordJeu = { score: 0, niveau: 0 }): ProgressionJeu {
-  return { niveau: 1, positions: NUMEROS_CORDES.map((corde) => ({ corde, case: 0 })), record: { ...record } };
+/**
+ * Le jeu au niveau 1 : les 6 cordes à vide, de la corde 6 à la corde 1 ; difficulté et records gardés s'ils sont
+ * donnés.
+ */
+export function jeuInitial(garde: Partial<Pick<ProgressionJeu, 'difficulte' | 'records'>> = {}): ProgressionJeu {
+  const records = recordsVides();
+  for (const d of DIFFICULTES) records[d] = { ...(garde.records?.[d] ?? records[d]) };
+  return {
+    niveau: 1,
+    positions: NUMEROS_CORDES.map((corde) => ({ corde, case: 0 })),
+    difficulte: garde.difficulte ?? DIFFICULTE_DEFAUT,
+    records,
+  };
 }
 
 export function progressionInitiale(): Progression {

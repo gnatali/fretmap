@@ -33,7 +33,7 @@ En ligne : https://gnatali.github.io/fretmap/ (publiée par `.github/workflows/p
 | `tests/e2e/`           | Tests Playwright : modes 1 et 2, accordeur (micro simulé par un WAV, `son.ts`), réglages      |
 | `resultats/`           | Exports et journaux envoyés par l'utilisateur, avec leur analyse                              |
 
-Le mode 1 est le jeu « Notes qui tombent » au toucher (spec §5.1) : les notes tombent le long de leur corde, on touche la case. On commence aux cordes à vide ; 3 notes s'ajoutent à chaque niveau validé. Le journal des parties s'exporte depuis l'écran du mode 1 (`journal-mode1-*.json`).
+Le mode 1 est le jeu « Notes qui tombent » au toucher (spec §5.1) : les notes tombent le long de leur corde, on touche la case. On commence aux cordes à vide ; 3 notes s'ajoutent à chaque niveau validé. Quatre difficultés au choix (facile, normal, difficile, hardcore), avec des records par difficulté. Le journal des parties s'exporte depuis l'écran du mode 1 (`journal-mode1-*.json`).
 
 Les modules copiés du POC (`audio/`, `music/notes.ts`, `music/accordages.ts`) portent les valeurs validées par les mesures (spec §3) : ne les modifier que sur nouvelle mesure.
 

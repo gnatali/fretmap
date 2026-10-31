@@ -1,4 +1,5 @@
 // Lecture et écriture de la progression dans localStorage, migration, export et import JSON (spec §6, §9).
+import { DIFFICULTES, DIFFICULTE_DEFAUT, estDifficulte } from '../jeu/niveauxDifficulte';
 import { estCase, estNumeroCorde, type Position } from '../music/manche';
 import { NOTATIONS } from '../music/notation';
 import { bornerA4 } from '../music/notes';
@@ -10,6 +11,7 @@ import {
   avancementInitial,
   jeuInitial,
   progressionInitiale,
+  recordsVides,
   type AvancementMode,
   type Niveau,
   type Progression,
@@ -113,17 +115,23 @@ function estPosition(valeur: unknown): valeur is Position {
   return estObjet(valeur) && estNumeroCorde(valeur.corde) && estCase(valeur.case);
 }
 
+function lireRecord(valeur: unknown): { score: number; niveau: number } {
+  const r = estObjet(valeur) ? valeur : {};
+  return { score: estEntierPositif(r.score) ? r.score : 0, niveau: estEntierPositif(r.niveau) ? r.niveau : 0 };
+}
+
 /**
- * Jeu du mode 1 : niveau, notes (sans doublon) et records. Absent ou invalide (versions 1 et 2), il repart aux cordes
- * à vide, avec les records lus s'il y en a.
+ * Jeu du mode 1 : niveau, notes (sans doublon), difficulté et records par difficulté. Absent ou invalide (versions 1
+ * et 2), il repart aux cordes à vide, avec la difficulté et les records lus s'il y en a. Un `record` unique (avant le
+ * choix de la difficulté, 31/10/2026) devient celui du mode normal, le seul joué alors.
  */
 function lireJeu(valeur: unknown): ProgressionJeu {
   const j = estObjet(valeur) ? valeur : {};
-  const r = estObjet(j.record) ? j.record : {};
-  const record = {
-    score: estEntierPositif(r.score) ? r.score : 0,
-    niveau: estEntierPositif(r.niveau) ? r.niveau : 0,
-  };
+  const lus = estObjet(j.records) ? j.records : {};
+  const records = recordsVides();
+  for (const d of DIFFICULTES) records[d] = lireRecord(lus[d]);
+  if (!estObjet(j.records) && estObjet(j.record)) records.normal = lireRecord(j.record);
+  const difficulte = estDifficulte(j.difficulte) ? j.difficulte : DIFFICULTE_DEFAUT;
   const vues = new Set<string>();
   const positions = (Array.isArray(j.positions) ? j.positions.filter(estPosition) : []).filter((p) => {
     const cle = `${p.corde}-${p.case}`;
@@ -131,8 +139,15 @@ function lireJeu(valeur: unknown): ProgressionJeu {
     vues.add(cle);
     return true;
   });
-  if (!Number.isInteger(j.niveau) || (j.niveau as number) < 1 || positions.length === 0) return jeuInitial(record);
-  return { niveau: j.niveau as number, positions: positions.map((p) => ({ corde: p.corde, case: p.case })), record };
+  if (!Number.isInteger(j.niveau) || (j.niveau as number) < 1 || positions.length === 0) {
+    return jeuInitial({ difficulte, records });
+  }
+  return {
+    niveau: j.niveau as number,
+    positions: positions.map((p) => ({ corde: p.corde, case: p.case })),
+    difficulte,
+    records,
+  };
 }
 
 /**
