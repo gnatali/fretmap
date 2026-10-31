@@ -2,9 +2,44 @@
 
 Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien. Les journaux du mode 1 (`journal-mode1-*.json`) s'analysent avec le skill `analyser-journal-mode1`.
 
+## Journaux du mode 1 du 31/10/2026, 21 h 05 et 21 h 09 (`journal-mode1-20261031-2109.json`)
+
+**Session** : le journal de 21 h 09 contient 4 parties ; celui de 21 h 05 (non gardé) en est un sous-ensemble (parties 1 à 3). La partie 1 est celle du journal de 1 h 08 ci-dessous. Remarques de l'utilisateur : le hardcore ne progresse pas ; le facile n'est pas assez facile. Images : médiane et p95 de 16,7 ms dans toutes les parties.
+
+| Partie      | Difficulté | Niveaux         | Essais | Cases fausses | Perdues | Ratées | Délai médian | Durée de jeu (jusqu'au dernier essai) |
+| ----------- | ---------- | --------------- | ------ | ------------- | ------- | ------ | ------------ | ------------------------------------- |
+| 2 (8 h 03)  | Facile     | 1 → 5           | 144    | 18            | 1       | 0      | 1,3 s        | 5 min 27 s                            |
+| 3 (19 h 57) | Facile     | 5 → 6 (reprise) | 187    | 34            | 0       | 3      | 1,9 s        | 6 min 37 s                            |
+| 4 (20 h 05) | Hardcore   | 1 → 1           | 195    | 15            | 0       | 0      | 0,9 s        | 3 min 43 s                            |
+
+**Hardcore : le niveau 1 ne passe jamais.**
+
+- 82 % des 195 réponses sont justes du premier coup et rapides (≤ 1,5 s). Chaque corde à vide a fait des séries de 8 à 12 réponses propres.
+- Mais la règle (version 3.1) demandait les 5 derniers essais propres de **chaque** note **au même moment** : environ 30 réponses propres d'affilée, quand la plus longue série propre de la partie est de 28. Une seule erreur sur une note la remettait à zéro pendant que les autres perdaient la leur.
+- Rejeu avec la règle « note acquise » (5 réponses propres de suite à un moment de la partie) : niveau passé à l'essai 63. Avec 3 réponses : essai 56. En gardant la règle et un seuil de 2 s : essai 167.
+
+**Facile : le seuil du niveau ne change rien.**
+
+- La réussite du niveau était presque toujours au-dessus de 60 %. Le rejeu en facile (version 3.1) donne les mêmes passages qu'en normal.
+- Ce qui bloquait : une note faible. Au niveau 5 de la partie 3 (153 essais, 5 min 12 s), Ré à vide est restée sous 60 % pendant 145 essais : 8 cases fausses en 12 essais, presque toujours sur Sol à vide. Une bonne case après une erreur vaut 0,44 ; avec 5 essais pris en compte, la note ne remontait pas.
+- Rejeu du niveau 5 : seuil par note à 40 %, 82 essais au lieu de 153 ; bonne case après une erreur à 0,75, 87 ; les deux et sans condition de vitesse, 64. Le niveau 5 de la partie 2 passerait à l'essai 34.
+
+**Erreurs** : surtout des voisines.
+
+- À vide, la corde voisine : Ré → Sol 12 fois, La → Ré 8, Si → Sol 6, Si → Mi aigu 4.
+- Avec la corde donnée, la case voisine : 27 cases fausses sur 37 à ±1 case.
+- Notes faibles : Ré à vide, La corde 3 case 2 (5 cases fausses en 10 essais), Ré corde 2 case 3, Si corde 5 case 2, Si corde 3 case 4 (3 en 3).
+
+### Décisions (31/10/2026, spec version 3.2, `docs/revue-specs-app.md` N24 à N27)
+
+- **Hardcore** : une note est acquise après 5 réponses de suite justes du premier coup et en 1,5 s au plus, et le reste pour la partie ; le niveau passe quand toutes ses notes sont acquises (et les autres conditions).
+- **Facile** : 40 % par note (60 % pour le niveau) ; la bonne case s'allume dès la 1re case fausse.
+- **Toutes les difficultés** : compteur « Notes » (validées sur le total du niveau) pendant la partie, notes « à travailler » en fin de partie ; une note ratée revient 3 tirages plus tard (`revient` dans le journal).
+- **À suivre** : jouer en facile et en hardcore avec ces règles, puis envoyer le journal. Les confusions de cordes voisines à vide sont à surveiller avec la note qui revient.
+
 ## Journal du mode 1 du 31/10/2026, 1 h 08 (`journal-mode1-20261031-0108.json`)
 
-**Session** : première partie du jeu « Notes qui tombent » au toucher (spec version 3.0), en normal, sur le même téléphone Android (Chrome 156). 4 min 50 de jeu, une pause de 19 s, arrêtée juste après le passage au niveau 5. Images : médiane et p95 de 16,7 ms, aucune au-delà de 33 ms.
+**Session** : première partie du jeu « Notes qui tombent » au toucher (spec version 3.0), en normal, sur le même téléphone Android (Chrome 156). 3 min 39 s de jeu jusqu'au dernier essai, plus une pause de 19 s, arrêtée juste après le passage au niveau 5. Images : médiane et p95 de 16,7 ms, aucune au-delà de 33 ms.
 
 | Niveau | Notes | Essais | Durée | Cases fausses | Perdues | Ratées | Délai médian |
 | ------ | ----- | ------ | ----- | ------------- | ------- | ------ | ------------ |

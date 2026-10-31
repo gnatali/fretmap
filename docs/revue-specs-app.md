@@ -83,3 +83,14 @@ Demande de l'utilisateur, après sa session du mode 1 du 30/10 (export analysé 
 | N21 | Difficulté du mode 1 (demande du 31/10/2026, après le premier journal du jeu) | Au choix sur l'écran de départ : facile (réussite du niveau 60 %), normal (80 %, défaut), difficile (90 %), hardcore |
 | N22 | Hardcore : « aucune erreur sur 5 répétitions de notes » | Chaque note du niveau : au moins 5 essais, les 5 derniers justes du premier coup et en 1,5 s au plus depuis la note précédente ; le plafond de vitesse reste exigé |
 | N23 | Records et points selon la difficulté | Records par difficulté ; mêmes points ; niveau et notes atteints communs |
+
+## Décisions du 31/10/2026 (soir)
+
+Après les journaux de 21 h 05 et 21 h 09 (`app/resultats/README.md`) : le hardcore ne progresse pas, le facile n'est pas assez facile. Spécification version 3.2, §5.1.
+
+| # | Question | Décision |
+|---|---|---|
+| N24 | Hardcore : 195 essais sans passer le niveau 1, car les 5 derniers essais de chaque note devaient être propres au même moment | Note acquise : 5 réponses de suite justes du premier coup en 1,5 s au plus, à un moment de la partie ; elle le reste. Remplace N22 |
+| N25 | Facile : le seuil du niveau (60 %) ne bloquait jamais ; une note faible bloquait le niveau 5 pendant 153 essais | Réussite minimale de chaque note à 40 % en facile, et la bonne case s'allume dès la 1re case fausse |
+| N26 | Voir ce qui manque pour passer | Compteur « Notes » (validées / total) pendant la partie ; notes « à travailler » en fin de partie |
+| N27 | Confusions répétées (Ré et Sol à vide) | Une note ratée revient 3 tirages plus tard, dans toutes les difficultés |

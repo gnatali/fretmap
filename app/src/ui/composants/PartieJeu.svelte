@@ -3,7 +3,7 @@
   import { HorlogeJeu } from '../../jeu/horloge';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import { DUREE_PAUSE_NIVEAU_MS, Partie, type EvenementPartie } from '../../jeu/partie';
-  import { reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
+  import { AIDE_APRES_ERREUR, reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
   import { noteDePosition, type Position } from '../../music/manche';
   import type { Notation } from '../../music/notation';
   import { TEXTES, consigne, nomPosition, pourcent, retourEssai, retourFausse } from '../textes';
@@ -73,6 +73,10 @@
   // svelte-ignore state_referenced_locally
   let niveau = $state(niveauDepart);
   let reussite = $state(0);
+  /** Notes du niveau validées pour le passage, sur le nombre de notes du niveau. */
+  let notesValidees = $state(0);
+  // svelte-ignore state_referenced_locally
+  let notesDuNiveau = $state(positions.length);
   let vitesse = $state(0);
   /** Passage de niveau : bilan affiché pendant la pause du jeu (temps du jeu de la reprise). */
   let passage = $state.raw<{
@@ -186,6 +190,11 @@
         dernierRetour = { texte: retourFausse(evenement.penalite), juste: false };
         faute = { index: evenement.note.index, jusqua: t + DUREE_EFFET_MS };
         marquer(evenement.touchee, 'faux', t);
+        // Facile : la bonne case s'allume dès la 1re case fausse, jusqu'au résultat de la note.
+        if (AIDE_APRES_ERREUR[difficulte]) {
+          const { index, question } = evenement.note;
+          rappel = { index, positions: question.positionsCorrectes, jusqua: Infinity };
+        }
       } else if (evenement.type === 'niveau') {
         // Bilan et nouvelles notes, entourées sur le manche pendant la pause du jeu.
         const { niveau: nouveau, bonus, ajoutees, plafond } = evenement;
@@ -212,6 +221,8 @@
     caseMax = partie.caseMax;
     niveau = partie.niveau;
     reussite = partie.reussiteGlobale;
+    notesValidees = partie.notesValidees;
+    notesDuNiveau = partie.positions.length;
     vitesse = partie.vitesse;
     if (passage && !partie.enPause) passage = null;
     if (passage) resteAvantReprise = Math.max(1, Math.ceil((passage.reprise - t) / 1000));
@@ -277,6 +288,10 @@
       <div>
         <dt>{TEXTES.partie.niveau}</dt>
         <dd class="niveau">{niveau}</dd>
+      </div>
+      <div>
+        <dt>{TEXTES.partie.notes}</dt>
+        <dd class="notes-validees" title={TEXTES.partie.notesValidees}>{notesValidees}/{notesDuNiveau}</dd>
       </div>
       <div>
         <dt>{TEXTES.partie.reussite}</dt>

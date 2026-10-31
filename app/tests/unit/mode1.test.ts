@@ -69,12 +69,42 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(texte('.retour')).toBe(`${TEXTES.partie.fausse} · −50`);
     expect(document.querySelector('.case.faux[data-position="6-3"]')).not.toBeNull();
     expect(texte('.consigne')).toBe('La (A) · à vide');
+    // En normal, pas d'aide après une case fausse.
+    expect(document.querySelectorAll('.rappel')).toHaveLength(0);
     await fireEvent.click(caseDuManche('6-3'));
     await fireEvent.click(caseDuManche('6-3'));
     expect(texte('.retour')).toContain('Perdue : La (A) est la corde 5, à vide');
     expect(document.querySelectorAll('.rappel')).toHaveLength(1);
     // 3 erreurs sur la position tirée (corde 5 à vide).
     expect(etat.progression.statistiques.find((s) => s.corde === 5)).toMatchObject({ tentatives: 3, reussites: 0 });
+  });
+
+  it('facile : la bonne case s’allume dès la 1re case fausse, jusqu’à la bonne réponse', async () => {
+    afficher((e) => e.sauverJeu({ ...e.progression.jeu, difficulte: 'facile' }));
+    await commencer();
+    await fireEvent.click(caseDuManche(reponse()));
+    await vi.advanceTimersByTimeAsync(50);
+    await fireEvent.click(caseDuManche('6-3'));
+    const rappels = document.querySelectorAll<HTMLElement>('.rappel');
+    expect(rappels).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(document.querySelectorAll('.rappel')).toHaveLength(1);
+    await fireEvent.click(caseDuManche('5-0'));
+    await vi.advanceTimersByTimeAsync(50);
+    expect(document.querySelectorAll('.rappel')).toHaveLength(0);
+  });
+
+  it('compteur des notes validées : 0/6 au départ, puis il augmente', async () => {
+    let n = 0;
+    afficher(undefined, () => (n++ * 0.37) % 1);
+    await commencer();
+    expect(texte('.notes-validees')).toBe('0/6');
+    // Chaque note demande 3 essais : le compteur monte avant le passage de niveau.
+    for (let i = 0; i < 30 && texte('.notes-validees') === '0/6'; i++) {
+      await fireEvent.click(caseDuManche(reponse()));
+      await vi.advanceTimersByTimeAsync(400);
+    }
+    expect(texte('.notes-validees')).toMatch(/^[1-6]\/6$/);
   });
 
   it('pause : le manche est masqué et ne répond plus, puis reprise après un compte à rebours', async () => {

@@ -2,7 +2,7 @@
 
 Document destiné à Claude Code. Il décrit l'application à construire à partir du POC validé. Lire l'intégralité avant de commencer.
 
-**Version 3.1** (31/10/2026) : choix de la difficulté du mode 1 (facile, normal, difficile, hardcore) et records par difficulté (§5.1, §6), après le premier journal du jeu (`app/resultats/README.md`). Version 3.0 (31/10/2026) : le mode 1 devient le jeu « Notes qui tombent » au toucher, repris du mode progressif du POC `poc-chute/` (§5.1), à la demande de l'utilisateur après sa session du 30/10 (export analysé dans [`app/resultats/README.md`](../app/resultats/README.md)) ; schéma de données version 3 (§6). Version 2.7 : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), précisions de la phase 5 sur les réglages (version 2.6), puis niveaux par mode, passage sur les dernières réponses et tirage pondéré (phase 6, version 2.7). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
+**Version 3.2** (31/10/2026) : hardcore en « note acquise », facile à 40 % par note avec la bonne case montrée après une erreur, notes validées visibles, note ratée qui revient (§5.1), après les journaux du 31/10 (`app/resultats/README.md`). Version 3.1 (31/10/2026) : choix de la difficulté du mode 1 (facile, normal, difficile, hardcore) et records par difficulté (§5.1, §6), après le premier journal du jeu (`app/resultats/README.md`). Version 3.0 (31/10/2026) : le mode 1 devient le jeu « Notes qui tombent » au toucher, repris du mode progressif du POC `poc-chute/` (§5.1), à la demande de l'utilisateur après sa session du 30/10 (export analysé dans [`app/resultats/README.md`](../app/resultats/README.md)) ; schéma de données version 3 (§6). Version 2.7 : mise en cohérence avec les résultats du POC (version 2), points à confirmer tranchés le 26/10/2026 (toutes les propositions acceptées, interface en Svelte, version 2.1), réglage de notation des notes le 27/10/2026 (version 2.2), sept niveaux (notes naturelles ou toutes les notes pour les cases 0 à 7 et 0 à 12) le même jour (version 2.3), plage du mode 2 étendue aux cases 0 à 12 après le scénario 6 du POC (version 2.4), comptage des notes fausses du mode 2 (version 2.5), précisions de la phase 5 sur les réglages (version 2.6), puis niveaux par mode, passage sur les dernières réponses et tirage pondéré (phase 6, version 2.7). Les changements et leur justification sont dans [`revue-specs-app.md`](revue-specs-app.md).
 
 Dépôt GitHub : `gnatali/fretmap` (existant, avec le POC dans `poc-guitare/`).
 
@@ -116,16 +116,21 @@ Version 3.0. Le quiz du mode 1 (une question, 1 s d'attente, 7 niveaux) n'était
 - Pas de micro, pas de calibrage, pas de mode simulation.
 
 **Difficulté** (version 3.1, choix de l'utilisateur du 31/10/2026 ; `jeu/niveauxDifficulte.ts`)
-- Choisie sur l'écran de départ, enregistrée ; elle ne change que la condition de passage de niveau :
+- Choisie sur l'écran de départ, enregistrée ; elle change la condition de passage de niveau, et l'aide en facile. Le niveau passe quand **chaque note est validée**, que la réussite du niveau atteint son seuil et que la vitesse a atteint le plafond du niveau :
 
-| Difficulté | Condition de passage, en plus de celles de chaque note (3 essais, 60 %) et du plafond de vitesse |
-|---|---|
-| Facile | Réussite du niveau ≥ 60 % |
-| Normal (défaut) | Réussite du niveau ≥ 80 % (le POC) |
-| Difficile | Réussite du niveau ≥ 90 % |
-| Hardcore | Réussite du niveau ≥ 80 %, et chaque note a au moins 5 essais, ses 5 derniers justes du premier coup (aucune case fausse, ni perdue, ni ratée) et en 1,5 s au plus depuis la note précédente (`ESSAIS_HARDCORE`, `delaiNoteBonMs`) |
+| Difficulté | Note validée | Réussite du niveau | Aide |
+|---|---|---|---|
+| Facile | 3 essais, réussite ≥ 40 % (version 3.2) | ≥ 60 % | La bonne case s'allume dès la 1re case fausse, jusqu'au résultat de la note (version 3.2) |
+| Normal (défaut) | 3 essais, réussite ≥ 60 % (le POC) | ≥ 80 % | Après une note perdue ou ratée |
+| Difficile | 3 essais, réussite ≥ 60 % | ≥ 90 % | Après une note perdue ou ratée |
+| Hardcore | 5 essais, réussite ≥ 60 %, et **acquise** : jouée 5 fois de suite juste du premier coup et en 1,5 s au plus depuis la note précédente, à un moment de la partie ; elle le reste ensuite, aux niveaux suivants compris (version 3.2 ; `ESSAIS_HARDCORE`, `delaiNoteBonMs`) | ≥ 80 % | Après une note perdue ou ratée |
 
+- En version 3.1, le hardcore demandait les 5 derniers essais de chaque note sans faute au même moment : le niveau 1 n'est jamais passé en 195 essais (journal du 31/10). D'où la note acquise.
 - Les points ne changent pas. Le niveau et les notes atteints sont communs aux difficultés.
+
+**Progression et répétition** (version 3.2, toutes les difficultés)
+- Pendant la partie, le compteur « Notes » donne les notes validées sur le nombre de notes du niveau (« 4/6 »). En fin de partie, les notes non validées sont marquées « à travailler » et listées d'abord, avec le nombre de notes validées.
+- **Note ratée qui revient** : après un essai avec erreur (case fausse, note perdue ou ratée), la même position est tirée en priorité 3 tirages plus tard (`TIRAGES_AVANT_RETOUR`), si son nom n'est pas parmi les 2 derniers tirés ; sinon au tirage suivant. Le journal la marque `revient`.
 
 **Départ, fin, records et journal**
 - Départ : « Commencer aux cordes à vide », ou « Reprendre au niveau N » (mêmes notes, réussites remises à zéro) et « Recommencer aux cordes à vide » (avec confirmation). Le niveau et les notes sont enregistrés à chaque passage et à la fin.
@@ -446,7 +451,7 @@ La version 1 est terminée quand :
 | 4 | Mode 2 : détection, validation, indicateur en direct, test end-to-end avec micro simulé | Mode 2 jouable sur Android |
 | 5 | Accordeur complet, réglages (dont la notation des notes, déjà affichée et réglable dans le mode 1), export et import | Accordeur et réglages |
 | 6 | Niveaux, pondération des tirages, finitions visuelles, accessibilité | Version 1 candidate |
-| 6 bis | Mode 1 : jeu « Notes qui tombent » au toucher, repris du mode progressif du POC (§5.1), records, journal ; schéma version 3 (31/10/2026) ; puis choix de la difficulté et records par difficulté (version 3.1) | Mode 1 jouable |
+| 6 bis | Mode 1 : jeu « Notes qui tombent » au toucher, repris du mode progressif du POC (§5.1), records, journal ; schéma version 3 (31/10/2026) ; puis choix de la difficulté et records par difficulté (version 3.1) ; hardcore en note acquise, facile plus facile, notes validées visibles, note ratée qui revient (version 3.2) | Mode 1 jouable |
 | 7 | Tests terrain sur Android avec guitare (checklist), corrections | Version 1 publiée |
 
 ---

@@ -23,12 +23,12 @@ import { DIFFICULTE_DEFAUT, ESSAIS_HARDCORE, type Difficulte } from './niveauxDi
 import { POINTS_BASE, multiplicateur } from './points';
 import { plafondVitesse, type ReglagesProgressif } from './reglages';
 import {
+  acquise,
   justesse,
   matriceReussites,
   reussiteGlobale,
   reussiteNote,
   reussitesNote,
-  sansFaute,
   scoreEssai,
   type Essai,
   type ResultatEssai,
@@ -43,6 +43,12 @@ export const DUREE_PAUSE_NIVEAU_MS = 6000;
  * pas encore ses `essaisMinimum` essais a le poids maximal (4), pour que les nouvelles notes soient jouées tout de suite.
  */
 export const POIDS_ECHEC_TIRAGE = 3;
+/**
+ * Une note ratée revient : après un essai avec erreur (case fausse, note perdue ou ratée), la même position est tirée
+ * en priorité 3 tirages plus tard (demande de l'utilisateur du 31/10/2026, pour corriger les confusions comme Ré et Sol
+ * à vide). Elle attend si son nom vient de sortir (enchainement.ts).
+ */
+export const TIRAGES_AVANT_RETOUR = 3;
 
 export interface OptionsPartie {
   /** Instant du début de la partie, sur l'horloge des appels suivants (temps du jeu). */
@@ -128,6 +134,10 @@ export class Partie {
   private derniereTiree: Question | undefined;
   /** Noms des dernières notes tirées, écartés du tirage suivant (enchainement.ts) ; gardés au passage de niveau. */
   private nomsRecents: NomNote[] = [];
+  /** Notes ratées à faire revenir : clé de position → tirages restants avant le retour (TIRAGES_AVANT_RETOUR). */
+  private readonly retours = new Map<string, { position: Position; dans: number }>();
+  /** Rangs des notes tirées parce qu'elles revenaient (journal). */
+  private readonly indicesRetour = new Set<number>();
   private dernierT: number;
   /** Début de la réponse en cours : la note devenue attendue, ou la dernière case fausse. */
   private debutReponseMs = 0;
@@ -223,6 +233,24 @@ export class Partie {
     return this.essais.filter((e) => memePosition(e.position, position)).length;
   }
 
+  /**
+   * Note validée pour le passage de niveau : assez d'essais et une réussite ≥ seuilNote ; en hardcore, acquise en plus
+   * (ESSAIS_HARDCORE essais de suite sans faute à un moment de la partie).
+   */
+  noteValidee(position: Position): boolean {
+    const r = this.reglages;
+    return (
+      this.essaisDe(position) >= r.essaisMinimum &&
+      this.reussiteDe(position) + 1e-9 >= r.seuilNote &&
+      (this.difficulte !== 'hardcore' || acquise(position, this.essais, ESSAIS_HARDCORE, r.delaiNoteBonMs))
+    );
+  }
+
+  /** Nombre de notes du niveau validées (affiché pendant la partie). */
+  get notesValidees(): number {
+    return this.notesDuNiveau.filter((p) => this.noteValidee(p)).length;
+  }
+
   /** Fait avancer la chute jusqu'à tMs ; pendant la pause de passage, rien ne bouge, puis la note suivante apparaît. */
   avancer(tMs: number): EvenementPartie[] {
     if (this.fini) return [];
@@ -290,6 +318,7 @@ export class Partie {
         vitesseMax: Math.round(this.vitesseMax * 1000) / 1000,
         delaiNoteMedianMs: mediane === null ? null : Math.round(mediane),
         reussiteGlobale: Math.round(this.reussiteGlobale * 1000) / 1000,
+        notesValidees: this.notesValidees,
       },
       bilanNotes: this.notesDuNiveau.map((position) => ({
         position: { ...position },
@@ -297,6 +326,7 @@ export class Partie {
         difficulte: difficulte(position, this.reglages.poidsAlteration),
         essais: this.essaisDe(position),
         reussite: Math.round(this.reussiteDe(position) * 1000) / 1000,
+        validee: this.noteValidee(position),
       })),
       essais: this.essaisJournal.map((e) => ({ ...e, fausses: e.fausses.map((f) => ({ ...f })) })),
     };
@@ -307,23 +337,45 @@ export class Partie {
   }
 
   /**
-   * Nouvelle note du niveau, tirée selon la réussite (une note peu réussie, ou pas encore assez jouée, revient
-   * jusqu'à 4 fois plus souvent), sans le nom des 2 dernières.
+   * Nouvelle note du niveau : une note ratée dont le retour est dû (TIRAGES_AVANT_RETOUR), sinon une note tirée selon
+   * la réussite (une note peu réussie, ou pas encore assez jouée, revient jusqu'à 4 fois plus souvent), sans le nom
+   * des 2 dernières.
    */
   private apparaitre(tMs: number): void {
+    const options = { caseMax: CASE_MAX, cordeDemandee: true, poids: (p: Position) => this.poidsTirage(p) };
+    const retour = this.retourDu();
     const question = questionTouchee(
-      tirerQuestion(
-        sansNomsRecents(this.notesDuNiveau, this.nomsRecents),
-        { caseMax: CASE_MAX, cordeDemandee: true, poids: (p) => this.poidsTirage(p) },
-        this.hasard,
-        this.derniereTiree,
-      ),
+      retour
+        ? tirerQuestion([retour], options, this.hasard)
+        : tirerQuestion(
+            sansNomsRecents(this.notesDuNiveau, this.nomsRecents),
+            options,
+            this.hasard,
+            this.derniereTiree,
+          ),
     );
     this.tirees++;
+    if (retour) this.indicesRetour.add(this.tirees);
     this.derniereTiree = question;
     this.nomsRecents = retenirNom(this.nomsRecents, question.nom);
     this.chute.ajouter({ index: this.tirees, question, progression: 0, tApparitionMs: tMs, tAttendueMs: null });
     this.rendreAttendue(tMs);
+  }
+
+  /**
+   * Compte un tirage pour chaque note à faire revenir, et renvoie la première dont le retour est dû, si son nom n'est
+   * pas parmi les derniers tirés et si ce n'est pas la dernière note ; elle est alors retirée de la liste.
+   */
+  private retourDu(): Position | null {
+    for (const retour of this.retours.values()) retour.dans--;
+    for (const [cle, { position, dans }] of this.retours) {
+      const recente = this.derniereTiree && memePosition(this.derniereTiree.position, position);
+      if (dans > 0 || recente || this.nomsRecents.includes(noteDePosition(position).nom)) continue;
+      if (!this.notesDuNiveau.some((p) => memePosition(p, position))) continue;
+      this.retours.delete(cle);
+      return position;
+    }
+    return null;
   }
 
   /** Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum, puis selon sa réussite. */
@@ -397,6 +449,10 @@ export class Partie {
     this.meilleureSerie = Math.max(this.meilleureSerie, this.serie);
     this.vitesseMax = Math.max(this.vitesseMax, this.vitesseActuelle);
     this.essais.push(essai);
+    // Note ratée (au moins une case fausse, perdue ou ratée) : elle revient TIRAGES_AVANT_RETOUR tirages plus tard.
+    if (!juste || essai.erreurs > 0) {
+      this.retours.set(`${position.corde}-${position.case}`, { position, dans: TIRAGES_AVANT_RETOUR });
+    }
     if (resultat === 'perdue' && touchee) {
       this.faussesAttendue.push({ tMs: this.relatif(tMs), position: touchee, penalite: 0 });
     }
@@ -411,6 +467,7 @@ export class Partie {
       tAttendueMs: this.relatif(tAttendueMs),
       tResultatMs: this.relatif(tMs),
       resultat,
+      revient: this.indicesRetour.has(note.index),
       erreurs: essai.erreurs,
       justesse: justesse(essai),
       delaiApparitionMs: essai.delaiApparitionMs === null ? null : Math.round(essai.delaiApparitionMs),
@@ -443,20 +500,14 @@ export class Partie {
   }
 
   /**
-   * Passage de niveau : chaque note a assez d'essais et une réussite ≥ seuilNote, la réussite globale est
-   * ≥ seuilGlobal, et la vitesse a atteint le plafond du niveau ; en hardcore, chaque note a en plus ses
-   * ESSAIS_HARDCORE derniers essais sans faute.
+   * Passage de niveau : chaque note est validée (noteValidee), la réussite globale est ≥ seuilGlobal, et la vitesse a
+   * atteint le plafond du niveau.
    */
   private niveauValide(): boolean {
-    const r = this.reglages;
     if (this.mancheComplet || this.vitesseActuelle + 1e-9 < this.plafond) return false;
-    const notesReussies = this.notesDuNiveau.every(
-      (p) =>
-        this.essaisDe(p) >= r.essaisMinimum &&
-        this.reussiteDe(p) + 1e-9 >= r.seuilNote &&
-        (this.difficulte !== 'hardcore' || sansFaute(p, this.essais, ESSAIS_HARDCORE, r.delaiNoteBonMs)),
+    return (
+      this.notesDuNiveau.every((p) => this.noteValidee(p)) && this.reussiteGlobale + 1e-9 >= this.reglages.seuilGlobal
     );
-    return notesReussies && this.reussiteGlobale + 1e-9 >= r.seuilGlobal;
   }
 
   private passer(tMs: number): EvenementPartie {

@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest';
 import type { Position } from '../../src/music/manche';
 import { REGLAGES_PROGRESSIF_DEFAUT } from '../../src/jeu/reglages';
 import {
+  acquise,
   justesse,
   matriceReussites,
   rapidite,
   reussiteEssais,
   reussiteGlobale,
   reussiteNote,
-  sansFaute,
   scoreEssai,
   type Essai,
 } from '../../src/jeu/reussite';
@@ -113,7 +113,7 @@ describe('méthodes de réussite globale', () => {
   });
 });
 
-describe('sansFaute (hardcore)', () => {
+describe('acquise (hardcore)', () => {
   const juste = (delaiNoteMs: number, position: Position = E6): Essai => ({
     position,
     resultat: 'juste',
@@ -122,22 +122,25 @@ describe('sansFaute (hardcore)', () => {
     delaiNoteMs,
   });
   const vite = (n: number) => Array.from({ length: n }, () => juste(1000));
+  const avecFaute: Essai = { ...juste(1000), erreurs: 1 };
+  const ratee: Essai = { position: E6, resultat: 'ratee', erreurs: 0, delaiApparitionMs: null, delaiNoteMs: null };
 
-  it('demande n essais justes du premier coup et rapides, les derniers de la note', () => {
-    expect(sansFaute(E6, vite(4), 5, 1500)).toBe(false);
-    expect(sansFaute(E6, vite(5), 5, 1500)).toBe(true);
-    // Les essais des autres notes ne comptent pas.
-    expect(sansFaute(E6, [...vite(4), juste(900, A5)], 5, 1500)).toBe(false);
+  it('demande n essais de suite justes du premier coup et rapides, n’importe quand dans la partie', () => {
+    expect(acquise(E6, vite(4), 5, 1500)).toBe(false);
+    expect(acquise(E6, vite(5), 5, 1500)).toBe(true);
+    expect(acquise(E6, [avecFaute, ...vite(5), avecFaute], 5, 1500)).toBe(true);
+    // Une erreur après la série ne retire pas la note.
+    expect(acquise(E6, [...vite(5), ratee, avecFaute], 5, 1500)).toBe(true);
     // Juste à 1,5 s : rapide ; au-delà, non.
-    expect(sansFaute(E6, [...vite(4), juste(1500)], 5, 1500)).toBe(true);
-    expect(sansFaute(E6, [...vite(4), juste(1501)], 5, 1500)).toBe(false);
+    expect(acquise(E6, [...vite(4), juste(1500)], 5, 1500)).toBe(true);
+    expect(acquise(E6, [...vite(4), juste(1501)], 5, 1500)).toBe(false);
   });
 
-  it('une erreur parmi les n derniers essais remet le décompte à zéro', () => {
-    const avecFaute: Essai = { ...juste(1000), erreurs: 1 };
-    const ratee: Essai = { position: E6, resultat: 'ratee', erreurs: 0, delaiApparitionMs: null, delaiNoteMs: null };
-    expect(sansFaute(E6, [avecFaute, ...vite(4)], 5, 1500)).toBe(false);
-    expect(sansFaute(E6, [avecFaute, ...vite(5)], 5, 1500)).toBe(true);
-    expect(sansFaute(E6, [...vite(4), ratee], 5, 1500)).toBe(false);
+  it('une erreur ou une réponse lente coupe la série ; les essais des autres notes ne comptent pas', () => {
+    expect(acquise(E6, [...vite(3), avecFaute, ...vite(4)], 5, 1500)).toBe(false);
+    expect(acquise(E6, [...vite(3), ratee, ...vite(4)], 5, 1500)).toBe(false);
+    expect(acquise(E6, [...vite(2), juste(2000), ...vite(4)], 5, 1500)).toBe(false);
+    expect(acquise(E6, [...vite(4), juste(900, A5), ...vite(1)], 5, 1500)).toBe(true);
+    expect(acquise(E6, [...vite(4), juste(900, A5)], 5, 1500)).toBe(false);
   });
 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { positionsDepart } from '../../src/jeu/difficulte';
 import type { ContexteJournal } from '../../src/jeu/journal';
 import { ESSAIS_HARDCORE, reglagesDe, type Difficulte } from '../../src/jeu/niveauxDifficulte';
-import { DUREE_PAUSE_NIVEAU_MS, Partie, type EvenementPartie } from '../../src/jeu/partie';
+import { DUREE_PAUSE_NIVEAU_MS, Partie, TIRAGES_AVANT_RETOUR, type EvenementPartie } from '../../src/jeu/partie';
 import {
   REGLAGES_PROGRESSIF_DEFAUT,
   niveauVitessePleine,
@@ -357,21 +357,22 @@ describe('difficulté', () => {
 
   /**
    * Joue juste, `delaiMs` après l'apparition de chaque note, jusqu'au passage de niveau ou à `maximum` notes ;
-   * true si passage.
+   * true si passage. Avec `fauteToutes`, une case fausse avant la bonne case une note sur `fauteToutes`.
    */
-  function passe(partie: Partie, delaiMs: number, maximum = 300): boolean {
+  function passe(partie: Partie, delaiMs: number, maximum = 300, fauteToutes = 0): boolean {
     let t = 0;
-    for (let i = 0; i < maximum; i++) {
+    for (let i = 1; i <= maximum; i++) {
       partie.avancer(t); // La note suivante apparaît.
       t += delaiMs;
       partie.avancer(t);
+      if (fauteToutes && i % fauteToutes === 0) toucher(partie, false, t - 100);
       if (toucher(partie, true, t).some((e) => e.type === 'niveau')) return true;
     }
     return false;
   }
 
-  it('règle la réussite minimale du niveau : 60 %, 80 %, 90 % ; hardcore : 5 essais minimum par note', () => {
-    expect(reglagesDe('facile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilGlobal: 0.6 });
+  it('règle la réussite minimale du niveau : 60 %, 80 %, 90 % ; facile : 40 % par note ; hardcore : 5 essais', () => {
+    expect(reglagesDe('facile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilNote: 0.4, seuilGlobal: 0.6 });
     expect(reglagesDe('normal')).toEqual(REGLAGES_PROGRESSIF_DEFAUT);
     expect(reglagesDe('difficile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilGlobal: 0.9 });
     expect(reglagesDe('hardcore')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, essaisMinimum: ESSAIS_HARDCORE });
@@ -389,25 +390,86 @@ describe('difficulté', () => {
     expect(passe(enDifficulte('difficile', lente), 1000)).toBe(true);
   });
 
-  it('hardcore : chaque note doit avoir ses 5 derniers essais justes du premier coup et rapides', () => {
+  it('hardcore : une note est acquise après 5 essais de suite justes et rapides, et le reste', () => {
     const partie = enDifficulte('hardcore');
-    // Une case fausse sur la première note : ses essais d'avant ne comptent plus.
-    toucher(partie, false, 200);
-    expect(passe(partie, 500)).toBe(true);
+    expect(partie.notesValidees).toBe(0);
+    let t = 0;
+    let max = 0;
+    for (let i = 0; i < 400 && !partie.enPause; i++) {
+      partie.avancer(t);
+      t += 500;
+      partie.avancer(t);
+      toucher(partie, true, t);
+      expect(partie.notesValidees).toBeGreaterThanOrEqual(max);
+      max = Math.max(max, partie.notesValidees);
+    }
+    expect(partie.niveau).toBe(2);
     const journal = partie.journal(CONTEXTE);
     for (const p of positionsDepart()) {
-      const siens = journal.essais.filter((e) => e.position.corde === p.corde && e.position.case === p.case);
-      expect(siens.length).toBeGreaterThanOrEqual(ESSAIS_HARDCORE);
-      for (const e of siens.slice(-ESSAIS_HARDCORE)) {
-        expect(e).toMatchObject({ resultat: 'juste', erreurs: 0 });
-        expect(e.delaiNoteMs!).toBeLessThanOrEqual(1500);
-      }
+      expect(journal.bilanNotes.find((b) => b.position.corde === p.corde && b.position.case === 0)).toMatchObject({
+        validee: true,
+      });
     }
-    expect(journal.essais[0]!.erreurs).toBe(1);
+    // Au niveau 2, les cordes à vide restent acquises ; seules les 3 nouvelles notes sont à valider.
+    expect(partie.notesValidees).toBe(6);
+    expect(journal.resume.notesValidees).toBe(6);
+  });
+
+  it('hardcore : une case fausse de temps en temps n’empêche pas de passer', () => {
+    // Une case fausse toutes les 7 notes : aucune note n'a ses 5 derniers essais propres en même temps que les autres
+    // très longtemps, mais chacune finit par avoir 5 essais propres de suite.
+    expect(passe(enDifficulte('hardcore'), 500, 400, 7)).toBe(true);
   });
 
   it('hardcore : des notes justes mais lentes (2 s) ne passent pas le niveau, qui passe en normal', () => {
     expect(passe(enDifficulte('normal'), 2000)).toBe(true);
     expect(passe(enDifficulte('hardcore'), 2000)).toBe(false);
+  });
+});
+
+describe('note ratée qui revient', () => {
+  it('après une case fausse, la note revient au 3e tirage suivant, marquée dans le journal', () => {
+    const partie = nouvelle({}, { hasard: hasardFixe(5) });
+    let t = 0;
+    // Quelques notes justes, puis une case fausse sur la note attendue avant de la jouer juste.
+    for (let i = 0; i < 4; i++) {
+      partie.avancer(t);
+      t += 500;
+      partie.avancer(t);
+      toucher(partie, true, t);
+    }
+    partie.avancer(t);
+    const ratee = partie.attendue!;
+    t += 500;
+    partie.avancer(t);
+    toucher(partie, false, t);
+    toucher(partie, true, t + 100);
+    t += 100;
+    const suivantes: Position[] = [];
+    for (let i = 0; i < TIRAGES_AVANT_RETOUR; i++) {
+      partie.avancer(t);
+      suivantes.push(partie.attendue!.question.position);
+      t += 500;
+      partie.avancer(t);
+      toucher(partie, true, t);
+    }
+    expect(TIRAGES_AVANT_RETOUR).toBe(3);
+    expect(suivantes[2]).toEqual(ratee.question.position);
+    expect(suivantes.slice(0, 2)).not.toContainEqual(ratee.question.position);
+    const essais = partie.journal(CONTEXTE).essais;
+    expect(essais.at(-1)).toMatchObject({ position: ratee.question.position, revient: true });
+    expect(essais.filter((e) => e.revient)).toHaveLength(1);
+  });
+
+  it('une note jouée juste du premier coup ne revient pas plus tôt', () => {
+    const partie = nouvelle({}, { hasard: hasardFixe(5) });
+    let t = 0;
+    for (let i = 0; i < 30; i++) {
+      partie.avancer(t);
+      t += 500;
+      partie.avancer(t);
+      toucher(partie, true, t);
+    }
+    expect(partie.journal(CONTEXTE).essais.some((e) => e.revient)).toBe(false);
   });
 });

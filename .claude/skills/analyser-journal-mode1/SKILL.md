@@ -9,8 +9,10 @@ description: Intégrer et analyser un journal exporté par le mode 1 de l'applic
    `node .claude/skills/analyser-journal-mode1/scripts/analyse-journal.mjs app/resultats/<journal>.json`
    - Il affiche en Markdown, pour chaque partie : difficulté, résumé, images, pauses.
    - Par niveau : notes, essais, durée, cases fausses, notes perdues et ratées, délai médian.
-   - Il rejoue aussi les passages dans chaque difficulté : premier essai du niveau où le passage serait validé, avec le code de l'application (`reglagesDe`, `reussiteNote`, `reussiteGlobale`, `sansFaute`). Le rejeu de la difficulté jouée doit donner l'essai réel : sinon, le script ne suit plus `jeu/partie.ts`.
+   - Il rejoue aussi les passages dans chaque difficulté, avec les règles actuelles : premier essai du niveau où le passage serait validé, avec le code de l'application (`reglagesDe`, `reussiteNote`, `reussiteGlobale`, `acquise`). Si les règles n'ont pas changé depuis la partie, le rejeu de la difficulté jouée doit donner l'essai réel : sinon, le script ne suit plus `Partie.niveauValide` (`jeu/partie.ts`).
+   - Par niveau, il compte les conditions qui manquaient après chaque essai (vitesse sous le plafond, essais minimum, note sous le seuil, note pas encore acquise en hardcore, réussite du niveau) et nomme les notes qui bloquent le plus.
    - Il donne les notes avec des cases fausses.
+   - Les notes qui reviennent après une erreur sont marquées `revient` dans le journal (depuis le 31/10/2026).
 3. Analyser : ce qui bloque ou accélère les passages, les notes faibles, la vitesse, le ressenti de l'utilisateur.
 4. Ajouter une section en tête de `app/resultats/README.md` : session, tableau, analyse, décisions. Les réglages à essayer sont proposés à l'utilisateur, sans les changer d'office.
 5. Si l'utilisateur décide de changer une règle : changer le code (`app/src/jeu/`), la spec (`docs/specs-app-apprentissage-manche.md` §5.1, nouvelle version), les décisions (`docs/revue-specs-app.md`) et les tests, en suivant `.claude/rules/app-code.md`.

@@ -34,6 +34,8 @@ export interface EssaiJournal {
   tAttendueMs: number;
   tResultatMs: number;
   resultat: ResultatEssai;
+  /** Note ratée qui revient (partie.ts, TIRAGES_AVANT_RETOUR) ; absent avant le 31/10/2026. */
+  revient?: boolean;
   erreurs: number;
   justesse: number;
   delaiApparitionMs: number | null;
@@ -71,6 +73,8 @@ export interface BilanNote {
   difficulte: number;
   essais: number;
   reussite: number;
+  /** Note validée pour le passage (Partie.noteValidee) ; absent avant le 31/10/2026. */
+  validee?: boolean;
 }
 
 export interface ResumePartie {
@@ -90,6 +94,8 @@ export interface ResumePartie {
   delaiNoteMedianMs: number | null;
   /** Réussite globale à la fin (méthodes choisies). */
   reussiteGlobale: number;
+  /** Notes du niveau validées à la fin ; absent avant le 31/10/2026. */
+  notesValidees?: number;
 }
 
 /** Durées entre deux images pendant la partie. Null sans image. */

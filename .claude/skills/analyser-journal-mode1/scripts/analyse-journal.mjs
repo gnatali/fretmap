@@ -1,5 +1,6 @@
-// Résume un journal JSON exporté par le mode 1 de l'application (format fretmap-mode1-journal), en Markdown, et
-// rejoue les passages de niveau dans chaque difficulté (facile, normal, difficile, hardcore).
+// Résume un journal JSON exporté par le mode 1 de l'application (format fretmap-mode1-journal), en Markdown, rejoue les
+// passages de niveau dans chaque difficulté (facile, normal, difficile, hardcore) avec les règles actuelles, et compte
+// les conditions qui bloquent le passage dans la difficulté jouée.
 // Usage, depuis la racine du dépôt : node .claude/skills/analyser-journal-mode1/scripts/analyse-journal.mjs <journal.json>
 // Réutilise le code de l'application (réglages, difficultés, réussite), chargé par Vite : dépendances de app/
 // requises (npm ci).
@@ -31,7 +32,7 @@ const { DIFFICULTES, ESSAIS_HARDCORE, reglagesDe } = await charger(
   "src/jeu/niveauxDifficulte.ts",
 );
 const { plafondVitesse } = await charger("src/jeu/reglages.ts");
-const { reussiteNote, reussiteGlobale, sansFaute } = await charger(
+const { acquise, reussiteNote, reussiteGlobale } = await charger(
   "src/jeu/reussite.ts",
 );
 
@@ -54,14 +55,18 @@ const brutVersEssai = (e) => ({
 });
 
 /**
- * Premier essai du niveau (rang dans le niveau) où le passage serait validé dans la difficulté, d'après les données
- * brutes des essais ; null si jamais. Comme dans partie.ts, les essais des niveaux précédents de la partie comptent
- * dans la réussite des notes ; la vitesse après chaque essai est recalculée.
+ * Conditions de passage après chaque essai du niveau, dans la difficulté, comme Partie.niveauValide : vitesse au
+ * plafond, chaque note validée (essais minimum, réussite ≥ seuilNote, acquise en hardcore), réussite du niveau. Les
+ * essais des niveaux précédents de la partie comptent ; la vitesse après chaque essai est recalculée.
+ * @returns le premier essai du niveau où le passage serait validé (null si jamais), et les conditions manquantes
+ *   après chaque essai
  */
-function passageDans(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
+function rejouer(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
   const r = reglagesDe(difficulte);
   const plafond = plafondVitesse(niveau, r);
   const essais = essaisAvant.map(brutVersEssai);
+  const manques = [];
+  let passage = null;
   for (let i = 0; i < essaisNiveau.length; i++) {
     const e = essaisNiveau[i];
     essais.push(brutVersEssai(e));
@@ -69,19 +74,33 @@ function passageDans(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
       e.resultat === "juste"
         ? Math.min(plafond, e.vitesse + r.acceleration * e.scoreEssai)
         : e.vitesse * (1 - r.ralentissement);
-    if (vitesse + 1e-9 < plafond) continue;
-    const notes = positions.every(
-      (p) =>
-        essais.filter((x) => cle(x.position) === cle(p)).length >= r.essaisMinimum &&
-        reussiteNote(r.methodeNote, p, essais, r) + 1e-9 >= r.seuilNote &&
-        (difficulte !== "hardcore" || sansFaute(p, essais, ESSAIS_HARDCORE, r.delaiNoteBonMs)),
-    );
-    if (notes && reussiteGlobale(r.methodeGlobale, r.methodeNote, positions, essais, r) + 1e-9 >= r.seuilGlobal) {
-      return i + 1;
-    }
+    const manque = {
+      vitesse: vitesse + 1e-9 < plafond,
+      essaisMinimum: positions.filter((p) => essais.filter((x) => cle(x.position) === cle(p)).length < r.essaisMinimum),
+      seuilNote: positions.filter((p) => reussiteNote(r.methodeNote, p, essais, r) + 1e-9 < r.seuilNote),
+      hardcore:
+        difficulte === "hardcore"
+          ? positions.filter((p) => !acquise(p, essais, ESSAIS_HARDCORE, r.delaiNoteBonMs))
+          : [],
+      niveau: reussiteGlobale(r.methodeGlobale, r.methodeNote, positions, essais, r) + 1e-9 < r.seuilGlobal,
+    };
+    manques.push(manque);
+    const ok =
+      !manque.vitesse &&
+      !manque.niveau &&
+      !manque.essaisMinimum.length &&
+      !manque.seuilNote.length &&
+      !manque.hardcore.length;
+    if (ok && passage === null) passage = i + 1;
   }
-  return null;
+  return { passage, manques };
 }
+
+const nomDe = (partie, k) => {
+  const e = partie.essais.find((x) => cle(x.position) === k);
+  const [corde, numeroCase] = k.split("-");
+  return `${e?.nom ?? "?"} corde ${corde} case ${numeroCase}`;
+};
 
 brut.parties.forEach((partie, n) => {
   const { resume } = partie;
@@ -97,6 +116,7 @@ brut.parties.forEach((partie, n) => {
   // Notes de chaque niveau : celles du départ, puis les ajoutées à chaque passage.
   let positions = partie.positionsDepart;
   const niveaux = [...new Set(partie.essais.map((e) => e.niveau))];
+  const blocages = [];
   console.log(
     `| Niveau | Notes | Essais | Durée | Cases fausses | Perdues | Ratées | Délai médian | Passé à l'essai (réel) | ${DIFFICULTES.join(" | ")} |`,
   );
@@ -107,7 +127,26 @@ brut.parties.forEach((partie, n) => {
     const duree = essais.at(-1).tResultatMs - essais[0].tApparitionMs;
     const delais = essais.filter((e) => e.delaiNoteMs !== null).map((e) => e.delaiNoteMs);
     const avant = partie.essais.filter((e) => e.niveau < niveau);
-    const rejeu = DIFFICULTES.map((d) => passageDans(d, niveau, positions, avant, essais) ?? "non");
+    const rejeu = DIFFICULTES.map((d) => rejouer(d, niveau, positions, avant, essais).passage ?? "non");
+    // Conditions manquantes dans la difficulté jouée, sur les essais du niveau.
+    const { manques } = rejouer(partie.difficulte ?? "normal", niveau, positions, avant, essais);
+    const sous = {};
+    for (const m of manques) for (const p of [...m.seuilNote, ...m.hardcore]) sous[cle(p)] = (sous[cle(p)] ?? 0) + 1;
+    blocages.push(
+      `- Niveau ${niveau} (${manques.length} essais) : vitesse sous le plafond ${manques.filter((m) => m.vitesse).length}, ` +
+        `essais minimum ${manques.filter((m) => m.essaisMinimum.length).length}, ` +
+        `note sous le seuil ${manques.filter((m) => m.seuilNote.length).length}, ` +
+        (partie.difficulte === "hardcore"
+          ? `note pas encore acquise ${manques.filter((m) => m.hardcore.length).length}, `
+          : "") +
+        `réussite du niveau ${manques.filter((m) => m.niveau).length}. Notes qui bloquent le plus : ` +
+        (Object.entries(sous)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4)
+          .map(([k, n]) => `${nomDe(partie, k)} (${n})`)
+          .join(", ") || "aucune") +
+        ".",
+    );
     console.log(
       `| ${niveau} | ${positions.length} | ${essais.length} | ${s(duree)} | ` +
         `${essais.reduce((t, e) => t + e.fausses.length, 0)} | ${essais.filter((e) => e.resultat === "perdue").length} | ` +
@@ -116,6 +155,11 @@ brut.parties.forEach((partie, n) => {
     );
     if (passage) positions = [...positions, ...passage.ajoutees];
   }
+
+  console.log(
+    "\nConditions manquantes après chaque essai, dans la difficulté jouée, avec les règles actuelles (nombre d'essais où elle manquait) :\n",
+  );
+  console.log(blocages.join("\n"));
 
   // Notes avec le plus de cases fausses, et délai médian par note.
   const parNote = new Map();

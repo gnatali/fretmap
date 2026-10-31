@@ -127,17 +127,19 @@ export function reussiteGlobale(
 }
 
 /**
- * Note jouée `n` fois de suite sans faute (hardcore) : au moins `n` essais, et ses `n` derniers justes du premier coup
- * (aucune case fausse) en au plus `delaiBonMs` depuis la note précédente.
+ * Note acquise (hardcore) : elle a été jouée, à un moment, `n` fois de suite juste du premier coup (aucune case fausse)
+ * en au plus `delaiBonMs` depuis la note précédente. Une erreur après coup ne la retire pas (choix de l'utilisateur
+ * du 31/10/2026 : exiger les `n` derniers essais de chaque note en même temps ne laissait jamais passer le niveau).
  */
-export function sansFaute(position: Position, essais: readonly Essai[], n: number, delaiBonMs: number): boolean {
-  const derniers = essais.filter((e) => memePosition(e.position, position)).slice(-n);
-  return (
-    derniers.length >= n &&
-    derniers.every(
-      (e) => e.resultat === 'juste' && e.erreurs === 0 && e.delaiNoteMs !== null && e.delaiNoteMs <= delaiBonMs,
-    )
-  );
+export function acquise(position: Position, essais: readonly Essai[], n: number, delaiBonMs: number): boolean {
+  let serie = 0;
+  for (const e of essais) {
+    if (!memePosition(e.position, position)) continue;
+    const propre = e.resultat === 'juste' && e.erreurs === 0 && e.delaiNoteMs !== null && e.delaiNoteMs <= delaiBonMs;
+    serie = propre ? serie + 1 : 0;
+    if (serie >= n) return true;
+  }
+  return false;
 }
 
 const arrondi = (valeur: number) => Math.round(valeur * 1000) / 1000;

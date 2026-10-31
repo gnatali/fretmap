@@ -108,14 +108,16 @@ export const TEXTES = {
     string
   >,
   aidesDifficulte: {
-    facile: 'Réussite du niveau : 60 %',
+    facile: '40 % par note, 60 % pour le niveau ; bonne case montrée après une erreur',
     normal: 'Réussite du niveau : 80 %',
     difficile: 'Réussite du niveau : 90 %',
-    hardcore: 'Chaque note : 5 fois de suite sans erreur, en moins de 1,5 s',
+    hardcore: 'Chaque note : 5 fois de suite sans erreur, en moins de 1,5 s (acquise pour la partie)',
   } as Record<Difficulte, string>,
   partie: {
     score: 'Score',
     niveau: 'Niveau',
+    notes: 'Notes',
+    notesValidees: 'Notes du niveau validées pour le passage',
     reussite: 'Réussite',
     vitesse: 'Vitesse',
     arreter: 'Arrêter',
@@ -137,6 +139,8 @@ export const TEXTES = {
   fin: {
     titre: 'Fin de partie',
     difficulte: 'Difficulté',
+    notesValidees: 'Notes validées',
+    aTravailler: 'à travailler',
     nouveauRecord: 'Nouveau record !',
     score: 'Score',
     niveaux: 'Niveau',

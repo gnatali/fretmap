@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PartieJournal } from '../../jeu/journal';
+  import type { BilanNote, PartieJournal } from '../../jeu/journal';
   import { TEXTES, duree, nomPosition, pourcent } from '../textes';
 
   // Fin d'une partie du jeu du mode 1 (spec §5.1), reprise du POC « Notes qui tombent » : résumé, records, notes du
@@ -17,9 +17,16 @@
   let { journal, nouveauRecord, onContinuer, onAccueil, onExporter }: Props = $props();
 
   const resume = $derived(journal.resume);
+  /** Note à travailler : pas validée pour le passage (journaux d'avant le 31/10 : réussite sous le seuil). */
+  const aTravailler = (note: BilanNote) => note.validee === false || note.reussite < journal.reglages.seuilNote;
+  // Notes à travailler d'abord, puis de la moins réussie à la mieux réussie.
   const notes = $derived(
-    [...journal.bilanNotes].sort((a, b) => a.reussite - b.reussite || a.difficulte - b.difficulte),
+    [...journal.bilanNotes].sort(
+      (a, b) =>
+        Number(aTravailler(b)) - Number(aTravailler(a)) || a.reussite - b.reussite || a.difficulte - b.difficulte,
+    ),
   );
+  const validees = $derived(journal.bilanNotes.filter((n) => !aTravailler(n)).length);
 </script>
 
 <header>
@@ -35,6 +42,8 @@
   <dd class="difficulte">{TEXTES.difficultes[journal.difficulte ?? 'normal']}</dd>
   <dt>{TEXTES.fin.niveaux}</dt>
   <dd class="niveaux">{TEXTES.fin.niveauxValeurs(resume.niveauDepart, resume.niveauAtteint)}</dd>
+  <dt>{TEXTES.fin.notesValidees}</dt>
+  <dd class="notes-validees">{validees}/{journal.bilanNotes.length}</dd>
   <dt>{TEXTES.fin.reussiteNiveau}</dt>
   <dd class="reussite">{pourcent(resume.reussiteGlobale)}</dd>
   <dt>{TEXTES.fin.essais}</dt>
@@ -68,9 +77,12 @@
     <tbody>
       {#each notes as note (`${note.position.corde}-${note.position.case}`)}
         <tr>
-          <td>{nomPosition(note.position, note.nom, journal.reglages.notation)}</td>
+          <td>
+            {nomPosition(note.position, note.nom, journal.reglages.notation)}
+            {#if aTravailler(note)}<span class="a-travailler">{TEXTES.fin.aTravailler}</span>{/if}
+          </td>
           <td>{note.essais}</td>
-          <td class:faible={note.reussite < journal.reglages.seuilNote}>{pourcent(note.reussite)}</td>
+          <td class:faible={aTravailler(note)}>{pourcent(note.reussite)}</td>
         </tr>
       {/each}
     </tbody>
@@ -138,6 +150,16 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+  }
+  .a-travailler {
+    display: inline-block;
+    margin-left: 0.25rem;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--faux);
+    border: 1px solid var(--faux);
+    border-radius: 999px;
   }
   .faible {
     color: var(--faux);
