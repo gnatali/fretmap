@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import './resize-observer';
 import { EtatApp } from '../../src/etat.svelte';
 import { CLE_JOURNAL } from '../../src/jeu/stockage';
-import { jeuInitial, recordsVides } from '../../src/progression/modele';
+import { jeuInitial, niveauJeuInitial, recordsVides, type NiveauJeu } from '../../src/progression/modele';
 import { CLE_STOCKAGE } from '../../src/progression/stockage';
 import Mode1 from '../../src/ui/ecrans/Mode1.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -123,12 +123,14 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     let n = 0;
     const { etat, stockage } = afficher(undefined, () => (n++ * 0.37) % 1);
     await commencer();
-    for (let i = 0; i < 100 && etat.progression.jeu.niveau === 1; i++) {
+    for (let i = 0; i < 100 && etat.progression.jeu.niveaux.normal.niveau === 1; i++) {
       await fireEvent.click(caseDuManche(reponse()));
       await vi.advanceTimersByTimeAsync(400);
     }
-    expect(etat.progression.jeu.niveau).toBe(2);
-    expect(etat.progression.jeu.positions).toHaveLength(9);
+    // Le niveau est celui de la difficulté jouée ; les autres ne bougent pas.
+    expect(etat.progression.jeu.niveaux.normal.niveau).toBe(2);
+    expect(etat.progression.jeu.niveaux.normal.positions).toHaveLength(9);
+    expect(etat.progression.jeu.niveaux.facile).toEqual(niveauJeuInitial());
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"niveau":2');
     expect(texte('.titre-passage')).toBe(TEXTES.partie.niveauValide(1, 500));
     // Nouvelles notes : la bulle des notes qui tombent, posée sur leur case (plus de cases entourées).
@@ -178,24 +180,30 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(screen.queryByText(TEXTES.fin.nouveauRecord)).toBeNull();
   });
 
-  it('départ : reprise au niveau atteint, records, recommencer aux cordes à vide après confirmation', async () => {
+  it('départ : reprise au niveau de la difficulté choisie, recommencer celle-ci après confirmation', async () => {
     const records = { ...recordsVides(), normal: { score: 1200, niveau: 3 } };
+    const niveau3: NiveauJeu = { niveau: 3, positions: [...niveauJeuInitial().positions, { corde: 6, case: 1 }] };
+    const niveau2: NiveauJeu = { niveau: 2, positions: [...niveauJeuInitial().positions, { corde: 2, case: 1 }] };
     const { etat } = afficher((e) =>
-      e.sauverJeu({
-        niveau: 3,
-        positions: [...jeuInitial().positions, { corde: 6, case: 1 }],
-        difficulte: 'normal',
-        records,
-      }),
+      e.sauverJeu(jeuInitial({ niveaux: { normal: niveau3, facile: niveau2 }, records })),
     );
     expect(screen.getByText(TEXTES.mode1.recordValeurs(1200, 3))).toBeTruthy();
     expect(screen.getByRole('button', { name: TEXTES.mode1.reprendre(3, 7) })).toBeTruthy();
+    // Chaque difficulté a son niveau.
+    await fireEvent.click(screen.getByRole('radio', { name: /^Facile/ }));
+    expect(screen.getByRole('button', { name: TEXTES.mode1.reprendre(2, 7) })).toBeTruthy();
+    await fireEvent.click(screen.getByRole('radio', { name: /^Hardcore/ }));
+    expect(screen.getByRole('button', { name: TEXTES.mode1.commencer })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: TEXTES.mode1.recommencer })).toBeNull();
+
+    await fireEvent.click(screen.getByRole('radio', { name: /^Normal/ }));
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.recommencer }));
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.annuler }));
-    expect(etat.progression.jeu.niveau).toBe(3);
+    expect(etat.progression.jeu.niveaux.normal).toEqual(niveau3);
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.recommencer }));
+    expect(screen.getByText(TEXTES.mode1.confirmerRecommencer(3, 'Normal'))).toBeTruthy();
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.confirmer }));
-    expect(etat.progression.jeu).toEqual(jeuInitial({ records }));
+    expect(etat.progression.jeu).toEqual(jeuInitial({ niveaux: { facile: niveau2 }, records }));
     expect(texte('.compte')).toContain('3');
   });
 

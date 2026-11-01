@@ -6,7 +6,7 @@ import type { SessionMicro } from '../../src/audio/micro';
 import { DUREE_CALIBRAGE_MS } from '../../src/audio/niveau';
 import { Ecoute } from '../../src/ecoute.svelte';
 import { EtatApp } from '../../src/etat.svelte';
-import { avancementInitial, jeuInitial, progressionInitiale } from '../../src/progression/modele';
+import { avancementInitial, jeuInitial, niveauJeuInitial, progressionInitiale } from '../../src/progression/modele';
 import { CLE_STOCKAGE, exporterJson } from '../../src/progression/stockage';
 import Reglages from '../../src/ui/ecrans/Reglages.svelte';
 import { TEXTES } from '../../src/ui/textes';
@@ -102,7 +102,10 @@ describe('réglages', () => {
     const fichier = {
       ...progressionInitiale(),
       avancement: { 2: avancementInitial(2) },
-      jeu: { ...jeuInitial({ difficulte: 'difficile' }), niveau: 3 },
+      jeu: jeuInitial({
+        difficulte: 'difficile',
+        niveaux: { difficile: { niveau: 3, positions: [...niveauJeuInitial().positions, { corde: 6, case: 1 }] } },
+      }),
     };
     await fireEvent.change(champ, { target: { files: [new File([exporterJson(fichier)], 'p.json')] } });
     await waitFor(() => expect(screen.getByText(TEXTES.reglages.confirmerImport)).toBeTruthy());

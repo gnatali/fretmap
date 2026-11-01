@@ -3,7 +3,7 @@
   import { HorlogeJeu } from '../../jeu/horloge';
   import { MesureImages, type PartieJournal } from '../../jeu/journal';
   import { Partie, type EvenementPartie } from '../../jeu/partie';
-  import { AIDE_APRES_ERREUR, reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
+  import { AIDE_APRES_ERREUR, NATURELLES_SEULES, reglagesDe, type Difficulte } from '../../jeu/niveauxDifficulte';
   import { noteDePosition, type Position } from '../../music/manche';
   import type { Notation } from '../../music/notation';
   import { TEXTES, consigne, nomPosition, pourcent, retourEssai, retourFausse } from '../textes';
@@ -386,7 +386,7 @@
     <div class="passage" aria-live="polite">
       <p class="titre-passage">{TEXTES.partie.niveauValide(passage.niveau, passage.bonus)}</p>
       {#if passage.ajoutees.length === 0}
-        <p>{TEXTES.partie.mancheComplet}</p>
+        <p>{NATURELLES_SEULES[difficulte] ? TEXTES.partie.naturellesCompletes : TEXTES.partie.mancheComplet}</p>
       {:else}
         <p>{TEXTES.partie.nouvellesNotes}</p>
         <ul>

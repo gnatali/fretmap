@@ -1,6 +1,6 @@
 // État de l'application : relie l'interface au stockage. Aucune règle métier ici (voir progression/ et quiz/).
 import {
-  jeuInitial,
+  niveauJeuInitial,
   progressionInitiale,
   type Niveau,
   type Progression,
@@ -59,10 +59,13 @@ export class EtatApp {
     return ajouterPartie(this.stockage, partie);
   }
 
-  /** Le jeu du mode 1 repart aux cordes à vide ; la difficulté, les records et les statistiques sont gardés. */
+  /**
+   * Le jeu du mode 1 repart aux cordes à vide dans la difficulté choisie ; les autres difficultés, les records et les
+   * statistiques sont gardés.
+   */
   recommencerJeu(): void {
-    const { difficulte, records } = this.progression.jeu;
-    this.sauverJeu(jeuInitial({ difficulte, records }));
+    const jeu = this.progression.jeu;
+    this.sauverJeu({ ...jeu, niveaux: { ...jeu.niveaux, [jeu.difficulte]: niveauJeuInitial() } });
   }
 
   definirReglage<C extends keyof Reglages>(cle: C, valeur: Reglages[C]): void {

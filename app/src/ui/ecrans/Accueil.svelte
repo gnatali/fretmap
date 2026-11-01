@@ -3,16 +3,18 @@
 </script>
 
 <script lang="ts">
+  import type { Difficulte } from '../../jeu/niveauxDifficulte';
   import type { Mode } from '../../progression/modele';
   import { TEXTES } from '../textes';
 
   interface Props {
-    /** Niveau atteint dans chaque mode (mode 1 : niveau du jeu). */
+    /** Niveau atteint dans chaque mode (mode 1 : niveau du jeu dans la difficulté choisie). */
     niveaux: Record<Mode, number>;
+    difficulteMode1: Difficulte;
     onAller: (destination: Destination) => void;
   }
 
-  let { niveaux, onAller }: Props = $props();
+  let { niveaux, difficulteMode1, onAller }: Props = $props();
 
   // Ordre de la spec §7.
   const entrees: Destination[] = ['mode1', 'mode2', 'accordeur', 'statistiques', 'reglages'];
@@ -21,7 +23,7 @@
 <header>
   <h1>{TEXTES.titre}</h1>
   <p class="sous-titre">{TEXTES.sousTitre}</p>
-  <p class="niveau">{TEXTES.niveauxAtteints(niveaux[1], niveaux[2])}</p>
+  <p class="niveau">{TEXTES.niveauxAtteints(niveaux[1], TEXTES.difficultes[difficulteMode1], niveaux[2])}</p>
 </header>
 
 <nav aria-label="Écrans">

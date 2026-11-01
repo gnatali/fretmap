@@ -1,5 +1,12 @@
 // Lecture et écriture de la progression dans localStorage, migration, export et import JSON (spec §6, §9).
-import { DIFFICULTES, DIFFICULTE_DEFAUT, estDifficulte } from '../jeu/niveauxDifficulte';
+import { estAlteree } from '../jeu/difficulte';
+import {
+  DIFFICULTES,
+  DIFFICULTE_DEFAUT,
+  NATURELLES_SEULES,
+  estDifficulte,
+  type Difficulte,
+} from '../jeu/niveauxDifficulte';
 import { estCase, estNumeroCorde, type Position } from '../music/manche';
 import { NOTATIONS } from '../music/notation';
 import { bornerA4 } from '../music/notes';
@@ -14,6 +21,7 @@ import {
   recordsVides,
   type AvancementMode,
   type Niveau,
+  type NiveauJeu,
   type Progression,
   type ProgressionJeu,
   type Reglages,
@@ -120,10 +128,26 @@ function lireRecord(valeur: unknown): { score: number; niveau: number } {
   return { score: estEntierPositif(r.score) ? r.score : 0, niveau: estEntierPositif(r.niveau) ? r.niveau : 0 };
 }
 
+/** Niveau et notes (sans doublon) d'une difficulté ; null s'ils sont absents ou invalides. */
+function lireNiveauJeu(valeur: unknown): NiveauJeu | null {
+  const n = estObjet(valeur) ? valeur : {};
+  const vues = new Set<string>();
+  const positions = (Array.isArray(n.positions) ? n.positions.filter(estPosition) : []).filter((p) => {
+    const cle = `${p.corde}-${p.case}`;
+    if (vues.has(cle)) return false;
+    vues.add(cle);
+    return true;
+  });
+  if (!Number.isInteger(n.niveau) || (n.niveau as number) < 1 || positions.length === 0) return null;
+  return { niveau: n.niveau as number, positions: positions.map((p) => ({ corde: p.corde, case: p.case })) };
+}
+
 /**
- * Jeu du mode 1 : niveau, notes (sans doublon), difficulté et records par difficulté. Absent ou invalide (versions 1
- * et 2), il repart aux cordes à vide, avec la difficulté et les records lus s'il y en a. Un `record` unique (avant le
- * choix de la difficulté, 31/10/2026) devient celui du mode normal, le seul joué alors.
+ * Jeu du mode 1 : difficulté, niveau et notes par difficulté, records par difficulté. Un niveau absent ou invalide
+ * repart aux cordes à vide (versions 1 et 2 : toutes les difficultés), comme un niveau avec des notes altérées dans une
+ * difficulté aux notes naturelles seulement (facile). Version 3 : le niveau et les notes, communs aux difficultés,
+ * deviennent ceux de chacune (le facile les perd s'ils ont des notes altérées). Un `record` unique (avant le choix de
+ * la difficulté, 31/10/2026) devient celui du mode normal, le seul joué alors.
  */
 function lireJeu(valeur: unknown): ProgressionJeu {
   const j = estObjet(valeur) ? valeur : {};
@@ -132,32 +156,25 @@ function lireJeu(valeur: unknown): ProgressionJeu {
   for (const d of DIFFICULTES) records[d] = lireRecord(lus[d]);
   if (!estObjet(j.records) && estObjet(j.record)) records.normal = lireRecord(j.record);
   const difficulte = estDifficulte(j.difficulte) ? j.difficulte : DIFFICULTE_DEFAUT;
-  const vues = new Set<string>();
-  const positions = (Array.isArray(j.positions) ? j.positions.filter(estPosition) : []).filter((p) => {
-    const cle = `${p.corde}-${p.case}`;
-    if (vues.has(cle)) return false;
-    vues.add(cle);
-    return true;
-  });
-  if (!Number.isInteger(j.niveau) || (j.niveau as number) < 1 || positions.length === 0) {
-    return jeuInitial({ difficulte, records });
+  const parDifficulte = estObjet(j.niveaux) ? j.niveaux : null;
+  const commun = parDifficulte ? null : lireNiveauJeu(j);
+  const niveaux: Partial<Record<Difficulte, NiveauJeu>> = {};
+  for (const d of DIFFICULTES) {
+    const lu = parDifficulte ? lireNiveauJeu(parDifficulte[d]) : commun;
+    if (lu && !(NATURELLES_SEULES[d] && lu.positions.some(estAlteree))) niveaux[d] = lu;
   }
-  return {
-    niveau: j.niveau as number,
-    positions: positions.map((p) => ({ corde: p.corde, case: p.case })),
-    difficulte,
-    records,
-  };
+  return jeuInitial({ difficulte, niveaux, records });
 }
 
 /**
  * Ramène des données lues (stockage ou import) au schéma courant : validation et valeurs par défaut pour les champs
  * manquants ou invalides. Les versions 1 (niveau commun aux deux modes) et 2 (quiz du mode 1 à 7 niveaux) sont
- * converties : le jeu du mode 1 commence aux cordes à vide, les statistiques sont gardées.
+ * converties : le jeu du mode 1 commence aux cordes à vide, les statistiques sont gardées. La version 3 (niveau du jeu
+ * commun aux difficultés) aussi : voir `lireJeu`.
  * Renvoie null si les données ne sont pas une progression connue.
  */
 export function migrer(donnees: unknown): Progression | null {
-  if (!estObjet(donnees) || ![1, 2, VERSION_SCHEMA].includes(donnees.version as number)) return null;
+  if (!estObjet(donnees) || ![1, 2, 3, VERSION_SCHEMA].includes(donnees.version as number)) return null;
   return {
     version: VERSION_SCHEMA,
     avancement: lireAvancement(donnees),

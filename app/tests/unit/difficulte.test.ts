@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { positions, type Position } from '../../src/music/manche';
-import { difficulte, notesAAjouter, positionsDepart } from '../../src/jeu/difficulte';
+import { difficulte, estAlteree, notesAAjouter, positionsDepart } from '../../src/jeu/difficulte';
 
 const p = (corde: Position['corde'], numeroCase: number): Position => ({ corde, case: numeroCase });
 
@@ -38,5 +38,32 @@ describe('notesAAjouter', () => {
   it('ne rend rien quand tout le manche est dans le niveau', () => {
     expect(notesAAjouter(positions(), 3, 3)).toEqual([]);
     expect(notesAAjouter(positions().slice(1), 3, 3)).toEqual([p(6, 0)]);
+  });
+
+  /** Niveaux successifs à partir des cordes à vide : les notes ajoutées à chaque passage. */
+  function ajouts(naturellesSeules: boolean): Position[][] {
+    const resultat: Position[][] = [];
+    let niveau = positionsDepart();
+    for (let ajoutees = notesAAjouter(niveau, 3, 3, naturellesSeules); ajoutees.length > 0;) {
+      resultat.push(ajoutees);
+      niveau = [...niveau, ...ajoutees];
+      ajoutees = notesAAjouter(niveau, 3, 3, naturellesSeules);
+    }
+    return resultat;
+  }
+
+  it('notes naturelles seulement (facile) : jamais de note altérée, le niveau 15 a les 48 notes naturelles', () => {
+    const avec = ajouts(false);
+    const naturelles = ajouts(true);
+    // Mêmes niveaux 2 à 4 ; au niveau 5, Si (corde 3, case 4) au lieu de La# (corde 5, case 1).
+    expect(naturelles.slice(0, 3)).toEqual(avec.slice(0, 3));
+    expect(avec[3]).toEqual([p(2, 3), p(1, 3), p(5, 1)]);
+    expect(naturelles[3]).toEqual([p(2, 3), p(1, 3), p(3, 4)]);
+    expect(naturelles.flat().some(estAlteree)).toBe(false);
+    expect(naturelles).toHaveLength(14);
+    expect(positionsDepart().length + naturelles.flat().length).toBe(48);
+    expect(positions().filter((q) => !estAlteree(q))).toHaveLength(48);
+    // Sans l'option, le manche entier : 78 positions au niveau 25.
+    expect(avec).toHaveLength(24);
   });
 });

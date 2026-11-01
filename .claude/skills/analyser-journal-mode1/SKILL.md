@@ -10,6 +10,7 @@ description: Intégrer et analyser un journal exporté par le mode 1 de l'applic
    - Il affiche en Markdown, pour chaque partie : difficulté, résumé, images, pauses.
    - Par niveau : notes, essais, durée, cases fausses, notes perdues et ratées, délai médian.
    - Il rejoue aussi les passages dans chaque difficulté, avec les règles actuelles : premier essai du niveau où le passage serait validé, avec le code de l'application (`reglagesDe`, `reussiteNote`, `reussiteGlobale`, `acquise`). Si les règles n'ont pas changé depuis la partie, le rejeu de la difficulté jouée doit donner l'essai réel : sinon, le script ne suit plus `Partie.niveauValide` (`jeu/partie.ts`).
+   - Le facile ne tire que des notes naturelles (`NATURELLES_SEULES`, depuis le 01/11/2026). Le rejeu porte sur les notes vraiment jouées : pour une partie avec des notes altérées, le rejeu du facile ne vaut que pour ses seuils (le script le signale).
    - Par niveau, il compte les conditions qui manquaient après chaque essai (vitesse sous le plafond, essais minimum, note sous le seuil, note pas encore acquise en hardcore, réussite du niveau) et nomme les notes qui bloquent le plus.
    - Il donne les notes avec des cases fausses.
    - Les notes qui reviennent après une erreur sont marquées `revient` dans le journal (depuis le 31/10/2026).

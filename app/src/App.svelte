@@ -37,7 +37,11 @@
     <Reglages {etat} onQuitter={accueil} />
   {:else}
     <Accueil
-      niveaux={{ 1: etat.progression.jeu.niveau, 2: etat.progression.avancement[2].niveauAtteint }}
+      niveaux={{
+        1: etat.progression.jeu.niveaux[etat.progression.jeu.difficulte].niveau,
+        2: etat.progression.avancement[2].niveauAtteint,
+      }}
+      difficulteMode1={etat.progression.jeu.difficulte}
       onAller={(d) => (ecran = d)}
     />
   {/if}

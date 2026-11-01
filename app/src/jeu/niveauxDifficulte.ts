@@ -1,6 +1,7 @@
 // Difficulté du jeu du mode 1 (spec §5.1, choix de l'utilisateur du 31/10/2026) : elle change la condition de passage
-// de niveau, et l'aide en facile. Facile, normal et difficile règlent la réussite minimale du niveau (et de chaque note
-// en facile) ; hardcore demande que chaque note ait été jouée plusieurs fois de suite sans erreur et vite.
+// de niveau, l'aide et les notes tirées en facile. Facile, normal et difficile règlent la réussite minimale du niveau
+// (et de chaque note en facile) ; hardcore demande que chaque note ait été jouée plusieurs fois de suite sans erreur et
+// vite. Chaque difficulté a son niveau et ses notes (progression/modele.ts, `ProgressionJeu.niveaux`).
 import { REGLAGES_PROGRESSIF_DEFAUT, type ReglagesProgressif } from './reglages';
 
 export type Difficulte = 'facile' | 'normal' | 'difficile' | 'hardcore';
@@ -35,6 +36,14 @@ export const SEUILS_NOTE: Readonly<Record<Difficulte, number>> = {
 
 /** Aide : la bonne case s'allume dès la 1re case fausse, jusqu'au résultat de la note ; en facile seulement. */
 export const AIDE_APRES_ERREUR: Readonly<Record<Difficulte, boolean>> = {
+  facile: true,
+  normal: false,
+  difficile: false,
+  hardcore: false,
+};
+
+/** Notes naturelles seulement (sans dièse) : en facile seulement (demande de l'utilisateur du 01/11/2026). */
+export const NATURELLES_SEULES: Readonly<Record<Difficulte, boolean>> = {
   facile: true,
   normal: false,
   difficile: false,

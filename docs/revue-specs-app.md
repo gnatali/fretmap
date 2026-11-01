@@ -96,3 +96,12 @@ Après les journaux de 21 h 05 et 21 h 09 (`app/resultats/README.md`) : le hardc
 | N27 | Confusions répétées (Ré et Sol à vide) | Une note ratée revient 3 tirages plus tard, dans toutes les difficultés |
 | N28 | Passage de niveau (demande de l'utilisateur) | Bouton « Continuer au niveau N » au lieu de la pause de 6 s ; au clic, le bilan disparaît et le compte à rebours de 3 s du départ se lance ; les nouvelles notes sont montrées avec la bulle des notes qui tombent, sur leur case, jusqu'à la première note (version 3.3) |
 | N29 | Rapidité d'un essai (demande de l'utilisateur) | Délai entre le moment où la note est demandée et la bonne réponse, seul (1 jusqu'à 1,5 s, 0 à 6 s) ; le temps passé à l'écran avant d'être demandée ne compte plus. Rejeu des journaux : même score moyen (0,898), passages inchangés sauf le niveau 5 de la partie 3 en facile (82 → 64 essais) et le niveau 1 de la partie 1 en difficile (21 essais → pas de passage) (version 3.4) |
+
+## Décisions du 01/11/2026
+
+Demande de l'utilisateur : en facile, seulement des notes naturelles. Spécification version 3.5, §5.1 et §6.
+
+| # | Question | Décision |
+|---|---|---|
+| N30 | Notes tirées en facile | Notes naturelles seulement : aucune note altérée n'est ajoutée au passage de niveau ; les niveaux 2 à 4 ne changent pas, le niveau 5 ajoute Si (corde 3, case 4) au lieu de La# (corde 5, case 1), le niveau 15 a les 48 notes naturelles (`NATURELLES_SEULES`) |
+| N31 | Niveau commun aux difficultés (N23) alors que le facile suit un autre ordre (choix de l'utilisateur) | Un niveau et des notes par difficulté (schéma version 4). Migration : le niveau commun va au normal, au difficile et au hardcore ; le facile le garde s'il n'a que des notes naturelles, sinon il repart aux cordes à vide. « Recommencer » ne touche que la difficulté choisie. Remplace la fin de N23 |

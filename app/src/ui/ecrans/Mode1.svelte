@@ -10,8 +10,9 @@
   import { TEXTES } from '../textes';
 
   // Mode 1 (spec §5.1) : le jeu « Notes qui tombent » au toucher, mode progressif du POC. Départ (reprise au niveau
-  // atteint, records, journal), partie, fin. Chaque réponse met à jour la statistique de sa position ; le niveau et
-  // les notes sont enregistrés à chaque passage de niveau et à la fin, les records à la fin.
+  // atteint dans la difficulté choisie, records, journal), partie, fin. Chaque réponse met à jour la statistique de sa
+  // position ; le niveau et les notes de la difficulté jouée sont enregistrés à chaque passage de niveau et à la fin,
+  // les records à la fin.
 
   interface Props {
     etat: EtatApp;
@@ -36,6 +37,8 @@
   let partiesJournal = $state(etat.journal().length);
 
   const jeu = $derived(etat.progression.jeu);
+  /** Niveau et notes de la difficulté choisie : chaque difficulté a les siens. */
+  const niveauChoisi = $derived(jeu.niveaux[jeu.difficulte]);
   const recordChoisi = $derived(jeu.records[jeu.difficulte]);
   const notation = $derived(etat.progression.reglages.notation);
 
@@ -76,8 +79,7 @@
   function sauver(partie: Partie, score: number): void {
     etat.sauverJeu({
       ...jeu,
-      niveau: partie.niveau,
-      positions: [...partie.positions],
+      niveaux: { ...jeu.niveaux, [difficultePartie]: { niveau: partie.niveau, positions: [...partie.positions] } },
       records: records(score, partie.niveau),
     });
   }
@@ -88,6 +90,7 @@
   }
 
   function choisirDifficulte(difficulte: Difficulte): void {
+    confirmation = false;
     etat.sauverJeu({ ...jeu, difficulte });
   }
 
@@ -112,8 +115,8 @@
 {#if phase === 'partie'}
   {#key numeroPartie}
     <PartieJeu
-      niveau={jeu.niveau}
-      positions={jeu.positions}
+      niveau={jeu.niveaux[difficultePartie].niveau}
+      positions={jeu.niveaux[difficultePartie].positions}
       {notation}
       difficulte={difficultePartie}
       onEvenement={surEvenement}
@@ -161,9 +164,11 @@
 
   <div class="boutons">
     <button type="button" class="principal" onclick={jouer}>
-      {jeu.niveau > 1 ? TEXTES.mode1.reprendre(jeu.niveau, jeu.positions.length) : TEXTES.mode1.commencer}
+      {niveauChoisi.niveau > 1
+        ? TEXTES.mode1.reprendre(niveauChoisi.niveau, niveauChoisi.positions.length)
+        : TEXTES.mode1.commencer}
     </button>
-    {#if jeu.niveau > 1}
+    {#if niveauChoisi.niveau > 1}
       <button type="button" class="secondaire" onclick={() => (confirmation = true)}>
         {TEXTES.mode1.recommencer}
       </button>
@@ -172,7 +177,9 @@
 
   {#if confirmation}
     <div class="confirmation" role="alertdialog" aria-labelledby="question-recommencer">
-      <p id="question-recommencer">{TEXTES.mode1.confirmerRecommencer(jeu.niveau)}</p>
+      <p id="question-recommencer">
+        {TEXTES.mode1.confirmerRecommencer(niveauChoisi.niveau, TEXTES.difficultes[jeu.difficulte])}
+      </p>
       <div class="boutons">
         <button type="button" class="principal" onclick={recommencer}>{TEXTES.mode1.confirmer}</button>
         <button type="button" class="secondaire" onclick={() => (confirmation = false)}>

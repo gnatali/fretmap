@@ -9,7 +9,7 @@ import type { NomNote } from '../music/notes';
 import { tirerQuestion, type Question } from '../quiz/tirage';
 import { verifierMode1 } from '../quiz/validation';
 import { Chute, type NoteEnChute } from './chute';
-import { difficulte, notesAAjouter, positionsDepart } from './difficulte';
+import { difficulte, estAlteree, notesAAjouter, positionsDepart } from './difficulte';
 import { retenirNom, sansNomsRecents } from './enchainement';
 import {
   quantile,
@@ -19,7 +19,7 @@ import {
   type PartieJournal,
   type PassageJournal,
 } from './journal';
-import { DIFFICULTE_DEFAUT, ESSAIS_HARDCORE, type Difficulte } from './niveauxDifficulte';
+import { DIFFICULTE_DEFAUT, ESSAIS_HARDCORE, NATURELLES_SEULES, type Difficulte } from './niveauxDifficulte';
 import { POINTS_BASE, multiplicateur } from './points';
 import { plafondVitesse, type ReglagesProgressif } from './reglages';
 import {
@@ -61,7 +61,8 @@ export interface OptionsPartie {
   notation: Notation;
   /**
    * Difficulté (niveauxDifficulte.ts) : les réglages en tiennent déjà compte (`reglagesDe`) ; en hardcore, chaque note
-   * doit en plus avoir ses ESSAIS_HARDCORE derniers essais sans faute. Normal par défaut.
+   * doit en plus être acquise (`acquise`, ESSAIS_HARDCORE) ; en facile, seulement des notes naturelles
+   * (NATURELLES_SEULES). Normal par défaut.
    */
   difficulte?: Difficulte;
 }
@@ -117,10 +118,12 @@ export class Partie {
   private readonly date: Date;
   private readonly notation: Notation;
   private readonly niveauDepart: number;
+  /** Notes naturelles seulement (facile) : les notes altérées reçues au départ sont retirées, aucune n'est ajoutée. */
+  private readonly naturellesSeules: boolean;
   private readonly positionsDepart: Position[];
   private niveauActuel: number;
   private notesDuNiveau: Position[];
-  /** Tout le manche est dans le niveau et validé : plus de passage. */
+  /** Tout le manche (en facile : toutes ses notes naturelles) est dans le niveau et validé : plus de passage. */
   private mancheComplet = false;
   /** Vitesse, en part de la vitesse max (0 : notes immobiles). */
   private vitesseActuelle = 0;
@@ -158,7 +161,9 @@ export class Partie {
     this.notation = options.notation;
     this.niveauDepart = options.niveau ?? 1;
     this.niveauActuel = this.niveauDepart;
-    this.positionsDepart = (options.positions?.length ? options.positions : positionsDepart()).map((p) => ({ ...p }));
+    this.naturellesSeules = NATURELLES_SEULES[this.difficulte];
+    const recues = (options.positions ?? []).filter((p) => !(this.naturellesSeules && estAlteree(p)));
+    this.positionsDepart = (recues.length > 0 ? recues : positionsDepart()).map((p) => ({ ...p }));
     this.notesDuNiveau = this.positionsDepart.map((p) => ({ ...p }));
     this.apparaitre(options.debutMs);
   }
@@ -517,7 +522,12 @@ export class Partie {
   private passer(tMs: number): EvenementPartie {
     const bonus = this.reglages.bonusNiveau * this.niveauActuel;
     this.score += bonus;
-    const ajoutees = notesAAjouter(this.notesDuNiveau, this.reglages.notesAjoutees, this.reglages.poidsAlteration);
+    const ajoutees = notesAAjouter(
+      this.notesDuNiveau,
+      this.reglages.notesAjoutees,
+      this.reglages.poidsAlteration,
+      this.naturellesSeules,
+    );
     if (ajoutees.length === 0) this.mancheComplet = true;
     this.notesDuNiveau = [...this.notesDuNiveau, ...ajoutees];
     this.niveauActuel++;

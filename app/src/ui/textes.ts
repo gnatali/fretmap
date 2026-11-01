@@ -54,7 +54,8 @@ export const TEXTES = {
   titre: 'fretmap',
   sousTitre: 'Apprendre les notes du manche de guitare',
   lienPoc: 'Essayer la détection de notes (POC)',
-  niveauxAtteints: (mode1: number, mode2: number) => `Niveau atteint : ${mode1} en mode 1, ${mode2} en mode 2`,
+  niveauxAtteints: (mode1: number, difficulte: string, mode2: number) =>
+    `Niveau atteint : ${mode1} en mode 1 (${difficulte.toLowerCase()}), ${mode2} en mode 2`,
   entrees: {
     mode1: { titre: 'Mode 1', description: 'Notes qui tombent : touchez la case, sans guitare' },
     mode2: { titre: 'Mode 2', description: 'Jouer la note demandée sur sa guitare' },
@@ -85,12 +86,13 @@ export const TEXTES = {
       'Les notes tombent le long de leur corde : touchez la case qui donne la note avant qu’elle n’arrive en bas. ' +
       'Une corde à vide ne donne que le nom : touchez la corde à vide. Chaque case fausse coûte 50 points ; ' +
       'à la 3e, la note est perdue. La vitesse monte avec la réussite ; quand chaque note est assez réussie, ' +
-      'le niveau passe et 3 notes s’ajoutent.',
+      'le niveau passe et 3 notes s’ajoutent. Chaque difficulté a son niveau.',
     commencer: 'Commencer aux cordes à vide',
     reprendre: (niveau: number, notes: number) => `Reprendre au niveau ${niveau} (${pluriel(notes, 'note')})`,
     recommencer: 'Recommencer aux cordes à vide',
-    confirmerRecommencer: (niveau: number) =>
-      `Repartir des cordes à vide ? Le niveau ${niveau} atteint est remplacé ; les records et les statistiques sont gardés.`,
+    confirmerRecommencer: (niveau: number, difficulte: string) =>
+      `Repartir des cordes à vide en ${difficulte.toLowerCase()} ? Le niveau ${niveau} atteint est remplacé ; ` +
+      'les autres difficultés, les records et les statistiques sont gardés.',
     confirmer: 'Recommencer',
     annuler: 'Annuler',
     records: (difficulte: string) => `Records en ${difficulte.toLowerCase()}`,
@@ -108,7 +110,7 @@ export const TEXTES = {
     string
   >,
   aidesDifficulte: {
-    facile: '40 % par note, 60 % pour le niveau ; bonne case montrée après une erreur',
+    facile: 'Notes naturelles seulement ; 40 % par note, 60 % pour le niveau ; bonne case montrée après une erreur',
     normal: 'Réussite du niveau : 80 %',
     difficile: 'Réussite du niveau : 90 %',
     hardcore: 'Chaque note : 5 fois de suite sans erreur, en moins de 1,5 s (acquise pour la partie)',
@@ -129,6 +131,7 @@ export const TEXTES = {
     niveauValide: (niveau: number, bonus: number) => `Niveau ${niveau} validé ! +${bonus}`,
     nouvellesNotes: 'Nouvelles notes :',
     mancheComplet: 'Tout le manche est validé !',
+    naturellesCompletes: 'Toutes les notes naturelles du manche sont validées !',
     continuerNiveau: (niveau: number) => `Continuer au niveau ${niveau}`,
     plafond: (vitesse: string) => `Vitesse max du niveau : ${vitesse}`,
     qualites: { parfait: 'Parfait', bien: 'Bien', juste: 'Juste' },
@@ -286,7 +289,8 @@ export const TEXTES = {
     mode: { 1: 'Mode 1 : réussite par position', 2: 'Mode 2 : réussite par position demandée' },
     aucune: (mode: number) => `Aucune réponse enregistrée pour l’instant : jouez au mode ${mode}.`,
     niveauAtteint: (niveau: number, description: string) => `Niveau atteint : ${niveau} (${description}).`,
-    jeu: (niveau: number, notes: number) => `Jeu au niveau ${niveau} (${pluriel(notes, 'note')}).`,
+    jeu: (difficulte: string, niveau: number, notes: number) =>
+      `Jeu en ${difficulte.toLowerCase()} au niveau ${niveau} (${pluriel(notes, 'note')}).`,
     records: 'Records du jeu',
     record: (difficulte: string, score: number, niveau: number) => `${difficulte} : ${score} points, niveau ${niveau}`,
     tentatives: (n: number) => `${n} réponse${n > 1 ? 's' : ''}`,

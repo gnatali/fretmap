@@ -156,6 +156,15 @@ brut.parties.forEach((partie, n) => {
     if (passage) positions = [...positions, ...passage.ajoutees];
   }
 
+  // Facile : notes naturelles seulement depuis le 01/11/2026 (NATURELLES_SEULES). Le rejeu suit les notes jouées.
+  const alterees = new Set(partie.essais.filter((e) => e.nom.includes("#")).map((e) => e.nom));
+  if (alterees.size > 0) {
+    console.log(
+      `\nNotes altérées jouées (${[...alterees].join(", ")}) : le facile ne les tire plus. ` +
+        "Son rejeu porte sur les notes jouées : il ne vaut que pour ses seuils.",
+    );
+  }
+
   console.log(
     "\nConditions manquantes après chaque essai, dans la difficulté jouée, avec les règles actuelles (nombre d'essais où elle manquait) :\n",
   );

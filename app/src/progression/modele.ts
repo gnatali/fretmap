@@ -11,8 +11,10 @@ import { A4_DEFAUT_HZ } from '../music/notes';
  * `niveauActuel` et `scoreParNiveau`.
  * Version 3 : le mode 1 devient le jeu « Notes qui tombent » au toucher (`jeu`) ; les 7 niveaux ne servent plus qu'au
  * mode 2 (`avancement[2]`), et le réglage `afficherNotes` disparaît (il donnerait la réponse).
+ * Version 4 : le jeu du mode 1 a un niveau et des notes par difficulté (`jeu.niveaux`), à la place du `niveau` et des
+ * `positions` communs (le facile ne tire que des notes naturelles).
  */
-export const VERSION_SCHEMA = 3;
+export const VERSION_SCHEMA = 4;
 export const MODES: readonly Mode[] = [1, 2];
 
 export type Mode = 1 | 2;
@@ -64,13 +66,18 @@ export interface RecordJeu {
 }
 
 /**
- * Où reprendre le jeu du mode 1 (spec §5.1) : niveau et notes du niveau (les réussites repartent de zéro à chaque
- * partie, comme le mode progressif du POC), communs aux difficultés ; difficulté choisie ; records par difficulté.
+ * Où reprendre le jeu du mode 1 dans une difficulté : niveau et notes du niveau (les réussites repartent de zéro à
+ * chaque partie, comme le mode progressif du POC).
  */
-export interface ProgressionJeu {
+export interface NiveauJeu {
   niveau: number;
   positions: Position[];
+}
+
+/** Jeu du mode 1 (spec §5.1) : difficulté choisie ; niveau et records par difficulté (version 4 du schéma). */
+export interface ProgressionJeu {
   difficulte: Difficulte;
+  niveaux: Record<Difficulte, NiveauJeu>;
   records: Record<Difficulte, RecordJeu>;
 }
 
@@ -104,19 +111,30 @@ export function avancementInitial(niveauAtteint: Niveau = 1): AvancementMode {
   return { niveauAtteint, dernieresReponses: [] };
 }
 
+/** Niveau 1 : les 6 cordes à vide, de la corde 6 à la corde 1. */
+export function niveauJeuInitial(): NiveauJeu {
+  return { niveau: 1, positions: NUMEROS_CORDES.map((corde) => ({ corde, case: 0 })) };
+}
+
 /**
- * Le jeu au niveau 1 : les 6 cordes à vide, de la corde 6 à la corde 1 ; difficulté et records gardés s'ils sont
- * donnés.
+ * Le jeu au niveau 1 dans chaque difficulté ; difficulté, niveaux et records gardés s'ils sont donnés (une difficulté
+ * sans niveau donné est au niveau 1).
  */
-export function jeuInitial(garde: Partial<Pick<ProgressionJeu, 'difficulte' | 'records'>> = {}): ProgressionJeu {
+export function jeuInitial(
+  garde: Partial<Pick<ProgressionJeu, 'difficulte'>> & {
+    niveaux?: Partial<Record<Difficulte, NiveauJeu>>;
+    records?: Partial<Record<Difficulte, RecordJeu>>;
+  } = {},
+): ProgressionJeu {
   const records = recordsVides();
   for (const d of DIFFICULTES) records[d] = { ...(garde.records?.[d] ?? records[d]) };
-  return {
-    niveau: 1,
-    positions: NUMEROS_CORDES.map((corde) => ({ corde, case: 0 })),
-    difficulte: garde.difficulte ?? DIFFICULTE_DEFAUT,
-    records,
-  };
+  const niveaux = Object.fromEntries(
+    DIFFICULTES.map((d) => {
+      const n = garde.niveaux?.[d];
+      return [d, n ? { niveau: n.niveau, positions: n.positions.map((p) => ({ ...p })) } : niveauJeuInitial()];
+    }),
+  ) as Record<Difficulte, NiveauJeu>;
+  return { difficulte: garde.difficulte ?? DIFFICULTE_DEFAUT, niveaux, records };
 }
 
 export function progressionInitiale(): Progression {

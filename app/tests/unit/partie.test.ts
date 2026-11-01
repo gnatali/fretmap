@@ -9,7 +9,7 @@ import {
   plafondVitesse,
   type ReglagesProgressif,
 } from '../../src/jeu/reglages';
-import { positions, type Position } from '../../src/music/manche';
+import { noteDePosition, positions, type Position } from '../../src/music/manche';
 
 const DATE = new Date('2026-10-30T19:00:00.000Z');
 const CONTEXTE: ContexteJournal = {
@@ -339,6 +339,35 @@ describe('passage de niveau', () => {
     }
     expect(partie.reussiteGlobale).toBe(1);
     expect(jouerJusquAuPassage(partie, t).niveau).toMatchObject({ niveau: 2 });
+  });
+
+  it('facile : notes naturelles seulement, même reprise avec des notes altérées', () => {
+    const naturelle = (q: Position) => !noteDePosition(q).nom.includes('#');
+    // Niveau 5 d'une partie en normal : cordes à vide et cases 1 à 3, avec La# (corde 5, case 1).
+    const niveau5 = positions(0, 3).filter((q) => naturelle(q) || memePosition(q, { corde: 5, case: 1 }));
+    const facile = nouvelle(
+      { essaisMinimum: 1 },
+      { hasard: hasardFixe(3), niveau: 5, positions: niveau5, difficulte: 'facile' },
+    );
+    expect(facile.positions).toHaveLength(niveau5.length - 1);
+    expect(facile.positions.every(naturelle)).toBe(true);
+    const { niveau } = jouerJusquAuPassage(facile);
+    expect(niveau).toMatchObject({ niveau: 6 });
+    expect(niveau.type === 'niveau' && niveau.ajoutees.every(naturelle)).toBe(true);
+    expect(facile.positions.every(naturelle)).toBe(true);
+    // Les autres difficultés gardent La# et en ajoutent d'autres.
+    expect(nouvelle({}, { niveau: 5, positions: niveau5, difficulte: 'normal' }).positions).toHaveLength(
+      niveau5.length,
+    );
+  });
+
+  it('facile : toutes les notes naturelles du manche validées, un dernier bonus sans note ajoutée', () => {
+    const naturelles = positions().filter((q) => !noteDePosition(q).nom.includes('#'));
+    const partie = nouvelle(
+      { essaisMinimum: 1, vitesseDepart: 0.1, seuilNote: 0.3, seuilGlobal: 0.3 },
+      { hasard: hasardFixe(7), positions: naturelles, difficulte: 'facile' },
+    );
+    expect(jouerJusquAuPassage(partie).niveau).toMatchObject({ niveau: 2, ajoutees: [] });
   });
 
   it('tout le manche validé : un dernier bonus sans note ajoutée, puis plus de passage', () => {

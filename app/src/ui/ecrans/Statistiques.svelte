@@ -47,11 +47,12 @@
   {@const avancement = etat.progression.avancement[2]}
   {@const passage = etatPassage(avancement)}
   {@const jeu = etat.progression.jeu}
+  {@const niveauJeu = jeu.niveaux[jeu.difficulte]}
   <section aria-labelledby="stats-mode-{mode}">
     <h2 id="stats-mode-{mode}">{TEXTES.statistiques.mode[mode]}</h2>
     {#if mode === 1}
       <p class="avancement">
-        {TEXTES.statistiques.jeu(jeu.niveau, jeu.positions.length)}
+        {TEXTES.statistiques.jeu(TEXTES.difficultes[jeu.difficulte], niveauJeu.niveau, niveauJeu.positions.length)}
       </p>
       {#if DIFFICULTES.some((d) => jeu.records[d].niveau > 0)}
         <ul class="records" aria-label={TEXTES.statistiques.records}>
