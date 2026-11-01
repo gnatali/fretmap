@@ -2,6 +2,75 @@
 
 Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien. Les journaux du mode 1 (`journal-mode1-*.json`) s'analysent avec le skill `analyser-journal-mode1`.
 
+## Journal du mode 1 du 01/11/2026, 23 h 51 (`journal-mode1-20261101-2351.json`)
+
+**Session** : 12 parties, dont les 4 du journal de 21 h 09 (ci-dessous). Parties 5 à 8 : en facile, le soir du 31/10 (versions 3.1 à 3.4), niveaux 1 → 7, 7 → 7, 1 → 2 et 1 → 3. Parties 9 à 12 : le 01/11 à partir de 22 h 56, avec la version 3.4, une par difficulté (tableau). Remarques de l'utilisateur : la différence de difficulté n'est pas assez marquée ; impossible d'avancer en hardcore. Images : médiane et p95 de 16,7 ms.
+
+| Partie | Difficulté | Niveaux | Essais | Cases fausses | Perdues | Ratées | Délai médian | Durée de jeu (jusqu'au dernier essai)                  |
+| ------ | ---------- | ------- | ------ | ------------- | ------- | ------ | ------------ | ------------------------------------------------------ |
+| 9      | Facile     | 1 → 5   | 98     | 8             | 0       | 0      | 1,2 s        | 3 min 0 s                                              |
+| 10     | Normal     | 1 → 7   | 166    | 16            | 0       | 0      | 1,4 s        | 5 min 39 s                                             |
+| 11     | Difficile  | 1 → 6   | 128    | 14            | 0       | 0      | 1,2 s        | 3 min 37 s                                             |
+| 12     | Hardcore   | 1 → 4   | 590    | 36            | 0       | 0      | 1,3 s        | 19 min 12 s, dont 9 min 37 s au niveau 4 (et 3 pauses) |
+
+### Facile, normal et difficile : le même jeu
+
+- Rejeu avec les règles de la version 3.4 : dans les parties 9 à 11, les trois difficultés font passer chaque niveau au même essai. Dans la partie 12, le rejeu sans la note acquise aussi (27, 28, 27 et 28 essais).
+- Ce qui décide du passage : le minimum de 3 essais par note et le plafond de vitesse. Au passage, la réussite du niveau est de 93 à 100 %, au-dessus des seuils (60, 80 et 90 %) ; score d'essai moyen de 0,93 à 0,95 ; aucune note perdue ni ratée.
+- La vitesse, les essais par note et la rapidité exigée étaient les mêmes dans toutes les difficultés : seuls les seuils les distinguaient.
+- Exiger des réponses en 1 s en difficile (réussite du niveau au moment des passages réels, parties 9 à 11) : avec une rapidité nulle à 6 s, elle ne baisse que de 1 à 3 points ; nulle à 4 s, elle tombe à 0,86 à 0,90 aux niveaux 4 à 6.
+
+### Hardcore bloqué au niveau 4
+
+- Niveaux 1 à 3 en 59, 51 et 112 essais. Niveau 4 : 368 essais sans passer, 14 notes acquises sur 15 ; Fa corde 4 case 3 ne l'a jamais été.
+- **Règle des 5 de suite** (justes du premier coup, en 1,5 s au plus) : Fa 4/3 n'est propre et rapide que 8 fois sur 21 (38 %, délai médian 1,7 s), meilleure série 3. Essais de la note nécessaires en moyenne (simulation) :
+
+| Réponses propres et rapides | 38 % | 50 % | 60 % | 75 % |
+| --------------------------- | ---- | ---- | ---- | ---- |
+| 5 de suite                  | 203  | 63   | 30   | 13   |
+| 4 sur 5                     | 33   | 16   | 10   | 7    |
+
+- Part des réponses propres et rapides par case (partie 12) : 75 % aux cases 0 et 1, 54 % à la case 2, 60 % à la case 3. Le seuil de 1,5 s tombe au milieu des temps sur les nouvelles notes, et la part baissera plus loin sur le manche.
+- **Tirage** : au niveau 4, Fa 4/3 n'a été tirée que 21 fois sur 368 (5,7 %, moins que 1 sur 15), contre 33 fois pour Fa 6/1 et Ré 4/0, déjà acquises. Le poids suit la réussite (le score), haute pour une note juste mais un peu lente.
+- Les notes acquises ne sont pas gardées d'une partie à l'autre : en reprenant au niveau 4, il faut acquérir de nouveau les 15 notes (solution proposée, non retenue).
+
+Variantes de la note acquise rejouées sur la partie 12, avec les tirages réels (essai du niveau où il passerait) :
+
+| Note acquise                        | Niveau 1 | Niveau 2 | Niveau 3 | Niveau 4 |
+| ----------------------------------- | -------- | -------- | -------- | -------- |
+| 5 de suite en ≤ 1,5 s (version 3.5) | 59       | 51       | 112      | non      |
+| **4 sur 5 en ≤ 1,5 s** (retenue)    | 33       | 40       | 95       | 318      |
+| 5 de suite en ≤ 2 s                 | 59       | 40       | 95       | 318      |
+| 3 de suite en ≤ 1,5 s               | 33       | 40       | 37       | 227      |
+
+### Décisions (choix de l'utilisateur, spec version 3.6)
+
+- **Difficultés** : vitesse, essais par note et rapidité selon la difficulté (`REGLAGES_DIFFICULTE`) :
+
+| Réglage                            | Facile      | Normal (inchangé) | Difficile    | Hardcore     |
+| ---------------------------------- | ----------- | ----------------- | ------------ | ------------ |
+| Chute au niveau 1 (plafond)        | 15 s (20 %) | 10 s (30 %)       | 7,5 s (40 %) | 7,5 s (40 %) |
+| Montée du plafond par niveau       | 3 %         | 5 %               | 7 %          | 7 %          |
+| Essais minimum par note            | 2           | 3                 | 4            | 5            |
+| Rapidité : 1 jusqu'à, 0 à          | 2,5 s, 8 s  | 1,5 s, 6 s        | 1 s, 4 s     | 1,5 s, 6 s   |
+| Réussite de chaque note, du niveau | 40 %, 60 %  | 60 %, 80 %        | 60 %, 90 %   | 60 %, 80 %   |
+
+- **Hardcore** : une note est acquise avec 4 réponses propres sur 5 essais de suite (`ACQUISE`), et une note pas encore acquise a le poids de tirage maximal (simulation sur un niveau de 12 notes, une note toujours lente : 17 à 19 % des tirages au lieu de 7 à 10 %).
+- Non retenu : notes acquises gardées d'une partie à l'autre ; erreurs tolérées selon la difficulté.
+- Rejeu avec les règles de la version 3.6 (vitesse recalculée avec le plafond de chaque difficulté) :
+  - partie 10 (normal, réglages inchangés) : passages réels retrouvés (22, 27, 25, 25, 40 et 27 essais), vitesse recalculée égale à celle du journal ;
+  - partie 12 : les difficultés s'échelonnent enfin.
+
+| Partie 12, niveau | Facile | Normal | Difficile | Hardcore |
+| ----------------- | ------ | ------ | --------- | -------- |
+| 1                 | 13     | 27     | 31        | 33       |
+| 2                 | 14     | 28     | 37        | 40       |
+| 3                 | 18     | 27     | 30        | 95       |
+| 4                 | 12     | 28     | 117       | 318      |
+
+- Parties 9 à 11 : le facile passe plus tôt (partie 9 : 14, 13, 20 et 22 essais au lieu de 21, 19, 33 et 25) ; le difficile ne passe dans aucun niveau joué (il demande plus d'essais que la partie n'en a).
+- **À mesurer** au prochain journal : le temps passé par niveau dans chaque difficulté, et le niveau 4 du hardcore avec le tirage des notes non acquises.
+
 ## Nouvelle règle de rapidité, évaluée sur les journaux (31/10/2026, spec version 3.4)
 
 Demande de l'utilisateur : la rapidité d'un essai est le délai entre le moment où la note est demandée (elle devient la note attendue) et la bonne réponse ; l'apparition de la note pendant que la note précédente n'est pas encore jouée ne compte pas. Avant : moyenne de cette rapidité (1 jusqu'à 1,5 s, 0 à 6 s) et de la rapidité depuis l'apparition (1 jusqu'à 2 s, 0 à 10 s). Seuils gardés : 1,5 s et 6 s.

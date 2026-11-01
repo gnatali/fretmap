@@ -127,22 +127,34 @@ describe('acquise (hardcore)', () => {
   const avecFaute: Essai = { ...juste(1000), erreurs: 1 };
   const ratee: Essai = { position: E6, resultat: 'ratee', erreurs: 0, delaiApparitionMs: null, delaiNoteMs: null };
 
-  it('demande n essais de suite justes du premier coup et rapides, n’importe quand dans la partie', () => {
-    expect(acquise(E6, vite(4), 5, 1500)).toBe(false);
-    expect(acquise(E6, vite(5), 5, 1500)).toBe(true);
-    expect(acquise(E6, [avecFaute, ...vite(5), avecFaute], 5, 1500)).toBe(true);
-    // Une erreur après la série ne retire pas la note.
-    expect(acquise(E6, [...vite(5), ratee, avecFaute], 5, 1500)).toBe(true);
+  const regle = { propres: 4, sur: 5, delaiBonMs: 1500 };
+  const lent = juste(2000);
+
+  it('demande 4 réponses propres (justes du premier coup et rapides) sur 5 essais de suite, n’importe quand', () => {
+    expect(acquise(E6, vite(4), regle)).toBe(false);
+    expect(acquise(E6, vite(5), regle)).toBe(true);
+    expect(acquise(E6, [...vite(4), lent], regle)).toBe(true);
+    expect(acquise(E6, [lent, ...vite(4)], regle)).toBe(true);
+    expect(acquise(E6, [...vite(2), avecFaute, ...vite(2)], regle)).toBe(true);
+    // Une erreur après coup ne retire pas la note.
+    expect(acquise(E6, [...vite(5), ratee, avecFaute], regle)).toBe(true);
     // Juste à 1,5 s : rapide ; au-delà, non.
-    expect(acquise(E6, [...vite(4), juste(1500)], 5, 1500)).toBe(true);
-    expect(acquise(E6, [...vite(4), juste(1501)], 5, 1500)).toBe(false);
+    expect(acquise(E6, [...vite(3), juste(1500), lent], regle)).toBe(true);
+    expect(acquise(E6, [...vite(3), juste(1501), lent], regle)).toBe(false);
   });
 
-  it('une erreur ou une réponse lente coupe la série ; les essais des autres notes ne comptent pas', () => {
-    expect(acquise(E6, [...vite(3), avecFaute, ...vite(4)], 5, 1500)).toBe(false);
-    expect(acquise(E6, [...vite(3), ratee, ...vite(4)], 5, 1500)).toBe(false);
-    expect(acquise(E6, [...vite(2), juste(2000), ...vite(4)], 5, 1500)).toBe(false);
-    expect(acquise(E6, [...vite(4), juste(900, A5), ...vite(1)], 5, 1500)).toBe(true);
-    expect(acquise(E6, [...vite(4), juste(900, A5)], 5, 1500)).toBe(false);
+  it('3 sur 5 ne suffit pas ; la fenêtre glisse ; les essais des autres notes ne comptent pas', () => {
+    expect(acquise(E6, [...vite(3), lent, avecFaute], regle)).toBe(false);
+    expect(acquise(E6, [lent, ...vite(2), ratee, ...vite(1), lent, ...vite(1)], regle)).toBe(false);
+    // Fenêtre glissante : les 5 derniers de [lent, v, v, lent, v, v] contiennent 4 propres.
+    expect(acquise(E6, [lent, ...vite(2), lent, ...vite(2)], regle)).toBe(true);
+    expect(acquise(E6, [...vite(3), juste(900, A5), ...vite(1)], regle)).toBe(false);
+    expect(acquise(E6, [...vite(3), juste(900, A5), lent, ...vite(1)], regle)).toBe(true);
+  });
+
+  it('la règle se règle : 5 sur 5 demande 5 de suite', () => {
+    const cinq = { ...regle, propres: 5 };
+    expect(acquise(E6, [...vite(4), lent], cinq)).toBe(false);
+    expect(acquise(E6, [...vite(4), lent, ...vite(5)], cinq)).toBe(true);
   });
 });

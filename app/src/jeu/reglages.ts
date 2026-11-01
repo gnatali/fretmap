@@ -82,7 +82,7 @@ export const BORNES_PROGRESSIF: Readonly<Record<CleNumerique, { min: number; max
   seuilNote: { min: 0.3, max: 1, pas: 0.05 },
   seuilGlobal: { min: 0.3, max: 1, pas: 0.05 },
   vitesseDepart: { min: 0.1, max: 1, pas: 0.05 },
-  vitesseParNiveau: { min: 0, max: 0.5, pas: 0.05 },
+  vitesseParNiveau: { min: 0, max: 0.5, pas: 0.01 },
   dureeChuteMinMs: { min: 1000, max: 10000, pas: 500 },
   notesAjoutees: { min: 1, max: 6, pas: 1 },
   essaisNote: { min: 2, max: 20, pas: 1 },

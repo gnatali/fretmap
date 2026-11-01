@@ -19,7 +19,7 @@ import {
   type PartieJournal,
   type PassageJournal,
 } from './journal';
-import { DIFFICULTE_DEFAUT, ESSAIS_HARDCORE, NATURELLES_SEULES, type Difficulte } from './niveauxDifficulte';
+import { ACQUISE, DIFFICULTE_DEFAUT, NATURELLES_SEULES, type Difficulte } from './niveauxDifficulte';
 import { POINTS_BASE, multiplicateur } from './points';
 import { plafondVitesse, type ReglagesProgressif } from './reglages';
 import {
@@ -61,7 +61,7 @@ export interface OptionsPartie {
   notation: Notation;
   /**
    * Difficulté (niveauxDifficulte.ts) : les réglages en tiennent déjà compte (`reglagesDe`) ; en hardcore, chaque note
-   * doit en plus être acquise (`acquise`, ESSAIS_HARDCORE) ; en facile, seulement des notes naturelles
+   * doit en plus être acquise (`acquise`, ACQUISE) ; en facile, seulement des notes naturelles
    * (NATURELLES_SEULES). Normal par défaut.
    */
   difficulte?: Difficulte;
@@ -92,6 +92,8 @@ export type EvenementPartie =
   | { type: 'fin'; interrompue: boolean };
 
 const memePosition = (a: Position, b: Position) => a.corde === b.corde && a.case === b.case;
+/** Clé d'une position : « corde-case ». */
+const cleDe = (p: Position) => `${p.corde}-${p.case}`;
 
 /**
  * Question d'une position. Une corde à vide ne donne que le nom (au toucher, la corde serait la réponse) : toute corde
@@ -149,6 +151,8 @@ export class Partie {
   private enAttente = false;
   private fini = false;
   private interrompu = false;
+  /** Hardcore : notes acquises pendant la partie (clés « corde-case ») ; elles le restent. */
+  private readonly acquises = new Set<string>();
 
   /** La première note apparaît dès la création, immobile. */
   constructor(reglages: ReglagesProgressif, options: OptionsPartie) {
@@ -238,14 +242,14 @@ export class Partie {
 
   /**
    * Note validée pour le passage de niveau : assez d'essais et une réussite ≥ seuilNote ; en hardcore, acquise en plus
-   * (ESSAIS_HARDCORE essais de suite sans faute à un moment de la partie).
+   * (ACQUISE : 4 réponses propres sur 5 essais de suite, à un moment de la partie).
    */
   noteValidee(position: Position): boolean {
     const r = this.reglages;
     return (
       this.essaisDe(position) >= r.essaisMinimum &&
       this.reussiteDe(position) + 1e-9 >= r.seuilNote &&
-      (this.difficulte !== 'hardcore' || acquise(position, this.essais, ESSAIS_HARDCORE, r.delaiNoteBonMs))
+      (this.difficulte !== 'hardcore' || this.acquises.has(cleDe(position)))
     );
   }
 
@@ -387,9 +391,13 @@ export class Partie {
     return null;
   }
 
-  /** Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum, puis selon sa réussite. */
+  /**
+   * Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum (et, en hardcore, tant qu'elle n'est
+   * pas acquise : version 3.6, une note lente n'était tirée qu'une fois sur 18), puis selon sa réussite.
+   */
   private poidsTirage(position: Position): number {
     if (this.essaisDe(position) < this.reglages.essaisMinimum) return 1 + POIDS_ECHEC_TIRAGE;
+    if (this.difficulte === 'hardcore' && !this.acquises.has(cleDe(position))) return 1 + POIDS_ECHEC_TIRAGE;
     return 1 + POIDS_ECHEC_TIRAGE * (1 - this.reussiteDe(position));
   }
 
@@ -458,9 +466,13 @@ export class Partie {
     this.meilleureSerie = Math.max(this.meilleureSerie, this.serie);
     this.vitesseMax = Math.max(this.vitesseMax, this.vitesseActuelle);
     this.essais.push(essai);
+    if (this.difficulte === 'hardcore' && !this.acquises.has(cleDe(position))) {
+      const regle = { ...ACQUISE, delaiBonMs: this.reglages.delaiNoteBonMs };
+      if (acquise(position, this.essais, regle)) this.acquises.add(cleDe(position));
+    }
     // Note ratée (au moins une case fausse, perdue ou ratée) : elle revient TIRAGES_AVANT_RETOUR tirages plus tard.
     if (!juste || essai.erreurs > 0) {
-      this.retours.set(`${position.corde}-${position.case}`, { position, dans: TIRAGES_AVANT_RETOUR });
+      this.retours.set(cleDe(position), { position, dans: TIRAGES_AVANT_RETOUR });
     }
     if (resultat === 'perdue' && touchee) {
       this.faussesAttendue.push({ tMs: this.relatif(tMs), position: touchee, penalite: 0 });

@@ -28,11 +28,11 @@ const charger = async (chemin) =>
     })
   ).module;
 const { FORMAT_JOURNAL, quantile } = await charger("src/jeu/journal.ts");
-const { DIFFICULTES, ESSAIS_HARDCORE, reglagesDe } = await charger(
+const { ACQUISE, DIFFICULTES, reglagesDe } = await charger(
   "src/jeu/niveauxDifficulte.ts",
 );
 const { plafondVitesse } = await charger("src/jeu/reglages.ts");
-const { acquise, reussiteNote, reussiteGlobale } = await charger(
+const { acquise, reussiteNote, reussiteGlobale, scoreEssai } = await charger(
   "src/jeu/reussite.ts",
 );
 
@@ -55,33 +55,46 @@ const brutVersEssai = (e) => ({
 });
 
 /**
+ * Vitesse après un essai, comme Partie : chaque case fausse la ralentit (sauf la 3e, qui perd la note), une note juste
+ * l'accélère de `acceleration × score` jusqu'au plafond, une note perdue ou ratée la ralentit.
+ */
+function vitesseApres(vitesse, brut, essai, r, plafond) {
+  const ralentissements = brut.resultat === "perdue" ? brut.fausses.length - 1 : brut.fausses.length;
+  let v = vitesse * (1 - r.ralentissement) ** Math.max(0, ralentissements);
+  if (brut.resultat === "juste") return { avant: v, apres: Math.min(plafond, v + r.acceleration * scoreEssai(essai, r)) };
+  return { avant: v, apres: v * (1 - r.ralentissement) };
+}
+
+/**
  * Conditions de passage après chaque essai du niveau, dans la difficulté, comme Partie.niveauValide : vitesse au
- * plafond, chaque note validée (essais minimum, réussite ≥ seuilNote, acquise en hardcore), réussite du niveau. Les
- * essais des niveaux précédents de la partie comptent ; la vitesse après chaque essai est recalculée.
- * @returns le premier essai du niveau où le passage serait validé (null si jamais), et les conditions manquantes
- *   après chaque essai
+ * plafond, chaque note validée (essais minimum, réussite ≥ seuilNote, acquise en hardcore : ACQUISE), réussite du
+ * niveau. Les essais des niveaux précédents de la partie comptent. La vitesse est recalculée avec les réglages de la
+ * difficulté, à partir de 0 au début du niveau (comme après un passage) : la vitesse du journal ne suit que la
+ * difficulté jouée, et un plafond plus haut ne serait jamais atteint.
+ * @returns le premier essai du niveau où le passage serait validé (null si jamais), les conditions manquantes après
+ *   chaque essai, et le plus grand écart entre la vitesse recalculée et celle du journal (avant chaque résultat)
  */
 function rejouer(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
   const r = reglagesDe(difficulte);
   const plafond = plafondVitesse(niveau, r);
+  const regle = { ...ACQUISE, delaiBonMs: r.delaiNoteBonMs };
   const essais = essaisAvant.map(brutVersEssai);
   const manques = [];
   let passage = null;
+  let vitesse = 0;
+  let ecartVitesse = 0;
   for (let i = 0; i < essaisNiveau.length; i++) {
     const e = essaisNiveau[i];
-    essais.push(brutVersEssai(e));
-    const vitesse =
-      e.resultat === "juste"
-        ? Math.min(plafond, e.vitesse + r.acceleration * e.scoreEssai)
-        : e.vitesse * (1 - r.ralentissement);
+    const essai = brutVersEssai(e);
+    essais.push(essai);
+    const { avant, apres } = vitesseApres(vitesse, e, essai, r, plafond);
+    ecartVitesse = Math.max(ecartVitesse, Math.abs(avant - e.vitesse));
+    vitesse = apres;
     const manque = {
       vitesse: vitesse + 1e-9 < plafond,
       essaisMinimum: positions.filter((p) => essais.filter((x) => cle(x.position) === cle(p)).length < r.essaisMinimum),
       seuilNote: positions.filter((p) => reussiteNote(r.methodeNote, p, essais, r) + 1e-9 < r.seuilNote),
-      hardcore:
-        difficulte === "hardcore"
-          ? positions.filter((p) => !acquise(p, essais, ESSAIS_HARDCORE, r.delaiNoteBonMs))
-          : [],
+      hardcore: difficulte === "hardcore" ? positions.filter((p) => !acquise(p, essais, regle)) : [],
       niveau: reussiteGlobale(r.methodeGlobale, r.methodeNote, positions, essais, r) + 1e-9 < r.seuilGlobal,
     };
     manques.push(manque);
@@ -93,7 +106,7 @@ function rejouer(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
       !manque.hardcore.length;
     if (ok && passage === null) passage = i + 1;
   }
-  return { passage, manques };
+  return { passage, manques, ecartVitesse };
 }
 
 const nomDe = (partie, k) => {
@@ -117,6 +130,7 @@ brut.parties.forEach((partie, n) => {
   let positions = partie.positionsDepart;
   const niveaux = [...new Set(partie.essais.map((e) => e.niveau))];
   const blocages = [];
+  let ecartVitesse = 0;
   console.log(
     `| Niveau | Notes | Essais | Durée | Cases fausses | Perdues | Ratées | Délai médian | Passé à l'essai (réel) | ${DIFFICULTES.join(" | ")} |`,
   );
@@ -129,7 +143,9 @@ brut.parties.forEach((partie, n) => {
     const avant = partie.essais.filter((e) => e.niveau < niveau);
     const rejeu = DIFFICULTES.map((d) => rejouer(d, niveau, positions, avant, essais).passage ?? "non");
     // Conditions manquantes dans la difficulté jouée, sur les essais du niveau.
-    const { manques } = rejouer(partie.difficulte ?? "normal", niveau, positions, avant, essais);
+    const joue = rejouer(partie.difficulte ?? "normal", niveau, positions, avant, essais);
+    const { manques } = joue;
+    ecartVitesse = Math.max(ecartVitesse, joue.ecartVitesse);
     const sous = {};
     for (const m of manques) for (const p of [...m.seuilNote, ...m.hardcore]) sous[cle(p)] = (sous[cle(p)] ?? 0) + 1;
     blocages.push(
@@ -155,6 +171,12 @@ brut.parties.forEach((partie, n) => {
     );
     if (passage) positions = [...positions, ...passage.ajoutees];
   }
+
+  // Contrôle du rejeu : avec les réglages de vitesse de la partie, la vitesse recalculée égale celle du journal.
+  console.log(
+    `\nVitesse recalculée dans la difficulté jouée, avec les réglages actuels : écart maximal ${ecartVitesse.toFixed(3)} ` +
+      "avec le journal (au plus 0.001, l'arrondi du journal, si ces réglages n'ont pas changé depuis la partie).",
+  );
 
   // Facile : notes naturelles seulement depuis le 01/11/2026 (NATURELLES_SEULES). Le rejeu suit les notes jouées.
   const alterees = new Set(partie.essais.filter((e) => e.nom.includes("#")).map((e) => e.nom));

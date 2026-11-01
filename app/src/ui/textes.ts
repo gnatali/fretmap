@@ -110,10 +110,10 @@ export const TEXTES = {
     string
   >,
   aidesDifficulte: {
-    facile: 'Notes naturelles seulement ; 40 % par note, 60 % pour le niveau ; bonne case montrée après une erreur',
-    normal: 'Réussite du niveau : 80 %',
-    difficile: 'Réussite du niveau : 90 %',
-    hardcore: 'Chaque note : 5 fois de suite sans erreur, en moins de 1,5 s (acquise pour la partie)',
+    facile: 'Notes naturelles, chute lente ; 2 essais par note ; bonne case montrée après une erreur',
+    normal: 'Chute moyenne ; 3 essais par note, niveau à 80 %',
+    difficile: 'Chute rapide ; 4 essais par note, réponses en 1 s, niveau à 90 %',
+    hardcore: 'Chute rapide ; chaque note 4 fois sur 5 sans erreur, en 1,5 s au plus',
   } as Record<Difficulte, string>,
   partie: {
     score: 'Score',

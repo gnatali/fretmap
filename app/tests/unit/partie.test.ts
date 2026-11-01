@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { positionsDepart } from '../../src/jeu/difficulte';
 import type { ContexteJournal } from '../../src/jeu/journal';
-import { ESSAIS_HARDCORE, reglagesDe, type Difficulte } from '../../src/jeu/niveauxDifficulte';
+import { DIFFICULTES, REGLAGES_DIFFICULTE, reglagesDe, type Difficulte } from '../../src/jeu/niveauxDifficulte';
 import { Partie, TIRAGES_AVANT_RETOUR, type EvenementPartie } from '../../src/jeu/partie';
 import {
   REGLAGES_PROGRESSIF_DEFAUT,
@@ -406,18 +406,24 @@ describe('difficulté', () => {
     return false;
   }
 
-  it('règle la réussite minimale du niveau : 60 %, 80 %, 90 % ; facile : 40 % par note ; hardcore : 5 essais', () => {
-    expect(reglagesDe('facile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilNote: 0.4, seuilGlobal: 0.6 });
+  it('règle la vitesse, les essais par note, la rapidité et les seuils ; le normal garde les réglages du POC', () => {
+    for (const d of DIFFICULTES)
+      expect(reglagesDe(d)).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, ...REGLAGES_DIFFICULTE[d] });
     expect(reglagesDe('normal')).toEqual(REGLAGES_PROGRESSIF_DEFAUT);
-    expect(reglagesDe('difficile')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, seuilGlobal: 0.9 });
-    expect(reglagesDe('hardcore')).toEqual({ ...REGLAGES_PROGRESSIF_DEFAUT, essaisMinimum: ESSAIS_HARDCORE });
+    expect(DIFFICULTES.map((d) => reglagesDe(d).essaisMinimum)).toEqual([2, 3, 4, 5]);
+    expect(DIFFICULTES.map((d) => reglagesDe(d).delaiNoteBonMs)).toEqual([2500, 1500, 1000, 1500]);
+    expect(DIFFICULTES.map((d) => reglagesDe(d).seuilGlobal)).toEqual([0.6, 0.8, 0.9, 0.8]);
+    // Plafond de vitesse : chute de 15 s, 10 s, 7,5 s et 7,5 s au niveau 1 (vitesse max : 3 s).
+    expect(DIFFICULTES.map((d) => plafondVitesse(1, reglagesDe(d)))).toEqual([0.2, 0.3, 0.4, 0.4]);
+    expect(DIFFICULTES.map((d) => plafondVitesse(2, reglagesDe(d)))).toEqual([0.23, 0.35, 0.47, 0.47]);
     expect(nouvelle().difficulte).toBe('normal');
     expect(enDifficulte('hardcore').journal(CONTEXTE).difficulte).toBe('hardcore');
   });
 
-  it('une note toutes les 2,85 s (score d’essai 0,85) passe en facile et en normal, pas en difficile', () => {
-    // Vitesse lente (60 s de chute) : une seule note à l'écran, délais après apparition et depuis la note
-    // précédente égaux. Rapidité (6 − 2,85) / 4,5 = 0,7 : score 0,5 + 0,5 × 0,7 = 0,85.
+  it('une note toutes les 2,85 s passe en facile et en normal, pas en difficile (réponses en 1 s exigées)', () => {
+    // Vitesse lente (60 s de chute) : une seule note à l'écran. Rapidité en normal (6 − 2,85) / 4,5 = 0,7 : score
+    // 0,85 ≥ 80 % ; en facile (8 − 2,85) / 5,5 = 0,94 : score 0,97 ; en difficile (4 − 2,85) / 3 = 0,38 : score
+    // 0,69 < 90 %.
     const lente = { vitesseDepart: 0.05 };
     expect(passe(enDifficulte('facile', lente), 2850)).toBe(true);
     expect(passe(enDifficulte('normal', lente), 2850)).toBe(true);
@@ -425,7 +431,7 @@ describe('difficulté', () => {
     expect(passe(enDifficulte('difficile', lente), 1000)).toBe(true);
   });
 
-  it('hardcore : une note est acquise après 5 essais de suite justes et rapides, et le reste', () => {
+  it('hardcore : une note est acquise après 4 réponses propres sur 5 essais de suite, et le reste', () => {
     const partie = enDifficulte('hardcore');
     expect(partie.notesValidees).toBe(0);
     let t = 0;
@@ -451,14 +457,42 @@ describe('difficulté', () => {
   });
 
   it('hardcore : une case fausse de temps en temps n’empêche pas de passer', () => {
-    // Une case fausse toutes les 7 notes : aucune note n'a ses 5 derniers essais propres en même temps que les autres
-    // très longtemps, mais chacune finit par avoir 5 essais propres de suite.
+    // Une case fausse toutes les 7 notes : chaque note finit par avoir 4 réponses propres sur 5 essais de suite.
     expect(passe(enDifficulte('hardcore'), 500, 400, 7)).toBe(true);
   });
 
   it('hardcore : des notes justes mais lentes (2 s) ne passent pas le niveau, qui passe en normal', () => {
     expect(passe(enDifficulte('normal'), 2000)).toBe(true);
     expect(passe(enDifficulte('hardcore'), 2000)).toBe(false);
+  });
+
+  it('hardcore : une note pas encore acquise est tirée plus souvent (poids maximal)', () => {
+    // Niveau 3 (12 notes) : La (corde 5) est toujours jouée en 2 s, jamais acquise ; les autres en 0,5 s, vite
+    // acquises. Sans cette priorité, La serait tirée environ 1 fois sur 12 (7 à 10 % selon le hasard) ; avec, 17 à
+    // 19 %.
+    const c = (corde: Position['corde'], numeroCase: number): Position => ({ corde, case: numeroCase });
+    const niveau3 = [...positionsDepart(), c(6, 1), c(2, 1), c(1, 1), c(5, 2), c(4, 2), c(3, 2)];
+    const partie = new Partie(reglagesDe('hardcore'), {
+      debutMs: 0,
+      date: DATE,
+      notation: 'les-deux',
+      hasard: hasardFixe(1),
+      difficulte: 'hardcore',
+      niveau: 3,
+      positions: niveau3,
+    });
+    const estLa = (p: Position) => p.corde === 5 && p.case === 0;
+    let t = 0;
+    for (let i = 0; i < 400; i++) {
+      partie.avancer(t);
+      const attendue = partie.attendue?.question.position;
+      t += attendue && estLa(attendue) ? 2000 : 500;
+      partie.avancer(t);
+      toucher(partie, true, t);
+    }
+    expect(partie.niveau).toBe(3);
+    const essais = partie.journal(CONTEXTE).essais.slice(150);
+    expect(essais.filter((e) => estLa(e.position)).length / essais.length).toBeGreaterThan(0.14);
   });
 });
 

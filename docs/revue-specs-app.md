@@ -105,3 +105,12 @@ Demande de l'utilisateur : en facile, seulement des notes naturelles. Spécifica
 |---|---|---|
 | N30 | Notes tirées en facile | Notes naturelles seulement : aucune note altérée n'est ajoutée au passage de niveau ; les niveaux 2 à 4 ne changent pas, le niveau 5 ajoute Si (corde 3, case 4) au lieu de La# (corde 5, case 1), le niveau 15 a les 48 notes naturelles (`NATURELLES_SEULES`) |
 | N31 | Niveau commun aux difficultés (N23) alors que le facile suit un autre ordre (choix de l'utilisateur) | Un niveau et des notes par difficulté (schéma version 4). Migration : le niveau commun va au normal, au difficile et au hardcore ; le facile le garde s'il n'a que des notes naturelles, sinon il repart aux cordes à vide. « Recommencer » ne touche que la difficulté choisie. Remplace la fin de N23 |
+
+## Décisions du 01/11/2026 (soir)
+
+Après le journal de 23 h 51 (`app/resultats/README.md`) : la différence entre les difficultés n'est pas assez marquée, le hardcore n'avance pas. Spécification version 3.6, §5.1.
+
+| # | Question | Décision |
+|---|---|---|
+| N32 | Facile, normal et difficile passaient chaque niveau au même essai (le minimum de 3 essais par note décidait ; réussite du niveau de 93 à 100 % au passage, au-dessus de tous les seuils) | Réglages par difficulté (`REGLAGES_DIFFICULTE`) : vitesse (chute au niveau 1 en 15 s, 10 s, 7,5 s ; montée de 3, 5, 7 % par niveau), essais minimum par note (2, 3, 4 ; 5 en hardcore), rapidité (1 jusqu'à 2,5 s, 1,5 s, 1 s ; 0 à 8 s, 6 s, 4 s ; hardcore comme normal). Le normal ne change pas. Non retenu : erreurs tolérées selon la difficulté |
+| N33 | Hardcore bloqué au niveau 4 : une note propre et rapide 38 % du temps ne fait presque jamais 5 de suite, et elle était tirée moins souvent que les notes déjà acquises | Note acquise avec 4 réponses propres sur 5 essais de suite (`ACQUISE`), à la place des 5 de suite de N24 ; poids de tirage maximal pour une note pas encore acquise. Rejeu : niveaux 1 à 4 aux essais 33, 40, 95 et 318 (au lieu de 59, 51, 112 et jamais). Non retenu : notes acquises gardées d'une partie à l'autre |

@@ -121,18 +121,28 @@ export function reussiteGlobale(
   return reussites.reduce((s, r, i) => s + r * poids[i]!, 0) / poids.reduce((s, w) => s + w, 0);
 }
 
+/** Règle de la note acquise : `propres` réponses propres parmi `sur` essais de suite, en `delaiBonMs` au plus. */
+export interface RegleAcquise {
+  propres: number;
+  sur: number;
+  delaiBonMs: number;
+}
+
 /**
- * Note acquise (hardcore) : elle a été jouée, à un moment, `n` fois de suite juste du premier coup (aucune case fausse)
- * en au plus `delaiBonMs` depuis la note précédente. Une erreur après coup ne la retire pas (choix de l'utilisateur
- * du 31/10/2026 : exiger les `n` derniers essais de chaque note en même temps ne laissait jamais passer le niveau).
+ * Note acquise (hardcore) : à un moment de la partie, `propres` de ses `sur` essais de suite ont été justes du premier
+ * coup (aucune case fausse) en au plus `delaiBonMs` depuis que la note est demandée. Une erreur après coup ne la
+ * retire pas (choix de l'utilisateur du 31/10/2026 : exiger les derniers essais de chaque note en même temps ne laissait
+ * jamais passer le niveau). Version 3.6 : 4 sur 5 (avant : 5 de suite).
  */
-export function acquise(position: Position, essais: readonly Essai[], n: number, delaiBonMs: number): boolean {
-  let serie = 0;
+export function acquise(position: Position, essais: readonly Essai[], regle: RegleAcquise): boolean {
+  const fenetre: boolean[] = [];
   for (const e of essais) {
     if (!memePosition(e.position, position)) continue;
-    const propre = e.resultat === 'juste' && e.erreurs === 0 && e.delaiNoteMs !== null && e.delaiNoteMs <= delaiBonMs;
-    serie = propre ? serie + 1 : 0;
-    if (serie >= n) return true;
+    fenetre.push(
+      e.resultat === 'juste' && e.erreurs === 0 && e.delaiNoteMs !== null && e.delaiNoteMs <= regle.delaiBonMs,
+    );
+    if (fenetre.length > regle.sur) fenetre.shift();
+    if (fenetre.length === regle.sur && fenetre.filter(Boolean).length >= regle.propres) return true;
   }
   return false;
 }
