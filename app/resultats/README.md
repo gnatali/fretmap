@@ -2,6 +2,26 @@
 
 Exports et journaux envoyés par l'utilisateur, et leur analyse, du plus récent au plus ancien. Les journaux du mode 1 (`journal-mode1-*.json`) s'analysent avec le skill `analyser-journal-mode1`.
 
+## Réussite des notes remise à zéro à chaque niveau (02/11/2026, spec version 3.10)
+
+À la demande de l'utilisateur, les essais, les réussites et les notes acquises (hardcore) repartent de zéro à chaque passage de niveau : toutes les notes du niveau, anciennes comme nouvelles, sont à valider de nouveau, avec les mêmes règles (choix de l'utilisateur, `docs/revue-specs-app.md` N37). Avant, une note validée le restait : le niveau 2 commençait à 6/9.
+
+- Les niveaux s'allongent avec le nombre de notes : en normal, au moins 18, 27, 45 et 72 essais aux niveaux 1, 2, 4 et 7 (3 essais par note), contre environ 28 par niveau dans les parties du 01/11.
+- Simulation (`partie.test.ts`) : après le passage au niveau 2, il faut 33 notes en moyenne (27 à 45) pour que les 9 notes aient leurs 3 essais.
+- Rejeu du journal de 23 h 51 avec cette règle (script du skill) :
+  - niveau 1 inchangé (partie 12 : 13, 27, 31 et 33 essais) ;
+  - aux niveaux suivants, la plupart des parties s'arrêtent avant que la nouvelle règle ne soit remplie (« non ») : leurs tirages favorisaient les nouvelles notes, et les niveaux duraient environ 25 essais ;
+  - seule la partie 12, aux niveaux longs, donne des valeurs.
+
+| Partie 12, niveau (essais joués) | Facile | Normal | Difficile | Hardcore             |
+| -------------------------------- | ------ | ------ | --------- | -------------------- |
+| 1 (59)                           | 13     | 27     | 31        | 33                   |
+| 2 (51)                           | 39     | non    | non       | non                  |
+| 3 (112)                          | 54     | 68     | 85        | non                  |
+| 4 (368)                          | 84     | 131    | 148       | 329 (au lieu de 318) |
+
+- **À mesurer** au prochain journal : la durée des niveaux avec cette règle, dans chaque difficulté.
+
 ## Journal du mode 1 du 01/11/2026, 23 h 51 (`journal-mode1-20261101-2351.json`)
 
 **Session** : 12 parties, dont les 4 du journal de 21 h 09 (ci-dessous). Parties 5 à 8 : en facile, le soir du 31/10 (versions 3.1 à 3.4), niveaux 1 → 7, 7 → 7, 1 → 2 et 1 → 3. Parties 9 à 12 : le 01/11 à partir de 22 h 56, avec la version 3.4, une par difficulté (tableau). Remarques de l'utilisateur : la différence de difficulté n'est pas assez marquée ; impossible d'avancer en hardcore. Images : médiane et p95 de 16,7 ms.

@@ -130,7 +130,11 @@ export class Partie {
   /** Vitesse, en part de la vitesse max (0 : notes immobiles). */
   private vitesseActuelle = 0;
   private vitesseMax = 0;
-  private readonly essais: Essai[] = [];
+  /**
+   * Essais du niveau en cours : réussites, notes validées, tirage et notes acquises n'en tiennent compte que là. Remis
+   * à zéro à chaque passage de niveau (version 3.10, demande de l'utilisateur) ; le journal garde toute la partie.
+   */
+  private essais: Essai[] = [];
   private readonly essaisJournal: EssaiJournal[] = [];
   private readonly passages: PassageJournal[] = [];
   private tirees = 0;
@@ -151,7 +155,7 @@ export class Partie {
   private enAttente = false;
   private fini = false;
   private interrompu = false;
-  /** Hardcore : notes acquises pendant la partie (clés « corde-case ») ; elles le restent. */
+  /** Hardcore : notes acquises pendant le niveau (clés « corde-case ») ; elles le restent jusqu'au passage. */
   private readonly acquises = new Set<string>();
 
   /** La première note apparaît dès la création, immobile. */
@@ -241,8 +245,9 @@ export class Partie {
   }
 
   /**
-   * Note validée pour le passage de niveau : assez d'essais et une réussite ≥ seuilNote ; en hardcore, acquise en plus
-   * (ACQUISE : 4 réponses propres sur 5 essais de suite, à un moment de la partie).
+   * Note validée pour le passage de niveau, sur les essais du niveau en cours : assez d'essais et une réussite ≥
+   * seuilNote ; en hardcore, acquise en plus (ACQUISE : 4 réponses propres sur 5 essais de suite, à un moment du
+   * niveau).
    */
   noteValidee(position: Position): boolean {
     const r = this.reglages;
@@ -392,8 +397,9 @@ export class Partie {
   }
 
   /**
-   * Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum (et, en hardcore, tant qu'elle n'est
-   * pas acquise : version 3.6, une note lente n'était tirée qu'une fois sur 18), puis selon sa réussite.
+   * Poids de tirage d'une note : maximal tant qu'elle n'a pas ses essais minimum dans le niveau (et, en hardcore, tant
+   * qu'elle n'est pas acquise : version 3.6, une note lente n'était tirée qu'une fois sur 18), puis selon sa réussite.
+   * Au passage de niveau, toutes les notes repartent du poids maximal.
    */
   private poidsTirage(position: Position): number {
     if (this.essaisDe(position) < this.reglages.essaisMinimum) return 1 + POIDS_ECHEC_TIRAGE;
@@ -545,9 +551,12 @@ export class Partie {
     this.niveauActuel++;
     const plafond = this.plafond;
     this.passages.push({ tMs: this.relatif(tMs), niveau: this.niveauActuel, bonus, ajoutees, plafond });
-    // Les notes restantes sont retirées sans compter ; la partie attend `continuer`, puis reprend à vitesse 0.
+    // Les notes restantes sont retirées sans compter ; la partie attend `continuer`, puis reprend à vitesse 0. Les
+    // essais, réussites et notes acquises repartent de zéro : toutes les notes du niveau sont à valider de nouveau.
     this.chute = new Chute();
     this.vitesseActuelle = 0;
+    this.essais = [];
+    this.acquises.clear();
     this.enAttente = true;
     return { type: 'niveau', niveau: this.niveauActuel, bonus, ajoutees: ajoutees.map((p) => ({ ...p })), plafond };
   }

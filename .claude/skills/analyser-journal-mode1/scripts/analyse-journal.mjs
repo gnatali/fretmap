@@ -68,17 +68,18 @@ function vitesseApres(vitesse, brut, essai, r, plafond) {
 /**
  * Conditions de passage après chaque essai du niveau, dans la difficulté, comme Partie.niveauValide : vitesse au
  * plafond, chaque note validée (essais minimum, réussite ≥ seuilNote, acquise en hardcore : ACQUISE), réussite du
- * niveau. Les essais des niveaux précédents de la partie comptent. La vitesse est recalculée avec les réglages de la
+ * niveau, sur les seuls essais du niveau : tout repart de zéro à chaque niveau (version 3.10 ; avant, les essais des
+ * niveaux précédents de la partie comptaient). La vitesse est recalculée avec les réglages de la
  * difficulté, à partir de 0 au début du niveau (comme après un passage) : la vitesse du journal ne suit que la
  * difficulté jouée, et un plafond plus haut ne serait jamais atteint.
  * @returns le premier essai du niveau où le passage serait validé (null si jamais), les conditions manquantes après
  *   chaque essai, et le plus grand écart entre la vitesse recalculée et celle du journal (avant chaque résultat)
  */
-function rejouer(difficulte, niveau, positions, essaisAvant, essaisNiveau) {
+function rejouer(difficulte, niveau, positions, essaisNiveau) {
   const r = reglagesDe(difficulte);
   const plafond = plafondVitesse(niveau, r);
   const regle = { ...ACQUISE, delaiBonMs: r.delaiNoteBonMs };
-  const essais = essaisAvant.map(brutVersEssai);
+  const essais = [];
   const manques = [];
   let passage = null;
   let vitesse = 0;
@@ -140,10 +141,9 @@ brut.parties.forEach((partie, n) => {
     const passage = partie.passages.find((p) => p.niveau === niveau + 1);
     const duree = essais.at(-1).tResultatMs - essais[0].tApparitionMs;
     const delais = essais.filter((e) => e.delaiNoteMs !== null).map((e) => e.delaiNoteMs);
-    const avant = partie.essais.filter((e) => e.niveau < niveau);
-    const rejeu = DIFFICULTES.map((d) => rejouer(d, niveau, positions, avant, essais).passage ?? "non");
+    const rejeu = DIFFICULTES.map((d) => rejouer(d, niveau, positions, essais).passage ?? "non");
     // Conditions manquantes dans la difficulté jouée, sur les essais du niveau.
-    const joue = rejouer(partie.difficulte ?? "normal", niveau, positions, avant, essais);
+    const joue = rejouer(partie.difficulte ?? "normal", niveau, positions, essais);
     const { manques } = joue;
     ecartVitesse = Math.max(ecartVitesse, joue.ecartVitesse);
     const sous = {};

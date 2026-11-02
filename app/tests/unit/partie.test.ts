@@ -234,31 +234,36 @@ describe('tirage', () => {
   });
 });
 
-describe('tirage des nouvelles notes', () => {
-  it('une note sans ses essais minimum garde le poids maximal : les nouvelles notes sont vite jouées 3 fois', () => {
-    // Au niveau 2, notes tirées entre le passage et le 3e essai de chacune des 3 nouvelles notes, sur 40 parties :
-    // 23 en moyenne (au plus 35) ; 37 en moyenne (jusqu'à 85) quand le poids retombait après un premier essai.
-    const nouvelles: Position[] = [
-      { corde: 6, case: 1 },
-      { corde: 2, case: 1 },
-      { corde: 1, case: 1 },
-    ];
+describe('tirage après un passage de niveau', () => {
+  it('toutes les notes du niveau repartent du poids maximal : chacune est vite rejouée 3 fois', () => {
+    // Au niveau 2, notes tirées jusqu'à 3 essais pour chacune des 9 notes, sur 40 parties : 33 en moyenne (27 à 45).
+    // Les cordes à vide repartent de zéro comme les 3 nouvelles notes (version 3.10).
     const tirages: number[] = [];
     for (let graine = 1; graine <= 40; graine++) {
       const partie = nouvelle({}, { hasard: hasardFixe(graine) });
       let { t } = jouerJusquAuPassage(partie);
       partie.continuer(t);
+      const essais = new Map<string, number>();
+      const cle = (p: Position) => `${p.corde}-${p.case}`;
       let n = 0;
-      while (!nouvelles.every((p) => partie.essaisDe(p) >= 3)) {
+      // Jusqu'à 3 essais pour chacune des 9 notes du niveau 2 (ou jusqu'au passage suivant, qui les demande).
+      while (n < 300 && (essais.size < 9 || [...essais.values()].some((k) => k < 3))) {
         t += 500;
-        partie.avancer(t);
-        toucher(partie, true, t);
-        n++;
+        const evenements = [...partie.avancer(t), ...toucher(partie, true, t)];
+        for (const e of evenements) {
+          if (e.type === 'resultat') {
+            const p = e.note.question.position;
+            essais.set(cle(p), (essais.get(cle(p)) ?? 0) + 1);
+            n++;
+          }
+        }
+        if (evenements.some((e) => e.type === 'niveau')) break;
       }
       tirages.push(n);
     }
-    expect(tirages.reduce((somme, n) => somme + n, 0) / tirages.length).toBeLessThan(28);
-    expect(Math.max(...tirages)).toBeLessThanOrEqual(40);
+    expect(Math.min(...tirages)).toBeGreaterThanOrEqual(27);
+    expect(tirages.reduce((somme, n) => somme + n, 0) / tirages.length).toBeLessThan(36);
+    expect(Math.max(...tirages)).toBeLessThanOrEqual(50);
   });
 });
 
@@ -306,6 +311,11 @@ describe('passage de niveau', () => {
     expect(partie.positions).toHaveLength(9);
     expect(partie.caseMax).toBe(1);
     expect(partie.vitesse).toBe(0);
+    // Les essais et les réussites repartent de zéro : toutes les notes du niveau 2 sont à valider (version 3.10).
+    expect(partie.essaisDe({ corde: 6, case: 0 })).toBe(0);
+    expect(partie.reussiteDe({ corde: 6, case: 0 })).toBe(0);
+    expect(partie.notesValidees).toBe(0);
+    expect(partie.reussiteGlobale).toBe(0);
     expect(partie.plafond).toBe(0.35);
     expect(partie.enPause).toBe(true);
     expect(partie.notes).toHaveLength(0);
@@ -431,29 +441,35 @@ describe('difficulté', () => {
     expect(passe(enDifficulte('difficile', lente), 1000)).toBe(true);
   });
 
-  it('hardcore : une note est acquise après 4 réponses propres sur 5 essais de suite, et le reste', () => {
+  it('hardcore : une note est acquise après 4 réponses propres sur 5 essais de suite, et le reste jusqu’au passage', () => {
     const partie = enDifficulte('hardcore');
     expect(partie.notesValidees).toBe(0);
     let t = 0;
     let max = 0;
+    let validees = 0;
     for (let i = 0; i < 400 && !partie.enPause; i++) {
       partie.avancer(t);
       t += 500;
       partie.avancer(t);
+      validees = partie.notesValidees;
       toucher(partie, true, t);
+      if (partie.enPause) break;
       expect(partie.notesValidees).toBeGreaterThanOrEqual(max);
       max = Math.max(max, partie.notesValidees);
     }
     expect(partie.niveau).toBe(2);
+    // Juste avant le passage, au moins 5 des 6 cordes à vide étaient acquises (la dernière l'est au passage).
+    expect(validees).toBeGreaterThanOrEqual(5);
+    // Au niveau 2, tout repart à zéro, notes acquises comprises : les 9 notes sont à valider (version 3.10).
     const journal = partie.journal(CONTEXTE);
     for (const p of positionsDepart()) {
       expect(journal.bilanNotes.find((b) => b.position.corde === p.corde && b.position.case === 0)).toMatchObject({
-        validee: true,
+        essais: 0,
+        validee: false,
       });
     }
-    // Au niveau 2, les cordes à vide restent acquises ; seules les 3 nouvelles notes sont à valider.
-    expect(partie.notesValidees).toBe(6);
-    expect(journal.resume.notesValidees).toBe(6);
+    expect(partie.notesValidees).toBe(0);
+    expect(journal.resume.notesValidees).toBe(0);
   });
 
   it('hardcore : une case fausse de temps en temps n’empêche pas de passer', () => {

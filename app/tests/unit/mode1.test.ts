@@ -193,6 +193,8 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     await vi.advanceTimersByTimeAsync(3000);
     expect(bulles()).toHaveLength(0);
     expect(document.querySelector('.note.attendue')).not.toBeNull();
+    // Les notes repartent de zéro à chaque niveau : aucune des 9 n'est encore validée.
+    expect(texte('.barre-jeu .notes-validees')).toBe('0/9');
     expect(caseDuManche('6-1').disabled).toBe(false);
   });
 
