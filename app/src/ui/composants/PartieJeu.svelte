@@ -528,10 +528,15 @@
     opacity: 0.55;
   }
   .compteurs {
-    /* Les compteurs passent sur deux lignes quand la place manque (grand score sur un écran de 360 px). */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.125rem 0.5rem;
+    /*
+     * Toujours deux lignes (score, niveau, notes ; réussite, vitesse) : la hauteur ne change pas quand le score
+     * s'allonge, et le manche ne bouge pas. Avec un retour à la ligne selon la place, les compteurs passaient sur deux
+     * lignes en cours de partie et le manche descendait d'autant.
+     */
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: start;
+    gap: 0.125rem 0.75rem;
     min-width: 0;
     margin: 0;
   }
