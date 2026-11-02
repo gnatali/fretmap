@@ -15,6 +15,8 @@
   --orange: #a65b00;
   /* Texte sur les fonds --juste, --faux et --orange. */
   --sur-couleur: #ffffff;
+  /* Ombre d'un cadre posé sur le jeu (bilan du passage de niveau). */
+  --ombre: rgb(0 0 0 / 0.3);
   color-scheme: light;
 }
 
@@ -34,6 +36,7 @@
     --faux: #ef6a60;
     --orange: #e0913a;
     --sur-couleur: #14191b;
+    --ombre: rgb(0 0 0 / 0.7);
     color-scheme: dark;
   }
 }

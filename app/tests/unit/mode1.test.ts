@@ -133,6 +133,9 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(etat.progression.jeu.niveaux.facile).toEqual(niveauJeuInitial());
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"niveau":2');
     expect(texte('.titre-passage')).toBe(TEXTES.partie.niveauValide(1, 500));
+    // Le bilan est posé sur le manche (cadre volant), sous les nouvelles notes de la case 1 ; le dernier retour est vidé.
+    expect(document.querySelector('.plateau .volant.bas .passage')).not.toBeNull();
+    expect(texte('.retour')).toBe('');
     // Nouvelles notes : la bulle des notes qui tombent, posée sur leur case (plus de cases entourées).
     const bulles = () => [...document.querySelectorAll<HTMLElement>('.note.presentee')].map((b) => b.dataset.position);
     expect(bulles()).toEqual(['6-1', '2-1', '1-1']);
@@ -148,6 +151,7 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     // les nouvelles notes restent affichées.
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.continuerNiveau(2) }));
     expect(document.querySelector('.passage')).toBeNull();
+    expect(document.querySelector('.volant')).toBeNull();
     expect(texte('.compte')).toContain('3');
     expect(screen.queryByRole('group', { name: TEXTES.partie.enPause })).toBeNull();
     expect(bulles()).toHaveLength(3);

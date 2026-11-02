@@ -83,7 +83,7 @@
   // svelte-ignore state_referenced_locally
   let notesDuNiveau = $state(positions.length);
   let vitesse = $state(0);
-  /** Passage de niveau : bilan affiché sous le manche jusqu'au clic sur « Continuer ». */
+  /** Passage de niveau : bilan posé sur le manche jusqu'au clic sur « Continuer ». */
   let passage = $state.raw<{ niveau: number; bonus: number; ajoutees: Position[]; plafond: number } | null>(null);
   /** Nouvelles notes montrées sur leur case, du passage de niveau à la fin du compte à rebours qui suit. */
   let presentees = $state.raw<Position[]>([]);
@@ -154,7 +154,6 @@
   function continuerNiveau(): void {
     if (phase !== 'niveau') return;
     passage = null;
-    dernierRetour = null;
     compteNiveau = true;
     lancerCompte();
   }
@@ -219,11 +218,12 @@
           rappel = { index, positions: question.positionsCorrectes, jusqua: Infinity };
         }
       } else if (evenement.type === 'niveau') {
-        // Bilan sous le manche, nouvelles notes sur leur case ; la boucle s'arrête jusqu'à « Continuer ».
+        // Bilan posé sur le manche, nouvelles notes sur leur case ; la boucle s'arrête jusqu'à « Continuer ».
         const { niveau: nouveau, bonus, ajoutees, plafond } = evenement;
         passage = { niveau: nouveau - 1, bonus, ajoutees, plafond };
         presentees = ajoutees;
         rappel = null;
+        dernierRetour = null;
         phase = 'niveau';
         cancelAnimationFrame(boucle);
         // La boucle repartira sans compter l'attente comme une image.
@@ -358,6 +358,7 @@
       {effets}
       marques={marquesParCase}
       desactive={phase !== 'jeu'}
+      volant={passage && phase === 'niveau' ? bilan : undefined}
       onToucher={toucher}
     />
     {#if enPartie && (phase === 'pause' || (phase === 'compte' && !compteNiveau))}
@@ -381,15 +382,27 @@
     {/if}
   </div>
 
-  {#if passage && phase === 'niveau'}
-    <!-- Passage de niveau : sous le manche, pour ne pas cacher les nouvelles notes posées sur leur case. -->
+  <p
+    class="retour"
+    class:juste={dernierRetour?.juste}
+    class:faux={!!dernierRetour && !dernierRetour.juste}
+    role="status"
+  >
+    {dernierRetour?.texte ?? ''}
+  </p>
+</div>
+
+{#snippet bilan()}
+  {#if passage}
+    <!-- Passage de niveau : cadre posé sur le manche (MancheJeu), du côté où les nouvelles notes laissent le plus de
+         place ; le manche garde sa taille. -->
     <div class="passage" aria-live="polite">
       <p class="titre-passage">{TEXTES.partie.niveauValide(passage.niveau, passage.bonus)}</p>
       {#if passage.ajoutees.length === 0}
         <p>{NATURELLES_SEULES[difficulte] ? TEXTES.partie.naturellesCompletes : TEXTES.partie.mancheComplet}</p>
       {:else}
-        <p>{TEXTES.partie.nouvellesNotes}</p>
-        <ul>
+        <p class="detail">{TEXTES.partie.nouvellesNotes}</p>
+        <ul class="detail">
           {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
             <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
           {/each}
@@ -400,17 +413,8 @@
         {TEXTES.partie.continuerNiveau(passage.niveau + 1)}
       </button>
     </div>
-  {:else}
-    <p
-      class="retour"
-      class:juste={dernierRetour?.juste}
-      class:faux={!!dernierRetour && !dernierRetour.juste}
-      role="status"
-    >
-      {dernierRetour?.texte ?? ''}
-    </p>
   {/if}
-</div>
+{/snippet}
 
 <style>
   .ecran {
@@ -517,12 +521,19 @@
     margin: 0;
     pointer-events: none;
   }
+  /* Cadre volant : opaque, ombré, jamais plus haut que la place libre du manche (il défile alors). */
   .passage {
-    padding: 0.5rem 1rem;
+    position: relative;
+    width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    padding: 0.5rem 0.75rem;
     text-align: center;
     background: var(--surface);
     border: 2px solid var(--juste);
     border-radius: 10px;
+    box-shadow: 0 4px 16px var(--ombre);
+    pointer-events: auto;
   }
   .passage p,
   .passage ul {
@@ -542,6 +553,56 @@
     margin-top: 0.25rem;
     min-height: 48px;
   }
+  /* Peu de place (nouvelles notes au milieu du manche) : cadre resserré, nouvelles notes sur une ligne. */
+  @container volant (max-height: 16rem) {
+    .passage {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+    .passage p,
+    .passage ul {
+      margin: 0.125rem 0;
+    }
+    .passage ul {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0 0.75rem;
+    }
+    .titre-passage {
+      font-size: 1.0625rem;
+    }
+    .continuer {
+      margin-top: 0.125rem;
+    }
+  }
+  /*
+   * Très peu de place (un tiers d'un manche court sur un petit écran) : le titre et le bouton seulement. La liste des
+   * nouvelles notes, puis la vitesse max, restent lues par les lecteurs d'écran ; les bulles nomment les notes.
+   */
+  @container volant (max-height: 10rem) {
+    .detail {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+  @container volant (max-height: 7.5rem) {
+    .plafond {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    .continuer {
+      min-height: 44px;
+    }
+  }
   .consigne,
   .retour {
     margin: 0;
@@ -549,6 +610,8 @@
     text-align: center;
   }
   .consigne {
+    /* Une ligne même vide (bilan du passage de niveau) : le manche ne bouge pas. */
+    min-height: 1lh;
     font-size: 1.25rem;
     font-weight: 700;
   }

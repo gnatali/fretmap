@@ -1,4 +1,5 @@
 <script lang="ts" module>
+  import type { Position } from '../../music/manche';
   import type { Question } from '../../quiz/tirage';
 
   /** Note à l'écran, copiée de la partie à chaque image. */
@@ -32,19 +33,43 @@
   export function caseAffichee(caseMax: number): number {
     return PALIERS_MANCHE.find((palier) => palier >= caseMax) ?? caseMax;
   }
+
+  /** Place laissée par des positions du manche : le côté choisi et la part de la hauteur du manche, de 0 à 1. */
+  export interface PlaceLibre {
+    cote: 'haut' | 'bas';
+    part: number;
+  }
+
+  /**
+   * Où poser un cadre sur le manche (cases 0 à `derniere`) sans cacher `positions` : au-dessus de leur case la plus
+   * haute ou sous leur case la plus basse, du côté qui laisse le plus de cases (le haut à égalité). Sans position, tout
+   * le manche.
+   */
+  export function placeLibre(positions: readonly Position[], derniere: number): PlaceLibre {
+    if (positions.length === 0) return { cote: 'bas', part: 1 };
+    const lignes = derniere + 1;
+    const cases = positions.map((p) => p.case);
+    const haut = Math.min(...cases) / lignes;
+    const bas = (lignes - 1 - Math.max(...cases)) / lignes;
+    return haut >= bas ? { cote: 'haut', part: haut } : { cote: 'bas', part: bas };
+  }
 </script>
 
 <script lang="ts">
-  import { MARQUEURS, NUMEROS_CORDES, noteDePosition, type Position } from '../../music/manche';
+  import type { Snippet } from 'svelte';
+  import { MARQUEURS, NUMEROS_CORDES, noteDePosition } from '../../music/manche';
   import { nomSurDeuxLignes, type Notation } from '../../music/notation';
   import { TEXTES } from '../textes';
 
   // Manche du jeu du mode 1 (spec §5.1), repris de MancheChute du POC « Notes qui tombent » : cordes en colonnes
   // (corde 6 à gauche), cases en lignes de la case 0 en haut à la case 5, 7 ou 12, ligne de jeu en bas. Les notes
   // descendent dans la colonne de leur corde, sur un calque qui laisse passer le doigt : chaque case est un bouton.
+  // Le bilan du passage de niveau (`volant`) est posé sur le manche, qui garde toute sa hauteur.
 
   /** Hauteur d'une note en px (voir .note) : à la ligne de jeu, son bas touche la ligne. */
   const HAUTEUR_NOTE_PX = 48;
+  /** Marge entre le cadre volant et les nouvelles notes, en px : une bulle de 48 px dépasse d'une case de 44 px. */
+  const MARGE_VOLANT_PX = 4;
 
   interface Props {
     /** Case maximale des notes du niveau ; le manche va jusqu'au palier qui la contient. */
@@ -60,6 +85,11 @@
     /** Marques par position touchée, clé `${corde}-${case}`. */
     marques?: Record<string, MarqueCase>;
     desactive?: boolean;
+    /**
+     * Cadre posé sur le manche (bilan du passage de niveau), du côté où les nouvelles notes (`presentees`) laissent le
+     * plus de place : il ne les cache jamais.
+     */
+    volant?: Snippet;
     onToucher: (position: Position) => void;
   }
 
@@ -72,12 +102,14 @@
     effets = [],
     marques = {},
     desactive = false,
+    volant,
     onToucher,
   }: Props = $props();
 
   let hauteur = $state(0);
   const derniere = $derived(caseAffichee(caseMax));
   const cases = $derived(Array.from({ length: derniere + 1 }, (_, k) => k));
+  const place = $derived(placeLibre(presentees, derniere));
 
   const pourcent = (valeur: number) => `${valeur * 100}%`;
   /** Centre de la colonne d'une corde ; corde à vide (corde non demandée), centre du manche. */
@@ -197,6 +229,18 @@
           </div>
         {/each}
       </div>
+
+      {#if volant}
+        <!-- Hors du calque (aria-hidden) : le bouton du cadre reste accessible. -->
+        <div
+          class="volant"
+          class:haut={place.cote === 'haut'}
+          class:bas={place.cote === 'bas'}
+          style:height="calc({place.part * 100}% - {MARGE_VOLANT_PX}px)"
+        >
+          {@render volant()}
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -266,6 +310,24 @@
     inset: 0;
     /* Le doigt traverse les notes qui tombent et atteint la case. */
     pointer-events: none;
+  }
+  /* Zone du manche libre de nouvelles notes ; le cadre y est centré, sans jamais en dépasser (PartieJeu.svelte). */
+  .volant {
+    position: absolute;
+    inset-inline: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.375rem;
+    container: volant / size;
+    /* Seul le cadre reçoit le doigt (les cases sont de toute façon désactivées pendant le bilan). */
+    pointer-events: none;
+  }
+  .volant.haut {
+    top: 0;
+  }
+  .volant.bas {
+    bottom: 0;
   }
   .ligne {
     display: grid;

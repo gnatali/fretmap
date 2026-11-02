@@ -114,3 +114,11 @@ Après le journal de 23 h 51 (`app/resultats/README.md`) : la différence entre 
 |---|---|---|
 | N32 | Facile, normal et difficile passaient chaque niveau au même essai (le minimum de 3 essais par note décidait ; réussite du niveau de 93 à 100 % au passage, au-dessus de tous les seuils) | Réglages par difficulté (`REGLAGES_DIFFICULTE`) : vitesse (chute au niveau 1 en 15 s, 10 s, 7,5 s ; montée de 3, 5, 7 % par niveau), essais minimum par note (2, 3, 4 ; 5 en hardcore), rapidité (1 jusqu'à 2,5 s, 1,5 s, 1 s ; 0 à 8 s, 6 s, 4 s ; hardcore comme normal). Le normal ne change pas. Non retenu : erreurs tolérées selon la difficulté |
 | N33 | Hardcore bloqué au niveau 4 : une note propre et rapide 38 % du temps ne fait presque jamais 5 de suite, et elle était tirée moins souvent que les notes déjà acquises | Note acquise avec 4 réponses propres sur 5 essais de suite (`ACQUISE`), à la place des 5 de suite de N24 ; poids de tirage maximal pour une note pas encore acquise. Rejeu : niveaux 1 à 4 aux essais 33, 40, 95 et 318 (au lieu de 59, 51, 112 et jamais). Non retenu : notes acquises gardées d'une partie à l'autre |
+
+## Décisions du 02/11/2026
+
+Captures de l'utilisateur aux niveaux 7 et 8 : le bilan du passage de niveau cache les nouvelles notes. Spécification version 3.7, §5.1.
+
+| # | Question | Décision |
+|---|---|---|
+| N34 | Le bilan, sous le manche, cachait les nouvelles notes des cases 6 et 7 : le manche se resserrait pour lui faire place, mais à partir de 8 cases, avec des cases d'au moins 44 px, il ne le pouvait plus assez et passait sous le cadre | Cadre « volant » posé sur le manche, au-dessus ou en dessous des nouvelles notes, du côté qui laisse le plus de cases (`placeLibre` de `MancheJeu.svelte`) ; il se resserre s'il manque de place (nouvelles notes sur une ligne, puis titre, vitesse max et bouton, enfin titre et bouton). Le manche garde sa taille pendant le bilan |
