@@ -394,19 +394,23 @@
 
 {#snippet bilan()}
   {#if passage}
-    <!-- Passage de niveau : cadre posé sur le manche (MancheJeu), du côté où les nouvelles notes laissent le plus de
-         place ; le manche garde sa taille. -->
+    <!-- Passage de niveau : cadre posé sur le manche (MancheJeu), dans la plus longue bande de cases sans nouvelle note ;
+         le manche garde sa taille. -->
     <div class="passage" aria-live="polite">
       <p class="titre-passage">{TEXTES.partie.niveauValide(passage.niveau, passage.bonus)}</p>
       {#if passage.ajoutees.length === 0}
         <p>{NATURELLES_SEULES[difficulte] ? TEXTES.partie.naturellesCompletes : TEXTES.partie.mancheComplet}</p>
       {:else}
-        <p class="detail">{TEXTES.partie.nouvellesNotes}</p>
-        <ul class="detail">
-          {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
-            <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
-          {/each}
-        </ul>
+        <!-- Nouvelles notes : montrées en bulles sur le manche, pas dans le cadre ; nommées ici pour les lecteurs
+             d'écran (le calque des bulles est aria-hidden). -->
+        <div class="sr-only nouvelles">
+          <p>{TEXTES.partie.nouvellesNotes}</p>
+          <ul>
+            {#each passage.ajoutees as p (`${p.corde}-${p.case}`)}
+              <li>{nomPosition(p, noteDePosition(p).nom, notation)}</li>
+            {/each}
+          </ul>
+        </div>
       {/if}
       <p class="plafond">{TEXTES.partie.plafond(pourcent(passage.plafond))}</p>
       <button type="button" class="principal continuer" onclick={continuerNiveau}>
@@ -535,14 +539,8 @@
     box-shadow: 0 4px 16px var(--ombre);
     pointer-events: auto;
   }
-  .passage p,
-  .passage ul {
+  .passage p {
     margin: 0.25rem 0;
-  }
-  .passage ul {
-    padding: 0;
-    list-style: none;
-    font-weight: 600;
   }
   .titre-passage {
     font-size: 1.25rem;
@@ -553,21 +551,14 @@
     margin-top: 0.25rem;
     min-height: 48px;
   }
-  /* Peu de place (nouvelles notes au milieu du manche) : cadre resserré, nouvelles notes sur une ligne. */
-  @container volant (max-height: 16rem) {
+  /* Peu de place (bande de 2 cases sur un petit écran) : cadre resserré. */
+  @container volant (max-height: 9rem) {
     .passage {
       padding: 0.25rem 0.5rem;
       font-size: 0.875rem;
     }
-    .passage p,
-    .passage ul {
+    .passage p {
       margin: 0.125rem 0;
-    }
-    .passage ul {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0 0.75rem;
     }
     .titre-passage {
       font-size: 1.0625rem;
@@ -576,20 +567,7 @@
       margin-top: 0.125rem;
     }
   }
-  /*
-   * Très peu de place (un tiers d'un manche court sur un petit écran) : le titre et le bouton seulement. La liste des
-   * nouvelles notes, puis la vitesse max, restent lues par les lecteurs d'écran ; les bulles nomment les notes.
-   */
-  @container volant (max-height: 10rem) {
-    .detail {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-    }
-  }
+  /* Très peu de place : le titre et le bouton seulement ; la vitesse max reste lue par les lecteurs d'écran. */
   @container volant (max-height: 7.5rem) {
     .plafond {
       position: absolute;
@@ -598,6 +576,9 @@
       overflow: hidden;
       clip-path: inset(50%);
       white-space: nowrap;
+    }
+    .titre-passage {
+      line-height: 1.2;
     }
     .continuer {
       min-height: 44px;

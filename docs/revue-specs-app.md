@@ -117,8 +117,9 @@ Après le journal de 23 h 51 (`app/resultats/README.md`) : la différence entre 
 
 ## Décisions du 02/11/2026
 
-Captures de l'utilisateur aux niveaux 7 et 8 : le bilan du passage de niveau cache les nouvelles notes. Spécification version 3.7, §5.1.
+Captures de l'utilisateur aux niveaux 6, 7 et 8 : le bilan du passage de niveau cache les nouvelles notes, puis il est coupé. Spécification versions 3.7 et 3.8, §5.1.
 
 | # | Question | Décision |
 |---|---|---|
 | N34 | Le bilan, sous le manche, cachait les nouvelles notes des cases 6 et 7 : le manche se resserrait pour lui faire place, mais à partir de 8 cases, avec des cases d'au moins 44 px, il ne le pouvait plus assez et passait sous le cadre | Cadre « volant » posé sur le manche, au-dessus ou en dessous des nouvelles notes, du côté qui laisse le plus de cases (`placeLibre` de `MancheJeu.svelte`) ; il se resserre s'il manque de place (nouvelles notes sur une ligne, puis titre, vitesse max et bouton, enfin titre et bouton). Le manche garde sa taille pendant le bilan |
+| N35 | Capture du passage du niveau 5 au niveau 6 : nouvelles notes sur les cases 1 et 4 du manche de 6 cases ; le cadre, posé sur la seule case 0, était coupé et défilait | À la demande de l'utilisateur, le cadre ne liste plus les nouvelles notes, dans tous les cas : elles sont sur le manche (liste gardée pour les lecteurs d'écran). Il se pose dans la plus longue bande de cases sans nouvelle note, entre elles comprises (ici les cases 2 et 3) : au moins 2 cases à chaque niveau de la progression (simulation des niveaux en normal et en facile). Version 3.8 |

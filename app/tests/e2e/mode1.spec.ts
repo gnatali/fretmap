@@ -111,6 +111,7 @@ test('mode 1 : passage au niveau 2, sans débordement à 360 px, puis reprise au
   const boites = await verifierBulles(page, 3);
   const bilan = (await page.locator('.passage').boundingBox())!;
   for (const boite of boites) expect(boite.y + boite.height).toBeLessThanOrEqual(bilan.y);
+  await verifierCadre(page, 2);
   expect((await page.locator('.plateau').boundingBox())!).toEqual(manche);
   expect(await debordants(page)).toEqual([]);
 
@@ -148,13 +149,22 @@ async function passageDepuis(page: Page, positions: { corde: number; case: numbe
   return manche;
 }
 
-/** Le bouton « Continuer » est entier dans le cadre, sans le faire défiler. */
-async function verifierBouton(page: Page, niveau: number): Promise<void> {
-  const bilan = (await page.locator('.passage').boundingBox())!;
+/**
+ * Le cadre du bilan ne défile pas, son bouton « Continuer » y est entier, et les nouvelles notes n'y sont pas affichées
+ * (elles sont sur le manche ; la liste, masquée, est pour les lecteurs d'écran).
+ */
+async function verifierCadre(page: Page, niveau: number): Promise<void> {
+  const cadre = page.locator('.passage');
+  expect(await cadre.evaluate((e) => e.scrollHeight <= e.clientHeight)).toBe(true);
+  const bilan = (await cadre.boundingBox())!;
   const bouton = (await page.getByRole('button', { name: `Continuer au niveau ${niveau}` }).boundingBox())!;
   expect(bouton.y).toBeGreaterThanOrEqual(bilan.y);
   expect(bouton.y + bouton.height).toBeLessThanOrEqual(bilan.y + bilan.height);
   expect(bouton.height).toBeGreaterThanOrEqual(44);
+  // Liste dans un bloc réservé aux lecteurs d'écran : 1 px, rogné.
+  const liste = (await page.locator('.passage .nouvelles').boundingBox())!;
+  expect(liste.width * liste.height).toBeLessThanOrEqual(1);
+  await expect(page.locator('.passage .nouvelles ul')).toHaveCount(1);
 }
 
 const positionsBulles = (page: Page) =>
@@ -176,8 +186,7 @@ test('mode 1 : nouvelles notes en bas du manche de 8 cases, bilan posé au-dessu
   // Le bilan est au-dessus des nouvelles notes, entier ; le manche garde sa taille, et rien ne déborde.
   const bilan = (await page.locator('.passage').boundingBox())!;
   for (const boite of boites) expect(bilan.y + bilan.height).toBeLessThanOrEqual(boite.y);
-  await expect(page.locator('.passage ul')).toBeVisible();
-  await verifierBouton(page, 3);
+  await verifierCadre(page, 3);
   expect((await page.locator('.plateau').boundingBox())!).toEqual(manche);
   expect(await debordants(page)).toEqual([]);
   await page.getByRole('button', { name: 'Continuer au niveau 3' }).click();
@@ -185,25 +194,30 @@ test('mode 1 : nouvelles notes en bas du manche de 8 cases, bilan posé au-dessu
   await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 5000 });
 });
 
-test('mode 1 : nouvelles notes au milieu d’un manche court sur un petit écran, bilan resserré', async ({ page }) => {
-  // Nouvelles notes sur les cases 2 et 3 du manche de 6 cases : un tiers du manche de libre de chaque côté. Le cadre
-  // garde le titre et le bouton, sans cacher de bulle ; la liste reste lue par les lecteurs d'écran.
+test('mode 1 : nouvelles notes sur les cases 1 et 4, bilan posé entre elles sur un petit écran', async ({ page }) => {
+  // Capture de l'utilisateur au passage du niveau 5 au niveau 6 (normal) : Ré# et Sol# en case 1, Si en case 4, sur le
+  // manche de 6 cases. Le cadre, posé sur la seule case 0, était coupé ; il va sur les cases 2 et 3, entre elles.
   await page.setViewportSize({ width: 360, height: 640 });
   const manche = await passageDepuis(page, [
-    { corde: 6, case: 3 },
-    { corde: 5, case: 3 },
-    { corde: 4, case: 3 },
+    { corde: 6, case: 0 },
+    { corde: 5, case: 1 },
+    { corde: 4, case: 4 },
   ]);
-  await verifierBulles(page, 3);
-  expect(await positionsBulles(page)).toEqual(['2-3', '1-3', '5-2']);
+  const boites = await verifierBulles(page, 3);
+  expect(await positionsBulles(page)).toEqual(['4-1', '3-1', '3-4']);
   await expect(page.locator('.case')).toHaveCount(6 * 6);
+  const bilan = (await page.locator('.passage').boundingBox())!;
+  const [haut, , bas] = boites as [Rectangle, Rectangle, Rectangle];
+  expect(bilan.y).toBeGreaterThanOrEqual(haut.y + haut.height);
+  expect(bilan.y + bilan.height).toBeLessThanOrEqual(bas.y);
   await expect(page.locator('.titre-passage')).toBeVisible();
+  await verifierCadre(page, 3);
+  // Les nouvelles notes restent nommées pour les lecteurs d'écran.
   await expect(page.getByRole('listitem')).toHaveText([
-    'Ré (D) · corde 2, case 3',
-    'Sol (G) · corde 1, case 3',
-    'Si (B) · corde 5, case 2',
+    'Ré# (D#) · corde 4, case 1',
+    'Sol# (G#) · corde 3, case 1',
+    'Si (B) · corde 3, case 4',
   ]);
-  await verifierBouton(page, 3);
   expect((await page.locator('.plateau').boundingBox())!).toEqual(manche);
   expect(await debordants(page)).toEqual([]);
 });
