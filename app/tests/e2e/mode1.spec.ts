@@ -54,6 +54,12 @@ async function verifierBulles(page: Page, nombre: number): Promise<Rectangle[]> 
   return boites;
 }
 
+/** Arrêt de la partie : pas de bouton « Arrêter » pendant le jeu, il est sur l'écran de pause (picto stop). */
+async function arreterPartie(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.getByRole('dialog', { name: 'Pause' }).getByRole('button', { name: 'Arrêter' }).click();
+}
+
 async function commencer(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: /^Mode 1/ }).click();
@@ -73,7 +79,7 @@ test('mode 1 : case juste, case fausse, fin, record, journal exporté et statist
   await caseDuManche(page, '6-3').click();
   await expect(page.locator('.retour')).toHaveText(/^Case fausse/);
 
-  await page.getByRole('button', { name: 'Arrêter' }).click();
+  await arreterPartie(page);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fin de partie');
   await expect(page.getByText('Nouveau record !')).toBeVisible();
   await expect(page.locator('.difficulte')).toHaveText('Normal');
@@ -123,7 +129,7 @@ test('mode 1 : passage au niveau 2, sans débordement à 360 px, puis reprise au
   await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 5000 });
   await expect(bulles).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Arrêter' }).click();
+  await arreterPartie(page);
   await page.getByRole('button', { name: 'Accueil' }).click();
   await expect(page.getByText('Niveau atteint : 2 en mode 1')).toBeVisible();
   await page.getByRole('button', { name: /^Mode 1/ }).click();
@@ -220,6 +226,38 @@ test('mode 1 : nouvelles notes sur les cases 1 et 4, bilan posé entre elles sur
   ]);
   expect((await page.locator('.plateau').boundingBox())!).toEqual(manche);
   expect(await debordants(page)).toEqual([]);
+  // Arrêt depuis le bilan (picto stop à côté de « Continuer ») : fin de partie, au niveau 3 atteint.
+  await page.locator('.passage').getByRole('button', { name: 'Arrêter' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fin de partie');
+});
+
+test('mode 1 : écran de pause plein écran, score et progression, pictos lecture et stop', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 740 });
+  await commencer(page);
+  // Pas de bouton « Arrêter » pendant le jeu.
+  await expect(page.getByRole('button', { name: 'Arrêter' })).toHaveCount(0);
+  await caseDuManche(page, await reponse(page)).click();
+  await page.getByRole('button', { name: 'Pause' }).click();
+  const pause = page.getByRole('dialog', { name: 'Pause' });
+  // Tout l'écran est couvert ; le score et la progression sont repris.
+  expect(await pause.boundingBox()).toEqual({ x: 0, y: 0, width: 360, height: 740 });
+  await expect(pause.locator('.score')).toHaveText(/^\d+ ×\d+$/);
+  await expect(pause.locator('.niveau')).toHaveText('1 · Normal');
+  await expect(pause.locator('.notes-validees')).toHaveText('0/6');
+  await expect(pause.locator('.reussite')).toHaveText(/^\d+ %$/);
+  await expect(pause.locator('.vitesse')).toHaveText(/^\d+ %$/);
+  for (const nom of ['Reprendre', 'Arrêter']) {
+    const bouton = (await pause.getByRole('button', { name: nom }).boundingBox())!;
+    expect(bouton.width).toBeGreaterThanOrEqual(44);
+    expect(bouton.height).toBeGreaterThanOrEqual(44);
+  }
+  await expect(pause.getByRole('button', { name: 'Reprendre' })).toBeFocused();
+  expect(await debordants(page)).toEqual([]);
+  // Lecture : le compte à rebours sur l'écran de pause, puis le jeu.
+  await pause.getByRole('button', { name: 'Reprendre' }).click();
+  await expect(pause.locator('.compte-reprise')).toBeVisible();
+  await expect(pause).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator('.note.attendue')).toBeVisible();
 });
 
 test('mode 1 : difficulté choisie, gardée après rechargement, et record propre à cette difficulté', async ({
@@ -238,7 +276,7 @@ test('mode 1 : difficulté choisie, gardée après rechargement, et record propr
   await page.getByRole('button', { name: 'Commencer aux cordes à vide' }).click();
   await expect(page.locator('.note.attendue')).toBeVisible({ timeout: 5000 });
   await caseDuManche(page, await reponse(page)).click();
-  await page.getByRole('button', { name: 'Arrêter' }).click();
+  await arreterPartie(page);
   await expect(page.locator('.difficulte')).toHaveText('Difficile');
   await expect(page.getByText('Nouveau record !')).toBeVisible();
   await page.getByRole('button', { name: 'Accueil' }).click();

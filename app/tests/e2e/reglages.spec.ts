@@ -32,7 +32,9 @@ test('progression : export JSON, réinitialisation puis import', async ({ page }
   await expect(page.locator('.consigne')).toHaveText('Mi (E) · à vide', { timeout: 5000 });
   await page.getByRole('button', { name: 'Corde 6, à vide', exact: true }).click();
   await expect(page.locator('.retour')).toContainText('!');
-  await page.getByRole('button', { name: 'Arrêter' }).click();
+  // Arrêt depuis l'écran de pause (pas de bouton « Arrêter » pendant le jeu).
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.getByRole('dialog', { name: 'Pause' }).getByRole('button', { name: 'Arrêter' }).click();
   await page.getByRole('button', { name: 'Accueil' }).click();
 
   await page.getByRole('button', { name: /^Réglages/ }).click();

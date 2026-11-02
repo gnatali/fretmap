@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen, within } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import './resize-observer';
 import { EtatApp } from '../../src/etat.svelte';
@@ -40,6 +40,13 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.commencer }));
     expect(texte('.compte')).toContain('3');
     await vi.advanceTimersByTimeAsync(3000);
+  }
+
+  /** Arrêt de la partie : pas de bouton « Arrêter » pendant le jeu, il est sur l'écran de pause. */
+  async function arreterPartie() {
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.pause }));
+    const pause = screen.getByRole('dialog', { name: TEXTES.partie.enPause });
+    await fireEvent.click(within(pause).getByRole('button', { name: TEXTES.partie.arreter }));
   }
 
   it('compte à rebours, note immobile, case juste : points, statistique sur la case touchée', async () => {
@@ -107,14 +114,33 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(texte('.notes-validees')).toMatch(/^[1-6]\/6$/);
   });
 
-  it('pause : le manche est masqué et ne répond plus, puis reprise après un compte à rebours', async () => {
+  it('pause : écran de pause avec le score et la progression, pictos lecture et stop, reprise après un compte à rebours', async () => {
     afficher();
     await commencer();
+    // Pas de bouton « Arrêter » pendant le jeu.
+    expect(screen.queryByRole('button', { name: TEXTES.partie.arreter })).toBeNull();
+    await fireEvent.click(caseDuManche(reponse()));
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.pause }));
-    expect(screen.getByRole('group', { name: TEXTES.partie.enPause })).toBeTruthy();
+    const pause = screen.getByRole('dialog', { name: TEXTES.partie.enPause });
+    const valeur = (classe: string) => pause.querySelector(`.${classe}`)?.textContent?.replace(/\s+/g, ' ').trim();
+    expect(Number(valeur('score')?.split(' ')[0])).toBeGreaterThan(0);
+    expect(valeur('niveau')).toBe('1 · Normal');
+    expect(valeur('notes-validees')).toBe('0/6');
+    expect(valeur('reussite')).toBe(texte('.barre-jeu .reussite'));
+    expect(valeur('vitesse')).toMatch(/^\d+ %$/);
+    // Pictos : lecture (reprendre), qui a le focus, et stop (arrêter).
+    const lecture = within(pause).getByRole('button', { name: TEXTES.partie.reprendre });
+    expect(document.activeElement).toBe(lecture);
+    expect(within(pause).getByRole('button', { name: TEXTES.partie.arreter })).toBeTruthy();
     expect(caseDuManche('6-0').disabled).toBe(true);
-    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.reprendre }));
+    // Reprise : le compte à rebours reste sur l'écran de pause, puis le jeu repart.
+    await fireEvent.click(lecture);
+    expect(within(screen.getByRole('dialog', { name: TEXTES.partie.enPause })).queryAllByRole('button')).toHaveLength(
+      0,
+    );
+    expect(texte('.compte-reprise')).toContain('3');
     await vi.advanceTimersByTimeAsync(3000);
+    expect(screen.queryByRole('dialog')).toBeNull();
     expect(caseDuManche('6-0').disabled).toBe(false);
   });
 
@@ -133,6 +159,10 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     expect(etat.progression.jeu.niveaux.facile).toEqual(niveauJeuInitial());
     expect(stockage.donnees[CLE_STOCKAGE]).toContain('"niveau":2');
     expect(texte('.titre-passage')).toBe(TEXTES.partie.niveauValide(1, 500));
+    // Le bilan permet d'arrêter (picto stop) ; le bouton pause attend « Continuer ».
+    const cadre = document.querySelector<HTMLElement>('.passage')!;
+    expect(within(cadre).getByRole('button', { name: TEXTES.partie.arreter })).toBeTruthy();
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: TEXTES.partie.pause }).disabled).toBe(true);
     // Le bilan est posé sur le manche (cadre volant) ; le dernier retour est vidé. Les nouvelles notes n'y sont pas
     // affichées (elles sont sur le manche), mais nommées pour les lecteurs d'écran.
     expect(document.querySelector('.plateau .volant .passage')).not.toBeNull();
@@ -170,7 +200,7 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     const { etat, stockage } = afficher();
     await commencer();
     await fireEvent.click(caseDuManche(reponse()));
-    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    await arreterPartie();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(TEXTES.fin.titre);
     expect(screen.getByText(TEXTES.fin.nouveauRecord)).toBeTruthy();
     expect(texte('.difficulte')).toBe('Normal');
@@ -184,7 +214,7 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     // Une partie sans meilleur score ni meilleur niveau n'est pas un record.
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.fin.continuer(1) }));
     await vi.advanceTimersByTimeAsync(3000);
-    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    await arreterPartie();
     expect(screen.queryByText(TEXTES.fin.nouveauRecord)).toBeNull();
   });
 
@@ -229,18 +259,31 @@ describe('mode 1 : notes qui tombent au toucher', () => {
     // Un premier score en facile est un record en facile, sans toucher au record du mode normal.
     await commencer();
     await fireEvent.click(caseDuManche(reponse()));
-    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
+    await arreterPartie();
     expect(texte('.difficulte')).toBe('Facile');
     expect(screen.getByText(TEXTES.fin.nouveauRecord)).toBeTruthy();
     expect(etat.progression.jeu.records.facile.niveau).toBe(1);
     expect(etat.progression.jeu.records.normal).toEqual({ score: 5000, niveau: 4 });
   });
 
-  it('arrêter pendant le compte à rebours ramène au départ sans rien enregistrer', async () => {
+  it('pause pendant le compte à rebours du départ : arrêt sans rien enregistrer, ou reprise du compte à rebours', async () => {
     const { stockage } = afficher();
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.commencer }));
+    await vi.advanceTimersByTimeAsync(1000);
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.pause }));
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(document.querySelector('.note')).toBeNull();
+    // Arrêt avant la première note : retour au départ.
     await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.arreter }));
     expect(screen.getByRole('button', { name: TEXTES.mode1.commencer })).toBeTruthy();
     expect(stockage.donnees[CLE_JOURNAL]).toBeUndefined();
+
+    // Reprise : le compte à rebours du départ repart de 3, puis la première note.
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.mode1.commencer }));
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.pause }));
+    await fireEvent.click(screen.getByRole('button', { name: TEXTES.partie.reprendre }));
+    expect(texte('.compte')).toContain('3');
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(document.querySelector('.note.attendue')).not.toBeNull();
   });
 });

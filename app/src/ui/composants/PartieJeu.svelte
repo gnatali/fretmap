@@ -8,6 +8,7 @@
   import type { Notation } from '../../music/notation';
   import { TEXTES, consigne, nomPosition, pourcent, retourEssai, retourFausse } from '../textes';
   import MancheJeu, { caseAffichee, type Effet, type MarqueCase, type NoteAffichee } from './MancheJeu.svelte';
+  import Picto from './Picto.svelte';
 
   // Partie du jeu du mode 1 (spec §5.1), reprise de l'écran de partie du POC « Notes qui tombent », sans micro :
   // compte à rebours, puis une image par requestAnimationFrame. La partie (jeu/partie.ts) décide de tout ; l'écran
@@ -33,7 +34,7 @@
     /** Niveau validé : où reprendre est enregistré. */
     onNiveau: (partie: Partie) => void;
     onFin: (journal: PartieJournal, partie: Partie) => void;
-    /** « Arrêter » pendant le compte à rebours du départ : rien n'est enregistré. */
+    /** Arrêt pendant le compte à rebours du départ (depuis la pause) : rien n'est enregistré. */
     onAnnuler: () => void;
     /** Nombre dans [0, 1[ pour le tirage (injectable pour les tests). */
     hasard?: () => number;
@@ -97,6 +98,12 @@
   let marques = $state.raw<{ cle: string; marque: MarqueCase; jusqua: number }[]>([]);
 
   const attendue = $derived(notes[0] ?? null);
+  /** Écran de pause, en plein écran : en pause, et pendant le compte à rebours de reprise (le manche reste masqué). */
+  const ecranPause = $derived(phase === 'pause' || (enPartie && phase === 'compte' && !compteNiveau));
+  let boutonReprendre = $state<HTMLButtonElement | null>(null);
+  $effect(() => {
+    if (phase === 'pause') boutonReprendre?.focus();
+  });
   const marquesParCase = $derived(Object.fromEntries(marques.map((m) => [m.cle, m.marque])));
 
   function lancerCompte(): void {
@@ -158,12 +165,22 @@
     lancerCompte();
   }
 
-  /** Pause (bouton, touche P, ou onglet en arrière-plan) ; une pause pendant le compte à rebours de reprise y revient. */
+  /**
+   * Pause (bouton, touche P, ou onglet en arrière-plan) ; une pause pendant un compte à rebours y revient. Pendant le
+   * compte à rebours du départ, la partie n'a pas commencé : seul le compte à rebours s'arrête (l'écran de pause permet
+   * alors d'annuler).
+   */
   function pauser(arrierePlan: boolean): void {
     // Au passage de niveau, la partie attend déjà « Continuer » : rien à suspendre.
-    if (!partie || partie.terminee || phase === 'pause' || phase === 'niveau') return;
+    if (partie?.terminee || phase === 'pause' || phase === 'niveau') return;
     clearTimeout(minuteur);
+    if (!partie) {
+      phase = 'pause';
+      return;
+    }
     cancelAnimationFrame(boucle);
+    // La reprise qui suit masque le manche, même après un passage de niveau.
+    compteNiveau = false;
     // La boucle repartira sans compter la durée de la pause comme une image.
     dernierT = null;
     horloge.pauser(performance.now(), arrierePlan);
@@ -328,22 +345,18 @@
         <dd class="vitesse">{pourcent(vitesse)}</dd>
       </div>
     </dl>
-    <div class="actions">
-      {#if enPartie}
-        <button
-          type="button"
-          class="secondaire pause"
-          aria-label={TEXTES.partie.pause}
-          title={TEXTES.partie.pause}
-          disabled={phase !== 'jeu'}
-          onclick={() => pauser(false)}
-        >
-          <!-- Symbole « pause » dessiné : deux barres (le caractère ⏸ est trop petit sur Android). -->
-          <span class="barres" aria-hidden="true"></span>
-        </button>
-      {/if}
-      <button type="button" class="secondaire" onclick={arreter}>{TEXTES.partie.arreter}</button>
-    </div>
+    <!-- Pas de bouton « Arrêter » pendant le jeu : on arrête depuis l'écran de pause, ou depuis le bilan d'un niveau. -->
+    <button
+      type="button"
+      class="secondaire pause"
+      aria-label={TEXTES.partie.pause}
+      title={TEXTES.partie.pause}
+      disabled={phase === 'niveau' || phase === 'pause'}
+      onclick={() => pauser(false)}
+    >
+      <!-- Symbole « pause » dessiné : deux barres (le caractère ⏸ est trop petit sur Android). -->
+      <span class="barres" aria-hidden="true"></span>
+    </button>
   </header>
 
   <p class="consigne" aria-live="polite">{attendue ? consigne(attendue.question, notation) : ''}</p>
@@ -361,20 +374,7 @@
       volant={passage && phase === 'niveau' ? bilan : undefined}
       onToucher={toucher}
     />
-    {#if enPartie && (phase === 'pause' || (phase === 'compte' && !compteNiveau))}
-      <!-- Pause et reprise : le manche est masqué, pour ne pas chercher la case hors du temps de jeu. -->
-      <div class="cache" role="group" aria-label={TEXTES.partie.enPause}>
-        {#if phase === 'pause'}
-          <p class="titre-cache">{TEXTES.partie.enPause}</p>
-          <button type="button" class="principal" onclick={reprendre}>{TEXTES.partie.reprendre}</button>
-        {:else}
-          <p class="compte-reprise" aria-live="assertive">
-            <span class="sr-only">{TEXTES.partie.repriseDans}</span>
-            {compte}
-          </p>
-        {/if}
-      </div>
-    {:else if phase === 'compte'}
+    {#if phase === 'compte' && !ecranPause}
       <p class="compte" aria-live="assertive">
         <span class="sr-only">{TEXTES.partie.compteARebours}</span>
         {compte}
@@ -391,6 +391,71 @@
     {dernierRetour?.texte ?? ''}
   </p>
 </div>
+
+{#if ecranPause}
+  <!-- Pause et reprise : tout l'écran est couvert (le manche est masqué, pour ne pas chercher la case hors du temps de
+       jeu) ; il reprend le score et la progression, avec les pictos lecture (reprendre) et stop (arrêter). -->
+  <div class="ecran-pause" role="dialog" aria-modal="true" aria-label={TEXTES.partie.enPause}>
+    <div class="contenu-pause">
+      <p class="titre-pause">{TEXTES.partie.enPause}</p>
+      <dl class="etat-pause">
+        <div class="large">
+          <dt>{TEXTES.partie.score}</dt>
+          <dd class="score">{score} <span class="multiplicateur">×{multiplicateur}</span></dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.niveau}</dt>
+          <dd class="niveau">{niveau} <span class="difficulte">· {TEXTES.difficultes[difficulte]}</span></dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.notes}</dt>
+          <dd class="notes-validees" title={TEXTES.partie.notesValidees}>
+            {notesValidees}/{notesDuNiveau}
+            <span class="barre-notes" aria-hidden="true">
+              <span style:width="{notesDuNiveau > 0 ? (100 * notesValidees) / notesDuNiveau : 0}%"></span>
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.reussite}</dt>
+          <dd class="reussite">{pourcent(reussite)}</dd>
+        </div>
+        <div>
+          <dt>{TEXTES.partie.vitesse}</dt>
+          <dd class="vitesse">{pourcent(vitesse)}</dd>
+        </div>
+      </dl>
+      {#if phase === 'pause'}
+        <div class="commandes">
+          <button
+            type="button"
+            class="principal rond grand"
+            aria-label={TEXTES.partie.reprendre}
+            title={TEXTES.partie.reprendre}
+            bind:this={boutonReprendre}
+            onclick={reprendre}
+          >
+            <Picto nom="lecture" />
+          </button>
+          <button
+            type="button"
+            class="secondaire rond grand"
+            aria-label={TEXTES.partie.arreter}
+            title={TEXTES.partie.arreter}
+            onclick={arreter}
+          >
+            <Picto nom="stop" />
+          </button>
+        </div>
+      {:else}
+        <p class="compte-reprise" aria-live="assertive">
+          <span class="sr-only">{TEXTES.partie.repriseDans}</span>
+          {compte}
+        </p>
+      {/if}
+    </div>
+  </div>
+{/if}
 
 {#snippet bilan()}
   {#if passage}
@@ -413,9 +478,20 @@
         </div>
       {/if}
       <p class="plafond">{TEXTES.partie.plafond(pourcent(passage.plafond))}</p>
-      <button type="button" class="principal continuer" onclick={continuerNiveau}>
-        {TEXTES.partie.continuerNiveau(passage.niveau + 1)}
-      </button>
+      <div class="actions-passage">
+        <button type="button" class="principal continuer" onclick={continuerNiveau}>
+          {TEXTES.partie.continuerNiveau(passage.niveau + 1)}
+        </button>
+        <button
+          type="button"
+          class="secondaire rond"
+          aria-label={TEXTES.partie.arreter}
+          title={TEXTES.partie.arreter}
+          onclick={arreter}
+        >
+          <Picto nom="stop" />
+        </button>
+      </div>
     </div>
   {/if}
 {/snippet}
@@ -435,12 +511,8 @@
     justify-content: space-between;
     gap: 0.5rem;
   }
-  .actions {
-    display: flex;
-    flex-shrink: 0;
-    gap: 0.375rem;
-  }
   .pause {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -486,35 +558,110 @@
     flex: 1;
     min-height: 0;
   }
-  .cache {
-    position: absolute;
+  /* Écran de pause : couvre tout l'écran, au-dessus du jeu. */
+  .ecran-pause {
+    position: fixed;
     inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+    background: var(--fond);
+  }
+  .contenu-pause {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 30rem;
     text-align: center;
-    background: var(--fond);
-    border: 1px solid var(--cadre);
   }
-  .cache p {
+  .contenu-pause p {
     margin: 0;
   }
-  .titre-cache {
-    font-size: 1.75rem;
+  .titre-pause {
+    font-size: 2rem;
     font-weight: 700;
   }
-  .cache .principal {
-    min-width: 12rem;
-    min-height: 52px;
-    font-size: 1.125rem;
+  .etat-pause {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    margin: 0;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--cadre);
+    border-radius: 12px;
+  }
+  .etat-pause div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.125rem;
+  }
+  .etat-pause .large {
+    grid-column: 1 / -1;
+  }
+  .etat-pause dt {
+    font-size: 0.875rem;
+  }
+  .etat-pause dd {
+    font-size: 1.375rem;
+  }
+  .etat-pause .score {
+    font-size: 2rem;
+  }
+  .difficulte {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--discret);
+  }
+  .barre-notes {
+    display: block;
+    width: 6rem;
+    height: 6px;
+    margin: 0.25rem auto 0;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--cadre);
+  }
+  .barre-notes span {
+    display: block;
+    height: 100%;
+    background: var(--juste);
+  }
+  .commandes {
+    display: flex;
+    gap: 2rem;
+  }
+  /* Bouton rond à picto (lecture, stop) : 44 px au moins (cible tactile), 72 px sur l'écran de pause. */
+  .rond {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 11px;
+    border-radius: 50%;
+  }
+  .rond.grand {
+    width: 72px;
+    height: 72px;
+    padding: 18px;
+  }
+  .secondaire.rond {
+    border: 2px solid currentColor;
   }
   .compte-reprise,
   .compte {
     font-size: 4rem;
     font-weight: 700;
+    line-height: 72px;
   }
   .compte {
     position: absolute;
@@ -547,9 +694,16 @@
     font-weight: 700;
     color: var(--juste);
   }
-  .continuer {
+  .actions-passage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     margin-top: 0.25rem;
+  }
+  .continuer {
     min-height: 48px;
+    padding: 0 1rem;
   }
   /* Peu de place (bande de 2 cases sur un petit écran) : cadre resserré. */
   @container volant (max-height: 9rem) {
@@ -563,7 +717,7 @@
     .titre-passage {
       font-size: 1.0625rem;
     }
-    .continuer {
+    .actions-passage {
       margin-top: 0.125rem;
     }
   }
